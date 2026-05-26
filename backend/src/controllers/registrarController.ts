@@ -312,9 +312,9 @@ export const getRegistrationStats = async (req: Request, res: Response): Promise
  */
 export const searchStudents = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { query } = req.query;
+    const query = String(req.query.query || '').trim();
 
-    if (!query || (query as string).length < 2) {
+    if (!query) {
       res.status(200).json({
         success: true,
         data: []
@@ -324,12 +324,12 @@ export const searchStudents = async (req: Request, res: Response): Promise<void>
 
     const students = await StudentModel.findAll({
       where: {
+        guardianId: null,
         fullName: {
-          [Op.like]: `%${query}%`
-        },
-        guardianId: null // Only show students who don't have a linked guardian yet
+          [Op.iLike]: `%${query}%`
+        }
       },
-      limit: 10
+      limit: 20
     });
 
     res.status(200).json({
@@ -345,6 +345,133 @@ export const searchStudents = async (req: Request, res: Response): Promise<void>
     });
   }
 };
+
+const parseCsvRows = (csvText: string): string[][] => {
+  const rows: string[][] = []
+  let current = ''
+  let row: string[] = []
+  let inQuotes = false
+
+  for (let i = 0; i < csvText.length; i++) {
+    const char = csvText[i]
+    const nextChar = csvText[i + 1]
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        current += '"'
+        i++
+      } else {
+        inQuotes = !inQuotes
+      }
+      continue
+    }
+
+    if (char === ',' && !inQuotes) {
+      row.push(current)
+      current = ''
+      continue
+    }
+
+    if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (char === '\r' && nextChar === '\n') {
+        i++
+      }
+      row.push(current)
+      rows.push(row)
+      row = []
+      current = ''
+      continue
+    }
+
+    current += char
+  }
+
+  if (current !== '' || row.length > 0) {
+    row.push(current)
+    rows.push(row)
+  }
+
+  return rows
+}
+
+const normalizeHeader = (value: string): string =>
+  value.trim().toLowerCase().replace(/[\s_-]+/g, '')
+
+const normalizeValue = (value: string): string =>
+  value.replace(/\uFEFF/g, '').trim()
+
+const normalizePhone = (value: string): string => {
+  let cleaned = normalizeValue(value)
+  if (/^[\d\.eE+\-]+$/.test(cleaned)) {
+    const num = Number(cleaned)
+    if (!Number.isNaN(num)) {
+      cleaned = String(Math.trunc(num))
+    }
+  }
+  return cleaned.replace(/[^(\+\d)]/g, '')
+}
+
+const normalizeClassLevel = (value: string): string =>
+  value.trim().toLowerCase().replace(/[\s_-]+/g, '')
+
+const parseDateValue = (value: string): string | null => {
+  const cleaned = normalizeValue(value)
+  if (!cleaned) return null
+
+  const excelSerial = Number(cleaned)
+  if (!Number.isNaN(excelSerial) && /^\d+(\.0+)?$/.test(cleaned)) {
+    if (excelSerial > 31 && excelSerial < 60000) {
+      const epoch = Date.UTC(1899, 11, 30)
+      const dt = new Date(epoch + excelSerial * 86400000)
+      if (!Number.isNaN(dt.getTime())) {
+        return dt.toISOString().slice(0, 10)
+      }
+    }
+  }
+
+  const isoDate = new Date(cleaned)
+  if (!Number.isNaN(isoDate.getTime())) {
+    return isoDate.toISOString().slice(0, 10)
+  }
+
+  const parts = cleaned.split(/[\/\-.]/).map((p) => Number(p))
+  if (parts.length === 3 && parts.every((n) => !Number.isNaN(n))) {
+    let [part1, part2, part3] = parts
+    let year = part3
+    let month = part2
+    let day = part1
+
+    if (year < 100) {
+      year += year < 50 ? 2000 : 1900
+    }
+
+    if (month > 12 && day <= 12) {
+      month = part1
+      day = part2
+    }
+
+    const dt = new Date(Date.UTC(year, month - 1, day))
+    if (!Number.isNaN(dt.getTime())) {
+      return dt.toISOString().slice(0, 10)
+    }
+  }
+
+  return null
+}
+
+const findClassroomId = async (classLevelStr: string): Promise<number | null> => {
+  const exact = await ClassroomModel.findOne({
+    where: { classLevel: { [Op.iLike]: classLevelStr } } as any
+  })
+  if (exact) return (exact as any).classId
+
+  const normalizedInput = normalizeClassLevel(classLevelStr)
+  const allClasses = await ClassroomModel.findAll()
+  const match = allClasses.find((c: any) => normalizeClassLevel(c.classLevel) === normalizedInput)
+  if (match) return (match as any).classId
+
+  return null
+}
 
 /**
  * Bulk import students from a CSV file (multipart/form-data, field name: "file")
@@ -365,9 +492,9 @@ export const importStudentsCSV = async (req: Request, res: Response): Promise<vo
     }
 
     const csvText = req.file.buffer.toString('utf-8');
-    const lines = csvText.split(/\r?\n/).filter((l: string) => l.trim() !== '');
+    const rows = parseCsvRows(csvText).filter((row) => row.some((cell) => normalizeValue(cell) !== ''))
 
-    if (lines.length < 2) {
+    if (rows.length < 2) {
       res.status(400).json({
         success: false,
         error: { code: 'EMPTY_CSV', message: 'CSV file must have a header row and at least one data row.' }
@@ -375,88 +502,84 @@ export const importStudentsCSV = async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    // Normalise header names
-    const headers = lines[0].split(',').map((h: string) =>
-      h.trim().toLowerCase().replace(/[\s_-]+/g, '')
-    );
+    const headers = rows[0].map(normalizeHeader)
 
     const getField = (cols: string[], keys: string[]): string => {
       for (const key of keys) {
-        const idx = headers.indexOf(key);
-        if (idx !== -1 && cols[idx]) return cols[idx].trim();
+        const idx = headers.indexOf(key)
+        if (idx !== -1 && cols[idx]) return normalizeValue(cols[idx])
       }
-      return '';
-    };
+      return ''
+    }
 
-    const results = { successful: 0, duplicates: 0, failed: 0, errors: [] as string[] };
+    const results = {
+      successful: 0,
+      duplicates: 0,
+      failed: 0,
+      errors: [] as string[],
+      created: [] as Array<{ studentId: number; fullName: string; classId: number }>
+    }
 
-    for (let i = 1; i < lines.length; i++) {
-      const cols = lines[i].split(',').map((c: string) => c.trim());
-
-      // Name resolution
-      const firstName    = getField(cols, ['firstname', 'first']);
-      const lastName     = getField(cols, ['lastname', 'last']);
-      const fullName     = getField(cols, ['fullname', 'name']) || `${firstName} ${lastName}`.trim();
-
-      // Other fields — map to actual DB column names
-      const dob              = getField(cols, ['dob', 'dateofbirth', 'birthdate', 'dateofbirth']);
-      const emergencyContact = getField(cols, ['emergencycontact', 'contact', 'phone', 'emergency']) || 'N/A';
-      const classLevelStr    = getField(cols, ['classlevel', 'classroom', 'class', 'grade', 'level']);
+    for (let rowIndex = 1; rowIndex < rows.length; rowIndex++) {
+      const cols = rows[rowIndex]
+      const firstName = getField(cols, ['firstname', 'first'])
+      const lastName = getField(cols, ['lastname', 'last'])
+      const fullName = getField(cols, ['fullname', 'name']) || `${firstName} ${lastName}`.trim()
+      const rawDob = getField(cols, ['dob', 'dateofbirth', 'birthdate'])
+      const rawEmergencyContact = getField(cols, ['emergencycontact', 'contact', 'phone', 'emergency'])
+      const classLevelStr = getField(cols, ['classlevel', 'classroom', 'class', 'grade', 'level'])
+      const rowNumber = rowIndex + 1
 
       if (!fullName) {
-        results.failed++;
-        results.errors.push(`Row ${i + 1}: missing student name`);
-        continue;
+        results.failed++
+        results.errors.push(`Row ${rowNumber}: missing student name`)
+        continue
       }
 
+      const dob = parseDateValue(rawDob)
       if (!dob) {
-        results.failed++;
-        results.errors.push(`Row ${i + 1} (${fullName}): missing date of birth (dob)`);
-        continue;
+        results.failed++
+        results.errors.push(`Row ${rowNumber} (${fullName}): invalid or missing date of birth (dob) value "${rawDob}"`)
+        continue
+      }
+
+      const emergencyContact = rawEmergencyContact ? normalizePhone(rawEmergencyContact) : 'N/A'
+      if (!classLevelStr) {
+        results.failed++
+        results.errors.push(`Row ${rowNumber} (${fullName}): missing classLevel/classroom column`)
+        continue
       }
 
       try {
-        // Look up an existing classroom — we cannot auto-create because teacherId is required
-        let classId: number | null = null;
-        if (classLevelStr) {
-          const classroom = await ClassroomModel.findOne({
-            where: { classLevel: classLevelStr } as any
-          });
-          if (classroom) {
-            classId = (classroom as any).classId;
-          } else {
-            results.failed++;
-            results.errors.push(`Row ${i + 1} (${fullName}): classroom "${classLevelStr}" not found`);
-            continue;
-          }
-        } else {
-          results.failed++;
-          results.errors.push(`Row ${i + 1} (${fullName}): missing classLevel/classroom column`);
-          continue;
+        const classId = await findClassroomId(classLevelStr)
+        if (!classId) {
+          results.failed++
+          results.errors.push(`Row ${rowNumber} (${fullName}): classroom "${classLevelStr}" not found`)
+          continue
         }
 
-        // Duplicate check: same fullName + dob
         const existing = await StudentModel.findOne({
           where: { fullName, dob } as any
-        });
+        })
 
         if (existing) {
-          results.duplicates++;
-          continue;
+          results.duplicates++
+          continue
         }
 
-        await StudentModel.create({
+        const student = await StudentModel.create({
           fullName,
           dob,
           emergencyContact,
           classId,
           guardianId: null
-        } as any);
+        } as any)
 
-        results.successful++;
+        results.successful++
+        results.created.push({ studentId: student.studentId, fullName: student.fullName, classId: student.classId })
       } catch (rowError: any) {
-        results.failed++;
-        results.errors.push(`Row ${i + 1} (${fullName}): ${rowError.message}`);
+        results.failed++
+        results.errors.push(`Row ${rowNumber} (${fullName}): ${rowError.message}`)
       }
     }
 
@@ -464,14 +587,13 @@ export const importStudentsCSV = async (req: Request, res: Response): Promise<vo
       success: true,
       data: results,
       message: `Import complete: ${results.successful} added, ${results.duplicates} duplicates skipped, ${results.failed} failed.`
-    });
-
+    })
   } catch (error) {
-    logger.error('Import students CSV error:', error);
+    logger.error('Import students CSV error:', error)
     res.status(500).json({
       success: false,
       error: { code: 'IMPORT_ERROR', message: 'Failed to import students from CSV.' }
-    });
+    })
   }
 };
 

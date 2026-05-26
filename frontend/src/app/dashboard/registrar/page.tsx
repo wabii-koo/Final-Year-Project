@@ -300,12 +300,33 @@ export default function RegistrarDashboard() {
                 )}
 
                 {uploadResult && (
-                  <div className="p-4 bg-green-50 rounded-2xl border border-green-200">
-                    <p className="text-sm font-bold text-green-800 mb-2">Upload Successful!</p>
+                  <div className="p-4 bg-green-50 rounded-2xl border border-green-200 space-y-3">
+                    <p className="text-sm font-bold text-green-800">Upload Completed</p>
                     <p className="text-xs text-green-700">
-                      {uploadResult.successful} students imported successfully
-                      {uploadResult.duplicates > 0 && `, ${uploadResult.duplicates} duplicates skipped`}
+                      {uploadResult.data.successful} students imported successfully
+                      {uploadResult.data.duplicates > 0 && `, ${uploadResult.data.duplicates} duplicates skipped`}
+                      {uploadResult.data.failed > 0 && `, ${uploadResult.data.failed} failed`}
                     </p>
+                    {uploadResult.data.created?.length > 0 && (
+                      <div className="text-xs text-green-700">
+                        <p className="font-bold">Created students:</p>
+                        <ul className="list-disc list-inside mt-2">
+                          {uploadResult.data.created.map((student: any) => (
+                            <li key={student.studentId}>{student.fullName}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {uploadResult.data.errors?.length > 0 && (
+                      <div className="text-xs text-amber-700">
+                        <p className="font-bold">Import warnings/errors:</p>
+                        <ul className="list-disc list-inside mt-2 max-h-32 overflow-auto">
+                          {uploadResult.data.errors.map((error: string, index: number) => (
+                            <li key={index}>{error}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 )}
 
