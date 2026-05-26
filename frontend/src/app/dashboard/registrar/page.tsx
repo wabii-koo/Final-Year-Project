@@ -117,7 +117,12 @@ export default function RegistrarDashboard() {
       const response = await studentImportAPI.importStudents(file)
       setUploadResult(response.data)
     } catch (error: any) {
-      setUploadError(error.response?.data?.message || 'Failed to upload CSV file')
+      const errorMessage =
+        error.response?.data?.error?.message ||
+        error.response?.data?.message ||
+        error.message ||
+        'Failed to upload CSV file'
+      setUploadError(errorMessage)
     } finally {
       setUploading(false)
     }
