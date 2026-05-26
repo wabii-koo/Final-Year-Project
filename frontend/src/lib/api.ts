@@ -212,4 +212,17 @@ export const guardiansAPI = {
     api.put(`/api/guardians/registrations/${registrationId}/reject`, { rejectionReason }),
 }
 
+// Student Import API
+export const studentImportAPI = {
+  importStudents: (file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return api.post('/api/registration/registrar/students/import', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+  },
+}
+
 export default api

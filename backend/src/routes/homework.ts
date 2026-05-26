@@ -11,6 +11,9 @@ router.use(authenticateToken);
 // GET /api/homework - View homework (role-based filtering)
 router.get('/', new HomeworkController().getHomework);
 
+// GET /api/homework/:id - View homework details
+router.get('/:id', new HomeworkController().getHomeworkById);
+
 // POST /api/homework - Create homework (Subject Teacher only)
 router.post('/', validate(schemas.homework), new HomeworkController().createHomework);
 

@@ -37,7 +37,7 @@ export default function HomeworkList({ role, userId, classId }: HomeworkListProp
           return
         }
 
-        let url = 'http://localhost:3000/api/homework'
+        let url = '/api/homework'
         if (role === 'teacher' && userId) {
           url += `?teacherId=${userId}`
         } else if (role === 'homeroom_teacher' && classId) {

@@ -13,8 +13,11 @@ import {
   AlertCircle,
   Leaf,
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  Upload,
+  Download
 } from 'lucide-react'
+import { studentImportAPI } from '@/lib/api'
 
 interface UserData {
   userId: number
@@ -47,6 +50,9 @@ export default function RegistrarDashboard() {
     totalGuardians: 0,
     recentActivity: []
   })
+  const [uploading, setUploading] = useState(false)
+  const [uploadResult, setUploadResult] = useState<any>(null)
+  const [uploadError, setUploadError] = useState<string>('')
   const router = useRouter()
 
   useEffect(() => {
@@ -97,6 +103,35 @@ export default function RegistrarDashboard() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+    setUploadError('')
+    setUploadResult(null)
+
+    try {
+      const response = await studentImportAPI.importStudents(file)
+      setUploadResult(response.data)
+    } catch (error: any) {
+      setUploadError(error.response?.data?.message || 'Failed to upload CSV file')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const downloadCSVTemplate = () => {
+    const csvContent = `fullName,dob,emergencyContact,classLevel\nJohn Doe,2015-05-15,+251911000000,Grade 1-A\nJane Smith,2016-08-20,+251922000000,Grade 2-B`
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'students_template.csv'
+    a.click()
+    window.URL.revokeObjectURL(url)
   }
 
   if (loading) {
@@ -226,6 +261,60 @@ export default function RegistrarDashboard() {
                     <span className="font-bold text-brand-heading text-sm">{action.label}</span>
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* CSV Upload Section */}
+            <div className="bg-brand-white rounded-[3rem] shadow-xl shadow-brand-primary/5 border border-brand-100 p-8 flex flex-col">
+              <h3 className="text-2xl font-black text-brand-heading mb-6 flex items-center gap-3">
+                <Upload className="text-brand-primary" />
+                Import Students
+              </h3>
+              
+              <div className="space-y-4">
+                <button
+                  onClick={downloadCSVTemplate}
+                  className="w-full flex items-center gap-3 p-4 bg-brand-bg rounded-2xl border border-brand-100 hover:scale-[1.02] active:scale-95 transition-all"
+                >
+                  <div className="p-2 rounded-lg bg-brand-secondary text-white">
+                    <Download size={18} />
+                  </div>
+                  <span className="font-bold text-brand-heading text-sm">Download CSV Template</span>
+                </button>
+
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={handleFileUpload}
+                    disabled={uploading}
+                    className="w-full p-4 bg-brand-bg rounded-2xl border-2 border-dashed border-brand-200 hover:border-brand-primary transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-brand-primary file:text-white file:font-bold file:text-xs file:uppercase file:tracking-wider hover:file:bg-brand-accent"
+                  />
+                </div>
+
+                {uploading && (
+                  <div className="flex items-center gap-3 p-4 bg-brand-bg rounded-2xl border border-brand-100">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-brand-primary"></div>
+                    <span className="text-sm font-bold text-brand-text">Uploading CSV file...</span>
+                  </div>
+                )}
+
+                {uploadResult && (
+                  <div className="p-4 bg-green-50 rounded-2xl border border-green-200">
+                    <p className="text-sm font-bold text-green-800 mb-2">Upload Successful!</p>
+                    <p className="text-xs text-green-700">
+                      {uploadResult.successful} students imported successfully
+                      {uploadResult.duplicates > 0 && `, ${uploadResult.duplicates} duplicates skipped`}
+                    </p>
+                  </div>
+                )}
+
+                {uploadError && (
+                  <div className="p-4 bg-red-50 rounded-2xl border border-red-200">
+                    <p className="text-sm font-bold text-red-800">Upload Failed</p>
+                    <p className="text-xs text-red-700 mt-1">{uploadError}</p>
+                  </div>
+                )}
               </div>
             </div>
 

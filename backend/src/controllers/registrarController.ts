@@ -15,7 +15,7 @@ import { Op } from 'sequelize';
 export const getPendingRegistrations = async (req: Request, res: Response): Promise<void> => {
   try {
     const { status, page = 1, limit = 20 } = req.query;
-    
+
     const whereClause: any = {};
     if (status) {
       whereClause.status = status;
@@ -236,7 +236,7 @@ export const rejectRegistration = async (req: Request, res: Response): Promise<v
 
     res.status(200).json({
       success: true,
-      message: requestCorrection 
+      message: requestCorrection
         ? 'Correction requested. Guardian has been notified.'
         : 'Registration rejected.',
       data: {
@@ -342,6 +342,135 @@ export const searchStudents = async (req: Request, res: Response): Promise<void>
     res.status(500).json({
       success: false,
       error: { code: 'SEARCH_ERROR', message: 'Failed to search students' }
+    });
+  }
+};
+
+/**
+ * Bulk import students from a CSV file (multipart/form-data, field name: "file")
+ * CSV columns (flexible naming supported):
+ *   fullName / full_name / firstName+lastName
+ *   dob / dateOfBirth / date_of_birth / birthdate
+ *   emergencyContact / emergency_contact / contact (default: 'N/A')
+ *   classLevel / class_level / classroom / grade  (must match existing Classroom.classLevel)
+ */
+export const importStudentsCSV = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.file) {
+      res.status(400).json({
+        success: false,
+        error: { code: 'NO_FILE', message: 'No CSV file uploaded. Send the file in a field named "file".' }
+      });
+      return;
+    }
+
+    const csvText = req.file.buffer.toString('utf-8');
+    const lines = csvText.split(/\r?\n/).filter((l: string) => l.trim() !== '');
+
+    if (lines.length < 2) {
+      res.status(400).json({
+        success: false,
+        error: { code: 'EMPTY_CSV', message: 'CSV file must have a header row and at least one data row.' }
+      });
+      return;
+    }
+
+    // Normalise header names
+    const headers = lines[0].split(',').map((h: string) =>
+      h.trim().toLowerCase().replace(/[\s_-]+/g, '')
+    );
+
+    const getField = (cols: string[], keys: string[]): string => {
+      for (const key of keys) {
+        const idx = headers.indexOf(key);
+        if (idx !== -1 && cols[idx]) return cols[idx].trim();
+      }
+      return '';
+    };
+
+    const results = { successful: 0, duplicates: 0, failed: 0, errors: [] as string[] };
+
+    for (let i = 1; i < lines.length; i++) {
+      const cols = lines[i].split(',').map((c: string) => c.trim());
+
+      // Name resolution
+      const firstName    = getField(cols, ['firstname', 'first']);
+      const lastName     = getField(cols, ['lastname', 'last']);
+      const fullName     = getField(cols, ['fullname', 'name']) || `${firstName} ${lastName}`.trim();
+
+      // Other fields — map to actual DB column names
+      const dob              = getField(cols, ['dob', 'dateofbirth', 'birthdate', 'dateofbirth']);
+      const emergencyContact = getField(cols, ['emergencycontact', 'contact', 'phone', 'emergency']) || 'N/A';
+      const classLevelStr    = getField(cols, ['classlevel', 'classroom', 'class', 'grade', 'level']);
+
+      if (!fullName) {
+        results.failed++;
+        results.errors.push(`Row ${i + 1}: missing student name`);
+        continue;
+      }
+
+      if (!dob) {
+        results.failed++;
+        results.errors.push(`Row ${i + 1} (${fullName}): missing date of birth (dob)`);
+        continue;
+      }
+
+      try {
+        // Look up an existing classroom — we cannot auto-create because teacherId is required
+        let classId: number | null = null;
+        if (classLevelStr) {
+          const classroom = await ClassroomModel.findOne({
+            where: { classLevel: classLevelStr } as any
+          });
+          if (classroom) {
+            classId = (classroom as any).classId;
+          } else {
+            results.failed++;
+            results.errors.push(`Row ${i + 1} (${fullName}): classroom "${classLevelStr}" not found`);
+            continue;
+          }
+        } else {
+          results.failed++;
+          results.errors.push(`Row ${i + 1} (${fullName}): missing classLevel/classroom column`);
+          continue;
+        }
+
+        // Duplicate check: same fullName + dob
+        const existing = await StudentModel.findOne({
+          where: { fullName, dob } as any
+        });
+
+        if (existing) {
+          results.duplicates++;
+          continue;
+        }
+
+        await StudentModel.create({
+          fullName,
+          dob,
+          emergencyContact,
+          classId,
+          guardianId: null
+        } as any);
+
+        results.successful++;
+      } catch (rowError: any) {
+        results.failed++;
+        results.errors.push(`Row ${i + 1} (${fullName}): ${rowError.message}`);
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: results,
+      message: `Import complete: ${results.successful} added, ${results.duplicates} duplicates skipped, ${results.failed} failed.`
+    });
+
+  } catch (error) {
+    logger.error('Import students CSV error:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'IMPORT_ERROR', message: 'Failed to import students from CSV.' }
     });
   }
 };

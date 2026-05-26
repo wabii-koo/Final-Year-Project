@@ -17,7 +17,8 @@ import {
   approveRegistration,
   rejectRegistration,
   getRegistrationStats,
-  searchStudents
+  searchStudents,
+  importStudentsCSV
 } from '../controllers/registrarController';
 
 const router = Router();
@@ -48,6 +49,23 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024 // 5MB limit
   },
   fileFilter
+});
+
+// Separate multer instance for CSV imports (memory storage, CSV-only)
+const csvFileFilter = (req: any, file: any, cb: any) => {
+  const allowedTypes = ['text/csv', 'application/csv', 'application/vnd.ms-excel', 'text/plain'];
+  const isCSV = allowedTypes.includes(file.mimetype) || file.originalname.toLowerCase().endsWith('.csv');
+  if (isCSV) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only CSV files are allowed.'), false);
+  }
+};
+
+const csvUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB for CSV
+  fileFilter: csvFileFilter
 });
 
 // Public routes - no authentication required
@@ -98,6 +116,14 @@ router.get(
   authenticateToken,
   checkRole([UserRole.REGISTRAR]),
   searchStudents
+);
+
+router.post(
+  '/registrar/students/import',
+  authenticateToken,
+  checkRole([UserRole.REGISTRAR]),
+  csvUpload.single('file'),
+  importStudentsCSV
 );
 
 router.get(

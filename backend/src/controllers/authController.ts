@@ -97,7 +97,7 @@ export class AuthController {
         if (staff.password === password && (staff.role === mappedRole || isHomeroomTeacherAsTeacher)) {
           // Staff login successful
           const authUser: AuthUser = {
-            userId: staff.role === 'director' ? 1 : staff.role === 'registrar' ? 2 : staff.role === 'teacher' ? 2 : 4,
+            userId: staff.role === 'director' ? 1 : staff.role === 'registrar' ? 2 : staff.role === 'teacher' ? 3 : 4,
             email,
             role: staff.role as UserRole,
             fullName: staff.fullName,
