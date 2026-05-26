@@ -1,74 +1,77 @@
-'use client'
+"use client";
 
-import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import { 
-  User, 
-  Lock, 
-  Eye, 
-  EyeOff, 
-  GraduationCap, 
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import {
+  User,
+  Lock,
+  Eye,
+  EyeOff,
+  GraduationCap,
   ChevronRight,
   Menu,
-  Leaf
-} from 'lucide-react'
-import { Button } from '../../../components/ui/Button'
+  Leaf,
+} from "lucide-react";
+import { Button } from "../../../components/ui/Button";
 
-type Role = 'Parent' | 'Teacher' | 'Registrar' | 'Director'
+type Role = "Parent" | "Teacher" | "Registrar" | "Director";
 
 function LoginContent() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [activeRole, setActiveRole] = useState<Role>('Parent')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const router = useRouter()
-  const searchParams = useSearchParams()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [activeRole, setActiveRole] = useState<Role>("Parent");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const roles: Role[] = ['Parent', 'Teacher', 'Registrar', 'Director']
+  const roles: Role[] = ["Parent", "Teacher", "Registrar", "Director"];
 
   useEffect(() => {
-    const roleParam = searchParams.get('role')
+    const roleParam = searchParams.get("role");
     if (roleParam) {
-      const formattedRole = roleParam.charAt(0).toUpperCase() + roleParam.slice(1).toLowerCase()
+      const formattedRole =
+        roleParam.charAt(0).toUpperCase() + roleParam.slice(1).toLowerCase();
       if (roles.includes(formattedRole as Role)) {
-        setActiveRole(formattedRole as Role)
+        setActiveRole(formattedRole as Role);
       }
     }
-  }, [searchParams])
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
     try {
-      const roleValue = activeRole.toLowerCase()
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
+      const roleValue = activeRole.toLowerCase();
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password, role: roleValue }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (data.success) {
-        localStorage.setItem('token', data.data.token)
-        localStorage.setItem('user', JSON.stringify(data.data.user))
-        router.push('/dashboard')
+        localStorage.setItem("token", data.data.token);
+        localStorage.setItem("user", JSON.stringify(data.data.user));
+        router.push("/dashboard");
       } else {
-        setError(data.error?.message || 'Login failed. Please check your credentials.')
+        setError(
+          data.error?.message || "Login failed. Please check your credentials.",
+        );
       }
     } catch (err) {
-      setError('A network error occurred. Please try again later.')
+      setError("A network error occurred. Please try again later.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-brand-bg flex flex-col font-sans">
@@ -85,7 +88,10 @@ function LoginContent() {
           </div>
           <div className="flex items-center gap-2">
             <Leaf className="text-white/40 w-5 h-5 hidden md:block" />
-            <button className="text-white p-2 hover:bg-white/10 rounded-lg transition-colors">
+            <button
+              aria-label="Open menu"
+              className="text-white p-2 hover:bg-white/10 rounded-lg transition-colors"
+            >
               <Menu className="w-6 h-6" />
             </button>
           </div>
@@ -104,15 +110,15 @@ function LoginContent() {
                   key={role}
                   type="button"
                   onClick={() => {
-                    setActiveRole(role)
-                    setEmail('')
-                    setPassword('')
-                    setError('')
+                    setActiveRole(role);
+                    setEmail("");
+                    setPassword("");
+                    setError("");
                   }}
                   className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap ${
-                    activeRole === role 
-                    ? 'bg-brand-primary text-white shadow-md' 
-                    : 'text-brand-text hover:text-brand-primary'
+                    activeRole === role
+                      ? "bg-brand-primary text-white shadow-md"
+                      : "text-brand-text hover:text-brand-primary"
                   }`}
                 >
                   {role}
@@ -163,7 +169,7 @@ function LoginContent() {
                     <Lock className="h-5 w-5 text-brand-primary group-focus-within:text-brand-primary transition-colors" />
                   </div>
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
@@ -175,7 +181,11 @@ function LoginContent() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute inset-y-0 right-0 pr-4 flex items-center text-brand-primary hover:text-brand-primary transition-colors"
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -186,16 +196,26 @@ function LoginContent() {
                   <div className="relative">
                     <input type="checkbox" className="sr-only peer" />
                     <div className="w-5 h-5 border-2 border-brand-200 rounded-lg peer-checked:bg-brand-primary peer-checked:border-brand-primary transition-all" />
-                    <svg className="absolute w-3.5 h-3.5 text-white left-[3px] top-[3px] opacity-0 peer-checked:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                    <svg
+                      className="absolute w-3.5 h-3.5 text-white left-[3px] top-[3px] opacity-0 peer-checked:opacity-100 transition-opacity"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="3"
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   </div>
                   <span className="ml-2.5 text-sm font-bold text-brand-text group-hover:text-brand-primary transition-colors">
                     Remember me
                   </span>
                 </label>
-                <Link 
-                  href="/auth/forgot-password" 
+                <Link
+                  href="/auth/forgot-password"
                   className="text-sm font-semibold text-brand-primary hover:text-brand-primaryHover transition-colors"
                 >
                   Forgot Password?
@@ -209,52 +229,67 @@ function LoginContent() {
                 className="w-full inline-flex items-center justify-center gap-3 rounded-full border border-brand-primary/20 bg-white text-brand-heading font-black text-lg py-4 shadow-xl shadow-brand-primary/10 hover:bg-brand-primary/5 transition-all disabled:opacity-50"
               >
                 {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin -ml-1 h-5 w-5 text-brand-primary" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  <span className="flex items-center justify-center">
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
                     </svg>
                     Signing in...
                   </span>
                 ) : (
-                  <>
-                    <User className="w-5 h-5 text-brand-primary" />
-                    Sign In
-                  </>
+                  "Sign In"
                 )}
               </Button>
 
-              {/* Register Footer */}
-              <div className="pt-4 text-center">
-                <p className="text-gray-500 font-medium">
-                  Don't have an account?{' '}
-                  <Link 
-                    href="/auth/register" 
-                    className="text-brand-primary font-bold hover:underline underline-offset-4"
-                  >
-                    Register free
-                  </Link>
-                </p>
-              </div>
+              {/* Register Footer - Only visible when Parent tab is active */}
+              {activeRole === "Parent" && (
+                <div className="pt-4 text-center">
+                  <p className="text-gray-500 font-medium">
+                    Don't have an account?{" "}
+                    <Link
+                      href="/auth/register"
+                      className="text-brand-primary font-bold hover:underline underline-offset-4"
+                    >
+                      Register free
+                    </Link>
+                  </p>
+                </div>
+              )}
             </form>
           </div>
         </div>
       </main>
-
     </div>
-  )
+  );
 }
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-brand-bg flex items-center justify-center">
-        <div className="animate-pulse text-brand-primary font-black text-xl px-4 uppercase tracking-tighter">
-          Loading Digital School...
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-brand-bg flex items-center justify-center">
+          <div className="animate-pulse text-brand-primary font-black text-xl px-4 uppercase tracking-tighter">
+            Loading Digital School...
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <LoginContent />
     </Suspense>
-  )
+  );
 }
