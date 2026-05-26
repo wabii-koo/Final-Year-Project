@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
+  User,
   GraduationCap,
   Leaf,
   Menu,
@@ -85,7 +86,8 @@ export default function HomePage() {
             ))}
 
             <Link href="/auth/login">
-              <Button className="bg-white hover:bg-brand-accent !text-brand-heading font-black px-6 py-2 rounded-xl shadow-lg transition-all">
+              <Button className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 text-white font-black px-6 py-2 shadow-lg shadow-black/10 hover:bg-white/20 transition-all">
+                <User className="w-4 h-4" />
                 Sign In
               </Button>
             </Link>
@@ -113,7 +115,8 @@ export default function HomePage() {
               </button>
             ))}
             <Link href="/auth/login" className="w-full">
-              <Button className="w-full bg-linear-to-r from-brand-primary to-brand-accent text-white font-black py-4 rounded-2xl">
+              <Button className="w-full inline-flex items-center justify-center gap-2 rounded-full border border-brand-primary/20 bg-white text-brand-heading font-black py-4 hover:bg-brand-primary/5 transition-all">
+                <User className="w-5 h-5" />
                 Login
               </Button>
             </Link>

@@ -145,11 +145,11 @@ export const validateRegistration = async (req: Request, res: Response): Promise
       }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Validate registration error:', error);
     res.status(500).json({
       success: false,
-      error: { code: 'VALIDATION_ERROR', message: 'Failed to validate registration' }
+      error: { code: 'VALIDATION_ERROR', message: error?.message || 'Failed to validate registration' }
     });
   }
 };
