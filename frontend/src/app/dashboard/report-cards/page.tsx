@@ -43,7 +43,8 @@ export default function ReportCardsPage() {
           return
         }
 
-        const response = await fetch('/api/report-cards', {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+        const response = await fetch(`${apiUrl}/api/report-cards`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -68,7 +69,8 @@ export default function ReportCardsPage() {
   const handleApprove = async (id: number) => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`/api/report-cards/${id}/approve`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${apiUrl}/api/report-cards/${id}/approve`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -89,7 +91,8 @@ export default function ReportCardsPage() {
   const handleReject = async (id: number) => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`/api/report-cards/${id}/reject`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${apiUrl}/api/report-cards/${id}/reject`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

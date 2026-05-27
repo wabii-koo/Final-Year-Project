@@ -81,10 +81,12 @@ export default function HomeworkDetailPage() {
         setUserRole(userData.role)
         setUserId(userData.userId)
 
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+
         // 1. Mark as viewed ONLY if guardian
         if (userData.role === 'guardian') {
           try {
-            await fetch(`/api/homework/${homeworkId}/view`, {
+            await fetch(`${apiUrl}/api/homework/${homeworkId}/view`, {
               method: 'POST',
               headers: { 'Authorization': `Bearer ${token}` }
             })
@@ -95,7 +97,7 @@ export default function HomeworkDetailPage() {
         }
 
         // 2. Get homework details
-        const response = await fetch(`/api/homework/${homeworkId}`, {
+        const response = await fetch(`${apiUrl}/api/homework/${homeworkId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
 
@@ -109,7 +111,7 @@ export default function HomeworkDetailPage() {
 
         // 3. Get analytics/feedbacks if teacher/homeroom_teacher
         if (userData.role === 'teacher' || userData.role === 'homeroom_teacher') {
-          const analyticsRes = await fetch(`/api/homework/${homeworkId}/analytics`, {
+          const analyticsRes = await fetch(`${apiUrl}/api/homework/${homeworkId}/analytics`, {
             headers: { 'Authorization': `Bearer ${token}` }
           })
           if (analyticsRes.ok) {
@@ -139,7 +141,8 @@ export default function HomeworkDetailPage() {
         return
       }
 
-      const response = await fetch(`/api/homework/${homeworkId}/feedback`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${apiUrl}/api/homework/${homeworkId}/feedback`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

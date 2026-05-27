@@ -25,7 +25,8 @@ export default function ForgotPasswordPage() {
     setMessage('')
 
     try {
-      const response = await fetch('/api/auth/forgot-password', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${apiUrl}/api/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -59,7 +60,8 @@ export default function ForgotPasswordPage() {
     setError('')
 
     try {
-      const response = await fetch('/api/auth/reset-password', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${apiUrl}/api/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, newPassword }),

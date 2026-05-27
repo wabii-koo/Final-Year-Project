@@ -109,11 +109,12 @@ export default function GuardianDashboard() {
         ...(token && { 'Authorization': `Bearer ${token}` })
       }
 
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
       const [studentsRes, notificationsRes, homeworkRes, pickupRes] = await Promise.all([
-        fetch('/api/students/my-children', { headers }),
-        fetch('/api/notifications', { headers }),
-        fetch('/api/homework', { headers }),
-        fetch('/api/pickup', { headers })
+        fetch(`${apiUrl}/api/students/my-children`, { headers }),
+        fetch(`${apiUrl}/api/notifications`, { headers }),
+        fetch(`${apiUrl}/api/homework`, { headers }),
+        fetch(`${apiUrl}/api/pickup`, { headers })
       ])
 
       if (studentsRes.ok) {

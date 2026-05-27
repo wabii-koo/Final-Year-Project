@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 // API endpoints based on document specifications
-const API_BASE = '/api/teacher'
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+const API_BASE = `${apiUrl}/api/teacher`
 
 // Types based on database schema
 interface Class {

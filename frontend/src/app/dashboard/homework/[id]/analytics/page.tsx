@@ -56,7 +56,8 @@ export default function HomeworkAnalyticsPage() {
           return
         }
 
-        const response = await fetch(`/api/homework/${homeworkId}/analytics`, {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+        const response = await fetch(`${apiUrl}/api/homework/${homeworkId}/analytics`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -89,7 +90,8 @@ export default function HomeworkAnalyticsPage() {
         return
       }
 
-      const response = await fetch(`/api/homework/export?homeworkId=${homeworkId}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${apiUrl}/api/homework/export?homeworkId=${homeworkId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

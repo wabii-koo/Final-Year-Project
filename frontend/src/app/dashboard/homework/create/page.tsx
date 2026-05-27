@@ -132,7 +132,8 @@ export default function CreateHomeworkPage() {
         return
       }
 
-      const response = await fetch('/api/homework', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${apiUrl}/api/homework`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

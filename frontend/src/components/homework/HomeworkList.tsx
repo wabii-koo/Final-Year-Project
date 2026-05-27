@@ -58,7 +58,8 @@ export default function HomeworkList({ role, userId, classId }: HomeworkListProp
           return
         }
 
-        let url = '/api/homework'
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+        let url = `${apiUrl}/api/homework`
         if (role === 'teacher' && userId) {
           url += `?teacherId=${userId}`
         } else if (role === 'homeroom_teacher' && classId) {

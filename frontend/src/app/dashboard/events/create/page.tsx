@@ -41,7 +41,8 @@ export default function CreateEventPage() {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('/api/events', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${apiUrl}/api/events`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
