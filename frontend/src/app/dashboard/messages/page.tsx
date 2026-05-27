@@ -32,7 +32,8 @@ export default function MessagesPage() {
   const fetchMessages = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:3000/api/messages', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${apiUrl}/api/messages`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -52,7 +53,8 @@ export default function MessagesPage() {
   const fetchConversations = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:3000/api/messages/conversations', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${apiUrl}/api/messages/conversations`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -75,7 +77,8 @@ export default function MessagesPage() {
       const token = localStorage.getItem('token')
       const receiverId = conversations.find(c => c.userId === selectedConversation)?.userId
 
-      const response = await fetch('http://localhost:3000/api/messages', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${apiUrl}/api/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -101,7 +104,8 @@ export default function MessagesPage() {
   const markAsRead = async (messageId: number) => {
     try {
       const token = localStorage.getItem('token')
-      await fetch(`http://localhost:3000/api/messages/${messageId}/read`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      await fetch(`${apiUrl}/api/messages/${messageId}/read`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

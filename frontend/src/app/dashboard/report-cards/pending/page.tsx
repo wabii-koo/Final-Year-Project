@@ -41,7 +41,8 @@ export default function PendingReportCardsPage() {
         return
       }
 
-      const response = await fetch('http://localhost:3000/api/admin/report-cards/pending', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${apiUrl}/api/admin/report-cards/pending`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -65,7 +66,8 @@ export default function PendingReportCardsPage() {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:3000/api/admin/report-cards/${id}/approve`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${apiUrl}/api/admin/report-cards/${id}/approve`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`

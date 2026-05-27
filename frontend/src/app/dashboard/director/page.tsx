@@ -83,14 +83,15 @@ export default function DirectorDashboard() {
     try {
       const token = localStorage.getItem('token')
       
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
       const [statsRes, activityRes, performanceRes] = await Promise.all([
-        fetch('http://localhost:3000/api/director/stats', {
+        fetch(`${apiUrl}/api/director/stats`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }).catch(() => null),
-        fetch('http://localhost:3000/api/director/activity', {
+        fetch(`${apiUrl}/api/director/activity`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }).catch(() => null),
-        fetch('http://localhost:3000/api/director/analytics/performance', {
+        fetch(`${apiUrl}/api/director/analytics/performance`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }).catch(() => null)
       ])

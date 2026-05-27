@@ -42,7 +42,8 @@ export default function StudentsPage() {
     try {
       const token = localStorage.getItem('token')
       console.log('Fetching students with token:', token ? 'exists' : 'missing')
-      const response = await fetch('http://localhost:3000/api/teacher/students', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${apiUrl}/api/teacher/students`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
