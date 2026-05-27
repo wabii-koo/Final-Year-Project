@@ -10,6 +10,7 @@ export class ClassroomModel extends Model<Classroom, ClassroomCreationAttributes
   public classLevel!: string;
   public homeroomTeacherId!: number;
   public academicYear!: string;
+  public subject?: string;
   public createdAt!: Date;
   
   // Association
@@ -43,6 +44,11 @@ ClassroomModel.init(
       type: DataTypes.STRING(10),
       allowNull: false,
       field: 'academic_year',
+    },
+    subject: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      field: 'subject',
     },
     createdAt: {
       type: DataTypes.DATE,

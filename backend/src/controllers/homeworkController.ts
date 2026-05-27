@@ -33,15 +33,14 @@ export class HomeworkController {
         // regular teachers see homework they created
         whereClause.teacherId = userId;
       } else if (userRole === UserRole.HOMEROOM_TEACHER) {
-        // Homeroom teachers see homework they created OR assigned to their homeroom class
-        const classroom = await ClassroomModel.findOne({
+        // Homeroom teachers see:
+        //  1. All homework THEY created (any class, as subject or homeroom teacher)
+        //  2. Homework assigned to any class where they are the homeroom teacher
+        const homeroomClassrooms = await ClassroomModel.findAll({
           where: { homeroomTeacherId: userId }
         });
         
-        const classLevels: string[] = [];
-        if (classroom) {
-          classLevels.push(classroom.classLevel);
-        }
+        const classLevels: string[] = homeroomClassrooms.map((c: any) => c.classLevel);
         
         if (classId) {
           const targetClass = await ClassroomModel.findByPk(classId);
@@ -75,7 +74,11 @@ export class HomeworkController {
           const classLevels = classrooms.map((c: any) => c.classLevel);
           
           if (classLevels.length > 0) {
-            whereClause.className = classLevels;
+            whereClause[Op.or] = classLevels.map((level: string) => ({
+              className: {
+                [Op.iLike]: level
+              }
+            }));
           } else {
             whereClause.className = 'NON_EXISTENT_CLASS';
           }
@@ -106,6 +109,10 @@ export class HomeworkController {
           where: { homeworkId: h.homeworkId }
         });
 
+        const userHasSeen = await HomeworkView.findOne({
+          where: { homeworkId: h.homeworkId, guardianId: userId }
+        });
+
         return {
           homeworkId: h.homeworkId,
           title: h.title,
@@ -117,7 +124,8 @@ export class HomeworkController {
           isActive: h.isActive,
           teacherName,
           viewCount,
-          feedbackCount
+          feedbackCount,
+          isSeen: !!userHasSeen
         };
       }));
 
@@ -166,7 +174,12 @@ export class HomeworkController {
       } else if (userRole === UserRole.HOMEROOM_TEACHER) {
         // Homeroom teacher for this class or creator
         const classroom = await ClassroomModel.findOne({
-          where: { homeroomTeacherId: userId, classLevel: (homework as any).className }
+          where: { 
+            homeroomTeacherId: userId, 
+            classLevel: {
+              [Op.iLike]: (homework as any).className
+            }
+          }
         });
         isAllowed = !!classroom || (homework as any).teacherId === userId;
       } else if (userRole === UserRole.GUARDIAN) {
@@ -176,7 +189,12 @@ export class HomeworkController {
         });
         const studentClassIds = students.map((s: any) => s.classId);
         const classrooms = await ClassroomModel.findAll({
-          where: { classId: studentClassIds, classLevel: (homework as any).className }
+          where: { 
+            classId: studentClassIds, 
+            classLevel: {
+              [Op.iLike]: (homework as any).className
+            }
+          }
         });
         isAllowed = classrooms.length > 0;
       } else if (userRole === UserRole.DIRECTOR || userRole === UserRole.REGISTRAR) {
@@ -419,17 +437,15 @@ export class HomeworkController {
         return;
       }
 
-      // Check if user is the teacher who created the homework, homeroom teacher of the class, or director
+      // FEEDBACK ROUTING: Only the teacher who CREATED this homework can see its feedback.
+      // This ensures guardian replies reach only the sender of the assignment — not other
+      // teachers who may also be associated with that class.
       const userRole = req.user.role;
       let isAllowed = false;
       
-      if (userRole === UserRole.TEACHER) {
+      if (userRole === UserRole.TEACHER || userRole === UserRole.HOMEROOM_TEACHER) {
+        // Strictly check creator — do NOT grant access based on classroom association
         isAllowed = (homework as any).teacherId === userId;
-      } else if (userRole === UserRole.HOMEROOM_TEACHER) {
-        const classroom = await ClassroomModel.findOne({
-          where: { homeroomTeacherId: userId, classLevel: (homework as any).className }
-        });
-        isAllowed = !!classroom || (homework as any).teacherId === userId;
       } else if (userRole === UserRole.DIRECTOR) {
         isAllowed = true;
       }
@@ -500,17 +516,9 @@ export class HomeworkController {
 
       let whereClause: any = { isActive: true };
 
-      if (userRole === UserRole.TEACHER) {
+      if (userRole === UserRole.TEACHER || userRole === UserRole.HOMEROOM_TEACHER) {
+        // Export only homework THIS teacher created (regardless of class)
         whereClause.teacherId = userId;
-      } else if (userRole === UserRole.HOMEROOM_TEACHER) {
-        const classroom = await ClassroomModel.findOne({
-          where: { homeroomTeacherId: userId }
-        });
-        if (classroom) {
-          whereClause.className = classroom.classLevel;
-        } else {
-          whereClause.className = 'NON_EXISTENT_CLASS';
-        }
       }
 
       const homework = await Homework.findAll({

@@ -84,8 +84,8 @@ export default function ForgotPasswordPage() {
       <header className="w-full bg-brand-primary shadow-lg">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="bg-white/10 p-2 rounded-xl border border-white/20">
-              <GraduationCap className="text-white w-6 h-6" />
+            <div className="bg-white p-1 rounded-xl border border-white/20 w-10 h-10 flex items-center justify-center overflow-hidden">
+              <img src="/logo.png" alt="Hawi Dandi Boru School Logo" className="object-contain w-full h-full" />
             </div>
             <span className="text-white font-black text-xl tracking-tighter uppercase">
               Digital School

@@ -58,6 +58,7 @@ export interface Classroom {
   classLevel: string;
   homeroomTeacherId: number;
   academicYear: string;
+  subject?: string;
   createdAt: Date;
 }
 

@@ -10,12 +10,34 @@ import {
   EyeOff,
   GraduationCap,
   ChevronRight,
+  ChevronDown,
   Menu,
   Leaf,
+  BookOpen,
 } from "lucide-react";
 import { Button } from "../../../components/ui/Button";
 
 type Role = "Parent" | "Teacher" | "Registrar" | "Director";
+
+// Credential hints shown per role tab — click any card to auto-fill the form
+const ROLE_HINTS: Record<Role, { label: string; email: string; password: string; badge?: string }[]> = {
+  Parent: [],
+  Teacher: [
+    { label: "Mr. Alex Brown (Subject Teacher)", email: "teacher@school.com", password: "teacher789" },
+    { label: "Ms. Sarah Smith (English / Soc. Studies)", email: "sarah.smith@school.com", password: "Smith1A@2024", badge: "Grade 1-A & 2-B" },
+    { label: "Mr. James Johnson (Math / Soc. Studies)", email: "james.johnson@school.com", password: "Johnson2B@2024", badge: "Grade 2-B & 3-B" },
+    { label: "Mrs. Emily Davis (Science / Soc. Studies)", email: "emily.davis@school.com", password: "Davis3B@2024", badge: "Grade 1-A & 3-B" },
+    { label: "Mr. Robert Miller (Mathematics)", email: "robert.miller@school.com", password: "MillerMath@2024", badge: "Grade 1-A & 3-B" },
+    { label: "Dr. Lisa Green (Science)", email: "lisa.green@school.com", password: "GreenScience@2024", badge: "Grade 1-A & 2-B" },
+    { label: "Ms. Karen White (English)", email: "karen.white@school.com", password: "WhiteEnglish@2024", badge: "Grade 2-B & 3-B" },
+  ],
+  Registrar: [
+    { label: "School Registrar", email: "registrar@school.com", password: "registrar456" },
+  ],
+  Director: [
+    { label: "School Director", email: "director@school.com", password: "director123" },
+  ],
+};
 
 function LoginContent() {
   const [email, setEmail] = useState("");
@@ -24,10 +46,12 @@ function LoginContent() {
   const [activeRole, setActiveRole] = useState<Role>("Parent");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showHints, setShowHints] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const roles: Role[] = ["Parent", "Teacher", "Registrar", "Director"];
+  const hints = ROLE_HINTS[activeRole] ?? [];
 
   useEffect(() => {
     const roleParam = searchParams.get("role");
@@ -40,19 +64,32 @@ function LoginContent() {
     }
   }, [searchParams]);
 
+  // Collapse hints when switching roles
+  useEffect(() => {
+    setShowHints(false);
+    setError("");
+  }, [activeRole]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      const roleValue = activeRole.toLowerCase();
+      // Map UI role to the value expected by backend
+      const roleMap: Record<Role, string> = {
+        Parent: "parent",
+        Teacher: "teacher",
+        Registrar: "registrar",
+        Director: "director",
+      };
+
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password, role: roleValue }),
+        body: JSON.stringify({ email, password, role: roleMap[activeRole] }),
       });
 
       const data = await response.json();
@@ -66,25 +103,30 @@ function LoginContent() {
           data.error?.message || "Login failed. Please check your credentials.",
         );
       }
-    } catch (err) {
+    } catch {
       setError("A network error occurred. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
 
+  const fillCredentials = (hint: { email: string; password: string }) => {
+    setEmail(hint.email);
+    setPassword(hint.password);
+    setShowHints(false);
+    setError("");
+  };
+
   return (
     <div className="min-h-screen bg-brand-bg flex flex-col font-sans">
-      {/* Top Header Bar - Exact Green from Screenshot */}
+      {/* Header */}
       <header className="w-full bg-brand-primary shadow-lg">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="bg-white/10 p-2 rounded-xl border border-white/20">
-              <GraduationCap className="text-white w-6 h-6" />
+            <div className="bg-white p-1 rounded-xl border border-white/20 w-10 h-10 flex items-center justify-center overflow-hidden">
+              <img src="/logo.png" alt="School Logo" className="object-contain w-full h-full" />
             </div>
-            <span className="text-white font-black text-xl tracking-tighter uppercase">
-              Digital School
-            </span>
+            <span className="text-white font-black text-xl tracking-tighter uppercase">Digital School</span>
           </div>
           <div className="flex items-center gap-2">
             <Leaf className="text-white/40 w-5 h-5 hidden md:block" />
@@ -98,13 +140,13 @@ function LoginContent() {
         </div>
       </header>
 
-      {/* Main Content Area */}
+      {/* Main */}
       <main className="flex-1 flex justify-center p-4 py-12 md:p-8 overflow-y-auto">
-        <div className="w-full max-w-[480px] my-auto">
-          {/* Main Card */}
+        <div className="w-full max-w-[520px] my-auto">
           <div className="bg-brand-white rounded-[3rem] shadow-2xl shadow-brand-primary/5 p-8 md:p-12 relative overflow-hidden border border-brand-100">
-            {/* Role Tabs Switcher */}
-            <div className="bg-brand-100 p-1.5 rounded-2xl flex mb-10 overflow-x-auto no-scrollbar relative z-10">
+
+            {/* Role Tabs */}
+            <div className="bg-brand-100 p-1.5 rounded-2xl flex mb-10 overflow-x-auto no-scrollbar relative z-10 gap-0.5">
               {roles.map((role) => (
                 <button
                   key={role}
@@ -127,9 +169,7 @@ function LoginContent() {
             </div>
 
             <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold text-brand-heading mb-2 tracking-tight">
-                Sign In
-              </h1>
+              <h1 className="text-4xl font-bold text-brand-heading mb-2 tracking-tight">Sign In</h1>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -139,14 +179,12 @@ function LoginContent() {
                 </div>
               )}
 
-              {/* Email Input */}
+              {/* Email */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-600 ml-1">
-                  Email Address
-                </label>
+                <label className="text-sm font-medium text-gray-600 ml-1">Email Address</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-brand-primary group-focus-within:text-brand-primary transition-colors" />
+                    <User className="h-5 w-5 text-brand-primary" />
                   </div>
                   <input
                     type="email"
@@ -159,14 +197,12 @@ function LoginContent() {
                 </div>
               </div>
 
-              {/* Password Input */}
+              {/* Password */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-600 ml-1">
-                  Password
-                </label>
+                <label className="text-sm font-medium text-gray-600 ml-1">Password</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-brand-primary group-focus-within:text-brand-primary transition-colors" />
+                    <Lock className="h-5 w-5 text-brand-primary" />
                   </div>
                   <input
                     type={showPassword ? "text" : "password"}
@@ -179,7 +215,7 @@ function LoginContent() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-brand-primary hover:text-brand-primary transition-colors"
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-brand-primary transition-colors"
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -222,39 +258,67 @@ function LoginContent() {
                 </Link>
               </div>
 
-              {/* Submit Button - Gradient from Screenshot */}
+              {/* Submit */}
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full inline-flex items-center justify-center gap-3 rounded-full border border-brand-primary/20 bg-white text-brand-heading font-black text-lg py-4 shadow-xl shadow-brand-primary/10 hover:bg-brand-primary/5 transition-all disabled:opacity-50"
+                className="w-full inline-flex items-center justify-center gap-3 rounded-full bg-linear-to-r from-brand-primary to-brand-accent text-white font-black text-lg py-4 shadow-xl shadow-brand-primary/20 hover:opacity-95 transition-all disabled:opacity-50"
               >
                 {loading ? (
-                  <span className="flex items-center justify-center">
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin -ml-1 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
                     Signing in...
                   </span>
                 ) : (
-                  "Sign In"
+                  <>
+                    <User className="w-5 h-5 text-white" />
+                    Sign In
+                  </>
                 )}
               </Button>
+
+              {/* ── Credential hints ── */}
+              {hints.length > 0 && (
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowHints(!showHints)}
+                    className="w-full flex items-center justify-between px-4 py-3 bg-brand-100 hover:bg-brand-200/50 rounded-2xl text-sm font-semibold text-brand-primary transition-all"
+                  >
+                    <span className="flex items-center gap-2">
+                      <BookOpen className="w-4 h-4" />
+                      View login credentials
+                    </span>
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showHints ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {showHints && (
+                    <div className="mt-2 space-y-2">
+                      {hints.map((hint) => (
+                        <button
+                          key={hint.email}
+                          type="button"
+                          onClick={() => fillCredentials(hint)}
+                          className="w-full flex items-center justify-between p-4 bg-white border border-brand-100 hover:border-brand-primary/40 hover:bg-brand-50 rounded-2xl transition-all text-left"
+                        >
+                          <div>
+                            <p className="font-bold text-brand-heading text-sm">{hint.label}</p>
+                            <p className="text-xs text-gray-400 mt-0.5">{hint.email}</p>
+                          </div>
+                          {hint.badge && (
+                            <span className="text-xs font-bold px-2.5 py-1 bg-brand-primary/10 text-brand-primary rounded-full whitespace-nowrap ml-2">
+                              {hint.badge}
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Register Footer - Only visible when Parent tab is active */}
               {activeRole === "Parent" && (

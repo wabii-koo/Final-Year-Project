@@ -27,35 +27,60 @@ export class TeacherController {
       console.log(`[DEBUG] Fetching classes for UserID: ${userId}, Role: ${userRole}`);
       let classes: any[] = [];
 
-      if (userRole === 'homeroom_teacher') {
-        // For homeroom teachers, get their assigned homeroom class
+      const onlySubjectClasses = req.query.onlySubjectClasses === 'true';
+      console.log(`[DEBUG] onlySubjectClasses filter: ${onlySubjectClasses}`);
+
+      if (onlySubjectClasses) {
+        // Return only classes where this user is the designated subject teacher.
         const results = await sequelize.query(`
-          SELECT 
-            c.class_id as id, 
-            c.class_id as classId,
-            c.class_level as classLevel, 
-            c.class_level as className, 
-            c.academic_year as academicYear,
-            (SELECT COUNT(*) FROM "Students" s WHERE s.class_id = c.class_id) as totalStudents
-          FROM Classrooms c
-          WHERE c.homeroom_teacher_id = ?
+          SELECT DISTINCT
+            c.class_id as id,
+            c.class_id as "classId",
+            c.class_level as "classLevel",
+            c.class_level as "className",
+            c.academic_year as "academicYear",
+            c.subject as "subject",
+            (SELECT COUNT(*) FROM "Students" s WHERE s.class_id IN (SELECT class_id FROM "Classrooms" WHERE class_level = c.class_level)) as "totalStudents"
+          FROM "Classrooms" c
+          WHERE c.teacher_id = ?
           ORDER BY c.class_level
         `, {
           replacements: [userId],
           type: QueryTypes.SELECT
         });
         classes = results as any[];
+      } else if (userRole === 'homeroom_teacher') {
+        // Homeroom teachers can also teach subjects in other classes (dual-role).
+        // Return ALL classes where they are the homeroom teacher OR a subject teacher.
+        const results = await sequelize.query(`
+          SELECT DISTINCT
+            c.class_id as id,
+            c.class_id as "classId",
+            c.class_level as "classLevel",
+            c.class_level as "className",
+            c.academic_year as "academicYear",
+            c.subject as "subject",
+            (SELECT COUNT(*) FROM "Students" s WHERE s.class_id IN (SELECT class_id FROM "Classrooms" WHERE class_level = c.class_level)) as "totalStudents"
+          FROM "Classrooms" c
+          WHERE c.homeroom_teacher_id = ? OR c.teacher_id = ?
+          ORDER BY c.class_level
+        `, {
+          replacements: [userId, userId],
+          type: QueryTypes.SELECT
+        });
+        classes = results as any[];
       } else {
-        // For regular teachers, get all classes they teach
+        // For regular teachers, get all classes they teach (subject or homeroom)
         const results = await sequelize.query(`
           SELECT DISTINCT 
             c.class_id as id, 
-            c.class_id as classId,
-            c.class_level as classLevel, 
-            c.class_level as className, 
-            c.academic_year as academicYear,
-            (SELECT COUNT(*) FROM "Students" s WHERE s.class_id = c.class_id) as totalStudents
-          FROM Classrooms c
+            c.class_id as "classId",
+            c.class_level as "classLevel", 
+            c.class_level as "className", 
+            c.academic_year as "academicYear",
+            c.subject as "subject",
+            (SELECT COUNT(*) FROM "Students" s WHERE s.class_id IN (SELECT class_id FROM "Classrooms" WHERE class_level = c.class_level)) as "totalStudents"
+          FROM "Classrooms" c
           WHERE c.teacher_id = ? OR c.homeroom_teacher_id = ?
           ORDER BY c.class_level
         `, {
@@ -103,14 +128,14 @@ export class TeacherController {
       
       const results = await sequelize.query(`
         SELECT 
-          s.student_id as studentId,
-          s.full_name as fullName,
-          s.class_id as classId,
+          s.student_id as "studentId",
+          s.full_name as "fullName",
+          s.class_id as "classId",
           s.guardian_id,
-          u.full_name as guardianName
+          u.full_name as "guardianName"
         FROM "Students" s
         LEFT JOIN users u ON s.guardian_id = u.user_id
-        ${classId ? 'WHERE s.class_id = ?' : ''}
+        ${classId ? 'WHERE s.class_id IN (SELECT class_id FROM "Classrooms" WHERE class_level = (SELECT class_level FROM "Classrooms" WHERE class_id = ?))' : ''}
         ORDER BY s.full_name
       `, {
         replacements: classId ? [classId] : [],
@@ -121,6 +146,8 @@ export class TeacherController {
         const nameParts = row.fullName ? row.fullName.split(' ') : ['Unknown', ''];
         return {
           id: row.studentId,
+          studentId: row.studentId,
+          fullName: row.fullName || `${nameParts[0]} ${nameParts.slice(1).join(' ')}`.trim(),
           firstName: nameParts[0],
           lastName: nameParts.slice(1).join(' ') || '',
           grade: row.grade || 'N/A',

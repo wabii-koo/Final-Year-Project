@@ -83,21 +83,37 @@ export class AuthController {
       console.log(' Login attempt:', { email, frontendRole: role, mappedRole });
 
       // First check hardcoded staff credentials (for existing staff)
-      const staffCredentials = {
-        'director@school.com': { password: 'director123', role: 'director', fullName: 'School Director' },
-        'registrar@school.com': { password: 'registrar456', role: 'registrar', fullName: 'School Registrar' },
-        'teacher@school.com': { password: 'teacher789', role: 'teacher', fullName: 'John Smith' },
-        'homeroom@school.com': { password: 'homeroom012', role: 'homeroom_teacher', fullName: 'Homeroom Teacher' }
+      // Three homeroom teachers, each with their own class:
+      //   Grade 1A → Ms. Sarah Smith  (user_id 3)
+      //   Grade 2B → Mr. James Johnson (user_id 4)
+      //   Grade 3B → Mrs. Emily Davis  (user_id 13)
+      const staffCredentials: Record<string, { password: string; role: string; fullName: string; userId: number }> = {
+        'director@school.com':      { password: 'director123',    role: 'director',         fullName: 'School Director',     userId: 1  },
+        'registrar@school.com':     { password: 'registrar456',   role: 'registrar',        fullName: 'School Registrar',    userId: 2  },
+        'teacher@school.com':       { password: 'teacher789',     role: 'teacher',          fullName: 'Mr. Alex Brown',      userId: 5  },
+        // Homeroom Teacher 1 – Grade 1A
+        'sarah.smith@school.com':   { password: 'Smith1A@2024',   role: 'homeroom_teacher', fullName: 'Ms. Sarah Smith',     userId: 3  },
+        // Homeroom Teacher 2 – Grade 2B
+        'james.johnson@school.com': { password: 'Johnson2B@2024', role: 'homeroom_teacher', fullName: 'Mr. James Johnson',   userId: 4  },
+        // Homeroom Teacher 3 – Grade 3B
+        'emily.davis@school.com':   { password: 'Davis3B@2024',   role: 'homeroom_teacher', fullName: 'Mrs. Emily Davis',    userId: 13 },
+        // New Subject Teachers
+        'robert.miller@school.com': { password: 'MillerMath@2024',   role: 'teacher',          fullName: 'Mr. Robert Miller',   userId: 15 },
+        'lisa.green@school.com':    { password: 'GreenScience@2024', role: 'teacher',          fullName: 'Dr. Lisa Green',       userId: 16 },
+        'karen.white@school.com':   { password: 'WhiteEnglish@2024', role: 'teacher',          fullName: 'Ms. Karen White',     userId: 17 },
+        // Legacy aliases kept for backward-compat
+        'homeroom@school.com':      { password: 'homeroom012',    role: 'homeroom_teacher', fullName: 'Mr. James Johnson',   userId: 4  },
+        'homeroom3b@school.com':    { password: 'homeroom3b',     role: 'homeroom_teacher', fullName: 'Mrs. Emily Davis',    userId: 13 },
       };
 
-      if (staffCredentials[email as keyof typeof staffCredentials]) {
-        const staff = staffCredentials[email as keyof typeof staffCredentials];
-        // Allow homeroom teacher to log in with teacher role
-        const isHomeroomTeacherAsTeacher = email === 'homeroom@school.com' && mappedRole === 'teacher';
-        if (staff.password === password && (staff.role === mappedRole || isHomeroomTeacherAsTeacher)) {
+      if (staffCredentials[email]) {
+        const staff = staffCredentials[email];
+        // Homeroom teachers can also log in selecting the "teacher" role (dual-role support)
+        const isHomeroomAsTeacher = staff.role === 'homeroom_teacher' && mappedRole === 'teacher';
+        if (staff.password === password && (staff.role === mappedRole || isHomeroomAsTeacher)) {
           // Staff login successful
           const authUser: AuthUser = {
-            userId: staff.role === 'director' ? 1 : staff.role === 'registrar' ? 2 : staff.role === 'teacher' ? 3 : 4,
+            userId: staff.userId,
             email,
             role: staff.role as UserRole,
             fullName: staff.fullName,
@@ -118,8 +134,8 @@ export class AuthController {
 
           res.status(200).json(response);
           return;
-        } else if (staff.password === password && staff.role !== mappedRole) {
-          // Password correct but role mismatch
+        } else if (staff.password === password && staff.role !== mappedRole && !isHomeroomAsTeacher) {
+          // Password correct but role mismatch (and not a dual-role homeroom/teacher login)
           console.log(' Role mismatch for staff:', { email, expectedRole: staff.role, providedRole: mappedRole, frontendRole: role });
           res.status(401).json({
             success: false,
@@ -183,8 +199,12 @@ export class AuthController {
         'director@school.com': [UserRole.DIRECTOR]
       };
 
-      // Check if user role matches the selected role
-      if (user.role !== mappedRole) {
+      // Dual-role check: homeroom teachers may log in via the "Teacher" portal.
+      // In that case mappedRole === 'teacher' but user.role === 'homeroom_teacher'.
+      const isDualRoleTeacher = user.role === 'homeroom_teacher' && mappedRole === 'teacher';
+
+      // Check if user role matches the selected role (or is a valid dual-role login)
+      if (user.role !== mappedRole && !isDualRoleTeacher) {
         console.log(' Role mismatch for database user:', { email, userRole: user.role, providedRole: mappedRole, frontendRole: role });
         res.status(401).json({
           success: false,

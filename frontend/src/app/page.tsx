@@ -64,8 +64,8 @@ export default function HomePage() {
       <header className="fixed w-full z-50 bg-brand-primary shadow-lg py-3">
         <div className="container mx-auto px-4 flex justify-between items-center h-10">
           <div className="flex items-center space-x-2">
-            <div className="bg-white/10 p-2 rounded-xl border border-white/20">
-              <GraduationCap className="text-white w-6 h-6" />
+            <div className="bg-white p-1 rounded-xl border border-white/20 w-10 h-10 flex items-center justify-center overflow-hidden">
+              <img src="/logo.png" alt="Hawi Dandi Boru School Logo" className="object-contain w-full h-full" />
             </div>
             <span className="font-black text-xl tracking-tighter uppercase text-white">
               Digital School
@@ -115,8 +115,8 @@ export default function HomePage() {
               </button>
             ))}
             <Link href="/auth/login" className="w-full">
-              <Button className="w-full inline-flex items-center justify-center gap-2 rounded-full border border-brand-primary/20 bg-white text-brand-heading font-black py-4 hover:bg-brand-primary/5 transition-all">
-                <User className="w-5 h-5" />
+              <Button className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-linear-to-r from-brand-primary to-brand-accent text-white font-black py-4 hover:opacity-90 transition-all shadow-lg shadow-brand-primary/10">
+                <User className="w-5 h-5 text-white" />
                 Login
               </Button>
             </Link>
@@ -356,7 +356,14 @@ export default function HomePage() {
       {/* FOOTER */}
       <footer className="bg-brand-bg py-16 border-t border-brand-100">
         <div className="container mx-auto px-4">
-          {/* Logo Removed */}
+          <div className="flex items-center space-x-3 mb-6 justify-center md:justify-start">
+            <div className="bg-white p-1 rounded-xl shadow-md border border-brand-100 w-12 h-12 flex items-center justify-center overflow-hidden">
+              <img src="/logo.png" alt="Hawi Dandi Boru School Logo" className="object-contain w-full h-full" />
+            </div>
+            <span className="font-black text-xl tracking-tighter uppercase text-brand-heading">
+              Digital School
+            </span>
+          </div>
 
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
             <p className="text-brand-text/60 text-sm font-medium">

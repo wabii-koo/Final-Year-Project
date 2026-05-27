@@ -64,6 +64,7 @@ export const getPermissionsForRole = (role: string): string[] => {
       'pickup.verify', 'pickup.process'
     ],
     teacher: [
+      'messages.send', 'messages.receive',
       'homework.assign', 'homework.view',
       'pickup.verify', 'pickup.process'
     ],
