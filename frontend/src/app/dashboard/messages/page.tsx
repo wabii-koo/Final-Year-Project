@@ -57,10 +57,30 @@ export default function MessagesPage() {
   }, [])
 
   useEffect(() => {
-    if (user && user.role === 'homeroom_teacher') {
-      fetchStudents()
+    if (user) {
+      if (user.role === 'homeroom_teacher') {
+        fetchStudents()
+      } else if (user.role === 'guardian') {
+        fetchGuardianChildren()
+      }
     }
   }, [user])
+
+  const fetchGuardianChildren = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${apiUrl}/api/students/my-children`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setStudents(data.data || [])
+      }
+    } catch (err) {
+      console.error('Error fetching children:', err)
+    }
+  }
 
   const fetchStudents = async () => {
     try {
@@ -261,10 +281,10 @@ export default function MessagesPage() {
                 <button className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-gray-700 transition-colors">
                   <MoreHorizontal size={18} />
                 </button>
-                {user?.role === 'homeroom_teacher' && (
+                {(user?.role === 'homeroom_teacher' || user?.role === 'guardian') && (
                   <button 
                     onClick={() => setShowNewChatModal(true)}
-                    className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-gray-700 transition-colors"
+                    className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-555 hover:text-gray-700 transition-colors"
                     title="Compose Message"
                   >
                     <Plus size={18} />
@@ -475,8 +495,10 @@ export default function MessagesPage() {
                   <h3 className="text-md font-bold text-gray-900 mb-2">
                     Select a conversation
                   </h3>
-                  <p className="text-xs text-gray-500 max-w-sm px-6">
-                    Choose a conversation from the list or start a new thread to message your student's guardians.
+                  <p className="text-xs text-gray-555 max-w-sm px-6">
+                    {user?.role === 'guardian'
+                      ? "Choose a conversation from the list or start a new thread to message your student's homeroom teacher."
+                      : "Choose a conversation from the list or start a new thread to message your student's guardians."}
                   </p>
                 </div>
               </div>
@@ -532,21 +554,32 @@ export default function MessagesPage() {
                       <div>
                         <h4 className="font-bold text-gray-955 text-xs">{student.fullName}</h4>
                         <p className="text-[10px] text-gray-500 mt-0.5">
-                          Guardian: <span className="font-semibold text-gray-700">{student.guardianName}</span>
+                          {user?.role === 'guardian' ? (
+                            <>
+                              Teacher: <span className="font-semibold text-gray-700">{student.homeroomTeacherName || 'Not assigned'}</span>
+                            </>
+                          ) : (
+                            <>
+                              Guardian: <span className="font-semibold text-gray-700">{student.guardianName}</span>
+                            </>
+                          )}
                         </p>
                       </div>
                       
-                      {student.guardianId ? (
+                      {((user?.role === 'guardian' && student.homeroomTeacherId) || (user?.role === 'homeroom_teacher' && student.guardianId)) ? (
                         <button
                           onClick={() => {
-                            const recipientId = student.guardianId
+                            const recipientId = user?.role === 'guardian' ? student.homeroomTeacherId : student.guardianId
+                            const recipientName = user?.role === 'guardian' ? student.homeroomTeacherName : student.guardianName
+                            const recipientRole = user?.role === 'guardian' ? 'homeroom_teacher' : 'guardian'
+                            
                             const existingConv = conversations.find(c => c.userId === recipientId)
                             if (!existingConv) {
                               setConversations(prev => [
                                 {
                                   userId: recipientId,
-                                  fullName: student.guardianName,
-                                  role: 'guardian',
+                                  fullName: recipientName,
+                                  role: recipientRole,
                                   unreadCount: 0,
                                   lastMessage: { content: 'Start conversation...', sentAt: new Date().toISOString() }
                                 },
@@ -562,7 +595,7 @@ export default function MessagesPage() {
                         </button>
                       ) : (
                         <span className="text-[9px] font-bold text-red-500 bg-red-50 border border-red-100 px-2.5 py-1.5 rounded-lg">
-                          No Guardian
+                          {user?.role === 'guardian' ? 'No Teacher' : 'No Guardian'}
                         </span>
                       )}
                     </div>

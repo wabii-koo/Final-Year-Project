@@ -53,6 +53,7 @@ export default function RegisterPage() {
   const [studentName, setStudentName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
@@ -111,6 +112,7 @@ export default function RegisterPage() {
       if (response.ok) {
         setTempId(data.data.tempId);
         setStudentName(data.data.studentName);
+        setSuccessMessage(data.message || "");
         setStep(2);
       } else {
         setError(data.error?.message || "Validation failed");
@@ -152,12 +154,18 @@ export default function RegisterPage() {
   const handleResendOTP = async () => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-      await fetch(`${apiUrl}/api/registration/resend-otp`, {
+      const response = await fetch(`${apiUrl}/api/registration/resend-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tempId }),
       });
-      alert("OTP resent successfully!");
+      const data = await response.json();
+      if (response.ok) {
+        setSuccessMessage(data.message || "");
+        alert(data.message || "OTP resent successfully!");
+      } else {
+        setError(data.error?.message || "Failed to resend OTP");
+      }
     } catch (err: any) {
       setError("Failed to resend OTP");
     }
@@ -362,6 +370,11 @@ export default function RegisterPage() {
             <span className="text-brand-primary uppercase tracking-tighter">
               {studentName}
             </span>
+          </div>
+        )}
+        {successMessage && (
+          <div className="mt-4 p-3 bg-blue-50 text-blue-700 border border-blue-100 rounded-xl text-xs font-bold whitespace-pre-line text-center leading-relaxed">
+            {successMessage}
           </div>
         )}
       </div>

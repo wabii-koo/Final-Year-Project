@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { StudentModel } from '../models/Student';
-import { UserModel } from '../models/User';
+import { sequelize } from '../database/connection';
+import { QueryTypes } from 'sequelize';
 
 export class GuardianController {
   // Get guardian's linked students (my children)
@@ -18,11 +18,27 @@ export class GuardianController {
         return;
       }
 
-      // Find students linked to this guardian
-      const students = await StudentModel.findAll({
-        where: { guardianId: userId },
-        attributes: ['studentId', 'fullName', 'classId', 'dob', 'emergencyContact'],
-        order: [['fullName', 'ASC']]
+      // Find students linked to this guardian with homeroom teacher info
+      const students = await sequelize.query(`
+        SELECT 
+          s.student_id as "studentId",
+          s.full_name as "fullName",
+          s.class_id as "classId",
+          s.dob,
+          s.emergency_contact as "emergencyContact",
+          c.class_level as "className",
+          u.user_id as "homeroomTeacherId",
+          u.full_name as "homeroomTeacherName",
+          u.email as "homeroomTeacherEmail",
+          u.phone_no as "homeroomTeacherPhone"
+        FROM "Students" s
+        LEFT JOIN "Classrooms" c ON s.class_id = c.class_id
+        LEFT JOIN users u ON c.homeroom_teacher_id = u.user_id
+        WHERE s.guardian_id = ?
+        ORDER BY s.full_name ASC
+      `, {
+        replacements: [userId],
+        type: QueryTypes.SELECT
       });
 
       res.status(200).json({
@@ -38,3 +54,4 @@ export class GuardianController {
     }
   }
 }
+

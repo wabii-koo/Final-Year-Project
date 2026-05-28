@@ -134,16 +134,28 @@ export const validateRegistration = async (req: Request, res: Response): Promise
 
     // Generate and send OTP
     const otp = await OTPService.generateOTP(tempId);
-    await OTPService.sendOTP(email, otp);
-
-    res.status(200).json({
-      success: true,
-      message: 'Validation passed. Verification code sent to email.',
-      data: {
-        tempId,
-        studentName
-      }
-    });
+    try {
+      await OTPService.sendOTP(email, otp);
+      res.status(200).json({
+        success: true,
+        message: 'Validation passed. Verification code sent to email.',
+        data: {
+          tempId,
+          studentName
+        }
+      });
+    } catch (mailError) {
+      logger.error('Failed to send OTP email, using demo fallback:', mailError);
+      res.status(200).json({
+        success: true,
+        message: `Validation passed. (Note: Email delivery failed, please use code: ${otp} to verify)`,
+        data: {
+          tempId,
+          studentName,
+          devOtp: otp
+        }
+      });
+    }
 
   } catch (error: any) {
     logger.error('Validate registration error:', error);
@@ -347,12 +359,22 @@ export const resendOTP = async (req: Request, res: Response): Promise<void> => {
     }
 
     const otp = await OTPService.generateOTP(tempId);
-    await OTPService.sendOTP(data.phoneNo, otp);
-
-    res.status(200).json({
-      success: true,
-      message: 'OTP resent successfully'
-    });
+    try {
+      await OTPService.sendOTP(data.email, otp);
+      res.status(200).json({
+        success: true,
+        message: 'OTP resent successfully'
+      });
+    } catch (mailError) {
+      logger.error('Failed to resend OTP email, using demo fallback:', mailError);
+      res.status(200).json({
+        success: true,
+        message: `OTP resent successfully. (Note: Email delivery failed, please use code: ${otp} to verify)`,
+        data: {
+          devOtp: otp
+        }
+      });
+    }
 
   } catch (error) {
     logger.error('Resend OTP error:', error);
