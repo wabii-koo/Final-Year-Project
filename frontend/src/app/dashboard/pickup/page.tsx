@@ -219,7 +219,7 @@ export default function PickupPage() {
         <header className="bg-brand-white rounded-[3rem] p-10 shadow-xl shadow-brand-primary/5 border border-brand-100 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
           <div className="relative z-10">
             <h1 className="text-4xl font-black text-brand-heading tracking-tight flex items-center gap-3">
-              Pickup Authorization
+              Pickup Requests
             </h1>
             <p className="text-brand-text font-medium mt-2 text-lg">
               Secure logistics for student dismissal and safety.
@@ -232,7 +232,7 @@ export default function PickupPage() {
               className="relative z-10 bg-brand-primary text-white px-8 py-4 rounded-2xl font-black text-xs uppercase shadow-xl shadow-brand-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
             >
               <Plus size={18} />
-              New Authorization
+              New Request
             </button>
           )}
           <Leaf className="absolute -bottom-10 -right-10 text-brand-accent/10 -rotate-12" size={180} />
@@ -269,8 +269,8 @@ export default function PickupPage() {
           {filteredRequests.length === 0 ? (
             <div className="bg-brand-white rounded-[3.5rem] p-24 text-center border border-brand-100">
               <Car className="mx-auto text-brand-accent/20 mb-6" size={80} />
-              <h3 className="text-2xl font-black text-brand-heading">No active authorizations</h3>
-              <p className="text-brand-text font-medium mt-2">The logistics feed is currently quiet.</p>
+              <h3 className="text-2xl font-black text-brand-heading">No active pickup requests</h3>
+              <p className="text-brand-text font-medium mt-2">The pickup request feed is currently quiet.</p>
             </div>
           ) : (
             filteredRequests.map((request) => (
@@ -401,7 +401,7 @@ export default function PickupPage() {
             <div className="px-10 py-8 border-b border-brand-100 flex justify-between items-center bg-brand-bg/50">
               <h3 className="text-2xl font-black text-brand-heading tracking-tight flex items-center gap-3">
                 <Car className="text-brand-primary" />
-                Initiate Authorization
+                Initiate Request
               </h3>
               <button onClick={() => setShowCreateModal(false)} className="p-2 hover:bg-brand-bg rounded-xl transition-colors">
                 <X size={24} className="text-brand-heading" />
@@ -515,7 +515,7 @@ export default function PickupPage() {
                   type="submit"
                   className="bg-brand-primary text-white px-10 py-4 rounded-2xl font-black text-xs uppercase shadow-xl shadow-brand-primary/20"
                 >
-                  Commit Authorization
+                  Submit Request
                 </button>
               </div>
             </form>
