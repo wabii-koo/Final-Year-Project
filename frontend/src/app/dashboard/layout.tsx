@@ -236,8 +236,15 @@ export default function DashboardLayout({
 
       {/* Main Collapsible Sidebar Overlay */}
       {sidebarOpen && (
-        <aside className="fixed inset-y-0 left-20 z-40 w-72 bg-brand-white shadow-[20px_0_60px_-15px_rgba(0,0,0,0.1)] border-r border-brand-100 transition-transform duration-300 ease-in-out">
-          <div className="h-full flex flex-col p-6">
+        <>
+          {/* Backdrop to close sidebar when clicking outside */}
+          <div 
+            className="fixed inset-0 z-30 bg-black/5 backdrop-blur-[2px]"
+            onClick={() => setSidebarOpen(false)}
+            aria-hidden="true"
+          />
+          <aside className="fixed inset-y-0 left-20 z-40 w-72 bg-brand-white shadow-[20px_0_60px_-15px_rgba(0,0,0,0.1)] border-r border-brand-100 transition-transform duration-300 ease-in-out">
+            <div className="h-full flex flex-col p-6">
             {/* User Profile Summary */}
             <div className="flex items-center gap-4 mb-10 p-4 bg-brand-bg rounded-3xl border border-brand-100 shadow-inner">
               <div className="w-14 h-14 bg-brand-primary rounded-2xl flex items-center justify-center shadow-lg text-white">
@@ -299,6 +306,7 @@ export default function DashboardLayout({
             </div>
           </div>
         </aside>
+        </>
       )}
 
       {/* Main Viewport */}
