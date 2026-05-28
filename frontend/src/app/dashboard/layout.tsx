@@ -37,6 +37,7 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [unreadNotifCount, setUnreadNotifCount] = useState(0)
   const [unreadEventCount, setUnreadEventCount] = useState(0)
+  const [unreadMsgCount, setUnreadMsgCount] = useState(0)
   const [liveAlert, setLiveAlert] = useState<{title: string, message: string} | null>(null)
 
   const router = useRouter()
@@ -56,43 +57,53 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (!user) return
+    let active = true
 
     const checkUnread = async () => {
       try {
         const token = localStorage.getItem('token')
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+        const uid = user.userId || (user as any).user_id || (user as any).id || 'default'
+
+        // Check Notifications
         const res = await fetch(`${apiUrl}/api/notifications?limit=50`, {
           headers: { Authorization: `Bearer ${token}` }
         })
         const data = await res.json()
+        if (!active) return
+
         if (data.success && data.data?.notifications) {
           const notifs = data.data.notifications
           if (notifs.length > 0) {
-            const maxId = Math.max(...notifs.map((n: any) => n.notificationId || n.id || 0))
-            const prevKnownStr = localStorage.getItem(`knownNotifId_${user.userId}`)
+            const maxId = Math.max(...notifs.map((n: any) => n.notificationId || n.notification_id || n.id || 0))
+            const prevKnownStr = localStorage.getItem(`knownNotifId_${uid}`)
             const prevKnown = prevKnownStr ? parseInt(prevKnownStr) : maxId
             
             if (maxId > prevKnown && prevKnownStr) {
-               const latestNotif = notifs.find((n: any) => (n.notificationId || n.id) === maxId)
+               const latestNotif = notifs.find((n: any) => (n.notificationId || n.notification_id || n.id) === maxId)
                setLiveAlert({
                   title: 'New Notification',
                   message: latestNotif?.title || 'You have a new announcement!'
                })
             }
-            localStorage.setItem(`knownNotifId_${user.userId}`, maxId.toString())
+            localStorage.setItem(`knownNotifId_${uid}`, maxId.toString())
             
-            const isViewingNotifications = pathname === '/dashboard/notifications' || pathname === '/dashboard/notifications/'
+            const isViewingNotifications = pathname.startsWith('/dashboard/notifications')
             
             if (isViewingNotifications) {
-              localStorage.setItem(`lastReadNotifId_${user.userId}`, maxId.toString())
+              localStorage.setItem(`lastReadNotifId_${uid}`, maxId.toString())
               setUnreadNotifCount(0)
             } else {
-              const lastIdStr = localStorage.getItem(`lastReadNotifId_${user.userId}`)
+              const lastIdStr = localStorage.getItem(`lastReadNotifId_${uid}`)
               const lastId = lastIdStr ? parseInt(lastIdStr) : 0
-              const count = notifs.filter((n: any) => (n.notificationId || n.id || 0) > lastId).length
+              const count = notifs.filter((n: any) => (n.notificationId || n.notification_id || n.id || 0) > lastId).length
               setUnreadNotifCount(count)
             }
+          } else {
+            setUnreadNotifCount(0)
           }
+        } else {
+          setUnreadNotifCount(0)
         }
 
         // Check Events
@@ -100,31 +111,35 @@ export default function DashboardLayout({
           headers: { Authorization: `Bearer ${token}` }
         })
         const dataEvents = await resEvents.json()
+        if (!active) return
+
         const eventsList = dataEvents.data?.events || dataEvents.data || dataEvents
         if (Array.isArray(eventsList) && eventsList.length > 0) {
-            const maxId = Math.max(...eventsList.map((e: any) => e.eventId || e.id || 0))
-            const prevKnownStr = localStorage.getItem(`knownEventId_${user.userId}`)
+            const maxId = Math.max(...eventsList.map((e: any) => e.eventId || e.event_id || e.id || 0))
+            const prevKnownStr = localStorage.getItem(`knownEventId_${uid}`)
             const prevKnown = prevKnownStr ? parseInt(prevKnownStr) : maxId
 
             if (maxId > prevKnown && prevKnownStr) {
-               const latestEvent = eventsList.find((e: any) => (e.eventId || e.id) === maxId)
+               const latestEvent = eventsList.find((e: any) => (e.eventId || e.event_id || e.id) === maxId)
                setLiveAlert({
                   title: 'New Event Scheduled',
                   message: latestEvent?.title || 'A new event was just added to the calendar!'
                })
             }
-            localStorage.setItem(`knownEventId_${user.userId}`, maxId.toString())
+            localStorage.setItem(`knownEventId_${uid}`, maxId.toString())
 
-            const isViewingEvents = pathname === '/dashboard/events' || pathname === '/dashboard/events/'
+            const isViewingEvents = pathname.startsWith('/dashboard/events')
             if (isViewingEvents) {
-              localStorage.setItem(`lastReadEventId_${user.userId}`, maxId.toString())
+              localStorage.setItem(`lastReadEventId_${uid}`, maxId.toString())
               setUnreadEventCount(0)
             } else {
-              const lastIdStr = localStorage.getItem(`lastReadEventId_${user.userId}`)
+              const lastIdStr = localStorage.getItem(`lastReadEventId_${uid}`)
               const lastId = lastIdStr ? parseInt(lastIdStr) : 0
-              const count = eventsList.filter((e: any) => (e.eventId || e.id || 0) > lastId).length
+              const count = eventsList.filter((e: any) => (e.eventId || e.event_id || e.id || 0) > lastId).length
               setUnreadEventCount(count)
             }
+        } else {
+          setUnreadEventCount(0)
         }
       } catch (err) {
         console.error('Failed to check unread tab', err)
@@ -136,8 +151,46 @@ export default function DashboardLayout({
     window.addEventListener('focus', checkUnread)
     
     return () => {
+      active = false
       clearInterval(interval)
       window.removeEventListener('focus', checkUnread)
+    }
+  }, [user, pathname])
+
+  // Fetch unread message count for homeroom_teacher and guardian
+  useEffect(() => {
+    if (!user || (user.role !== 'homeroom_teacher' && user.role !== 'guardian')) return
+
+    const checkUnreadMessages = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+        const isViewingMessages = pathname.startsWith('/dashboard/messages')
+
+        if (isViewingMessages) {
+          setUnreadMsgCount(0)
+          return
+        }
+
+        const res = await fetch(`${apiUrl}/api/messages/conversations`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        const data = await res.json()
+        if (data.success && data.data?.conversations) {
+          const total = data.data.conversations.reduce((sum: number, c: any) => sum + (parseInt(c.unreadCount) || 0), 0)
+          setUnreadMsgCount(total)
+        }
+      } catch (err) {
+        console.error('Failed to check unread messages', err)
+      }
+    }
+
+    checkUnreadMessages()
+    const msgInterval = setInterval(checkUnreadMessages, 30000)
+    window.addEventListener('focus', checkUnreadMessages)
+    return () => {
+      clearInterval(msgInterval)
+      window.removeEventListener('focus', checkUnreadMessages)
     }
   }, [user, pathname])
 
@@ -154,9 +207,9 @@ export default function DashboardLayout({
     { icon: Calendar, label: 'Events', href: '/dashboard/events', roles: ['director', 'teacher', 'homeroom_teacher', 'guardian'] },
     { icon: BookOpen, label: 'Homework', href: '/dashboard/homework', roles: ['teacher', 'homeroom_teacher', 'guardian'] },
     { icon: Users, label: 'Students', href: '/dashboard/students', roles: ['homeroom_teacher'] },
-    { icon: Car, label: 'Pickup', href: '/dashboard/pickup', roles: ['guardian', 'teacher', 'homeroom_teacher', 'registrar'] },
+    { icon: Car, label: 'Pickup', href: '/dashboard/pickup', roles: ['guardian', 'teacher', 'homeroom_teacher'] },
     { icon: Settings, label: 'User Management', href: '/dashboard/users', roles: ['registrar'] },
-    { icon: MessageSquare, label: 'Messages', href: '/dashboard/messages', roles: ['homeroom_teacher'] },
+    { icon: MessageSquare, label: 'Messages', href: '/dashboard/messages', roles: ['guardian', 'homeroom_teacher'] },
     { icon: FileText, label: 'Report Cards', href: '/dashboard/report-cards', roles: ['director', 'homeroom_teacher', 'guardian'] },
     { icon: ClipboardList, label: 'Audit Logs', href: '/dashboard/audit-logs', roles: ['registrar'] },
     { icon: User, label: 'Registrations', href: '/dashboard/registrations', roles: ['registrar'] },
@@ -218,11 +271,17 @@ export default function DashboardLayout({
                       <Icon size={22} className={isActive ? 'text-white' : 'group-hover:scale-110 transition-transform'} />
                       <span className="font-bold text-base">{item.label}</span>
                     </div>
-                    {(item.label === 'Notifications' ? unreadNotifCount : (item.label === 'Events' ? unreadEventCount : 0)) > 0 && (
-                      <span className={`${isActive ? 'bg-white text-brand-primary' : 'bg-brand-primary text-white'} text-[10px] font-black px-2 py-0.5 rounded-full ring-2 ring-brand-white`}>
-                        {item.label === 'Notifications' ? unreadNotifCount : unreadEventCount}
-                      </span>
-                    )}
+                    {(() => {
+                      const count = item.label === 'Notifications' ? unreadNotifCount
+                        : item.label === 'Events' ? unreadEventCount
+                        : item.label === 'Messages' ? unreadMsgCount
+                        : 0
+                      return count > 0 ? (
+                        <span className={`${isActive ? 'bg-white text-brand-primary' : 'bg-brand-primary text-white'} text-[10px] font-black px-2 py-0.5 rounded-full ring-2 ring-brand-white`}>
+                          {count}
+                        </span>
+                      ) : null
+                    })()}
                   </button>
                 )
               })}

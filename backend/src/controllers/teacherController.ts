@@ -40,6 +40,7 @@ export class TeacherController {
             c.class_level as "className",
             c.academic_year as "academicYear",
             c.subject as "subject",
+            c.homeroom_teacher_id as "homeroomTeacherId",
             (SELECT COUNT(*) FROM "Students" s WHERE s.class_id IN (SELECT class_id FROM "Classrooms" WHERE class_level = c.class_level)) as "totalStudents"
           FROM "Classrooms" c
           WHERE c.teacher_id = ?
@@ -60,6 +61,7 @@ export class TeacherController {
             c.class_level as "className",
             c.academic_year as "academicYear",
             c.subject as "subject",
+            c.homeroom_teacher_id as "homeroomTeacherId",
             (SELECT COUNT(*) FROM "Students" s WHERE s.class_id IN (SELECT class_id FROM "Classrooms" WHERE class_level = c.class_level)) as "totalStudents"
           FROM "Classrooms" c
           WHERE c.homeroom_teacher_id = ? OR c.teacher_id = ?
@@ -79,6 +81,7 @@ export class TeacherController {
             c.class_level as "className", 
             c.academic_year as "academicYear",
             c.subject as "subject",
+            c.homeroom_teacher_id as "homeroomTeacherId",
             (SELECT COUNT(*) FROM "Students" s WHERE s.class_id IN (SELECT class_id FROM "Classrooms" WHERE class_level = c.class_level)) as "totalStudents"
           FROM "Classrooms" c
           WHERE c.teacher_id = ? OR c.homeroom_teacher_id = ?
@@ -88,6 +91,33 @@ export class TeacherController {
           type: QueryTypes.SELECT
         });
         classes = results as any[];
+      }
+      
+      // If we are not filtering strictly by subject classes (e.g. general dashboard roster overview),
+      // we return only unique classrooms based on classLevel + academicYear.
+      if (!onlySubjectClasses) {
+        const seen = new Set<string>();
+        const uniqueClasses: any[] = [];
+        
+        // Prioritize:
+        // 1. Where c.homeroomTeacherId === userId (if the user is homeroom teacher of this class)
+        // 2. Lowest classId (baseline class record)
+        classes.sort((a, b) => {
+          const aIsHomeroom = a.homeroomTeacherId === userId;
+          const bIsHomeroom = b.homeroomTeacherId === userId;
+          if (aIsHomeroom && !bIsHomeroom) return -1;
+          if (!aIsHomeroom && bIsHomeroom) return 1;
+          return a.id - b.id;
+        });
+
+        for (const cls of classes) {
+          const key = `${cls.classLevel}_${cls.academicYear}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            uniqueClasses.push(cls);
+          }
+        }
+        classes = uniqueClasses;
       }
       
       console.log(`[DEBUG] Found ${classes.length} classes for user ${userId}`);
@@ -125,8 +155,9 @@ export class TeacherController {
 
       // Get students for a specific class
       const classId = req.params.classId;
+      const onlyHomeroom = req.query.onlyHomeroom === 'true';
       
-      const results = await sequelize.query(`
+      let queryStr = `
         SELECT 
           s.student_id as "studentId",
           s.full_name as "fullName",
@@ -135,10 +166,24 @@ export class TeacherController {
           u.full_name as "guardianName"
         FROM "Students" s
         LEFT JOIN users u ON s.guardian_id = u.user_id
-        ${classId ? 'WHERE s.class_id IN (SELECT class_id FROM "Classrooms" WHERE class_level = (SELECT class_level FROM "Classrooms" WHERE class_id = ?))' : ''}
-        ORDER BY s.full_name
-      `, {
-        replacements: classId ? [classId] : [],
+      `;
+      let replacements: any[] = [];
+      
+      if (classId) {
+        queryStr += ' WHERE s.class_id IN (SELECT class_id FROM "Classrooms" WHERE class_level = (SELECT class_level FROM "Classrooms" WHERE class_id = ?))';
+        replacements.push(classId);
+      } else if (onlyHomeroom) {
+        queryStr += ' WHERE s.class_id IN (SELECT class_id FROM "Classrooms" WHERE homeroom_teacher_id = ?)';
+        replacements.push(userId);
+      } else {
+        queryStr += ' WHERE s.class_id IN (SELECT class_id FROM "Classrooms" WHERE homeroom_teacher_id = ? OR teacher_id = ?)';
+        replacements.push(userId, userId);
+      }
+      
+      queryStr += ' ORDER BY s.full_name';
+
+      const results = await sequelize.query(queryStr, {
+        replacements,
         type: QueryTypes.SELECT
       });
 
@@ -153,6 +198,7 @@ export class TeacherController {
           grade: row.grade || 'N/A',
           attendance: '95%',
           studentCode: 'KG2024' + row.studentId.toString().padStart(3, '0'),
+          guardianId: row.guardian_id || null,
           guardianName: row.guardianName || 'Not assigned',
           guardianEmail: row.guardianEmail || 'Not provided',
           guardianPhone: row.guardianPhone || 'Not provided'

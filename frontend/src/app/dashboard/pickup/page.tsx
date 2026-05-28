@@ -36,6 +36,8 @@ interface PickupRequest {
   status: 'pending' | 'approved' | 'rejected'
   requestDate: string
   pickupDate: string
+  pickupTimeStart?: string
+  pickupTimeEnd?: string
   createdAt: string
   processedBy?: number
   processedAt?: string
@@ -66,6 +68,8 @@ export default function PickupPage() {
     authorizedPersonPhone: '',
     authorizedPersonNationalId: '',
     pickupDate: '',
+    pickupTimeStart: '',
+    pickupTimeEnd: '',
     notes: ''
   })
 
@@ -130,7 +134,7 @@ export default function PickupPage() {
       const token = localStorage.getItem('token')
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
       
-      const response = await fetch(`${apiUrl}/api/pickup`, {
+      const response = await fetch(`${apiUrl}/api/pickup-requests`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -148,6 +152,8 @@ export default function PickupPage() {
           authorizedPersonPhone: '',
           authorizedPersonNationalId: '',
           pickupDate: '',
+          pickupTimeStart: '',
+          pickupTimeEnd: '',
           notes: ''
         })
         fetchPickupRequests()
@@ -162,7 +168,7 @@ export default function PickupPage() {
       const token = localStorage.getItem('token')
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
       
-      const response = await fetch(`${apiUrl}/api/pickup/${requestId}/process`, {
+      const response = await fetch(`${apiUrl}/api/pickup-requests/${requestId}/process`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -326,15 +332,29 @@ export default function PickupPage() {
                                <p className="font-black text-brand-heading">{request.authorizedPersonPhone}</p>
                             </div>
                          </div>
-                         <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 bg-brand-bg rounded-xl flex items-center justify-center text-brand-primary">
-                               <Calendar size={18} />
-                            </div>
-                            <div>
-                               <p className="text-[10px] font-black text-brand-text uppercase tracking-widest">Release Date</p>
-                               <p className="font-black text-brand-heading">{new Date(request.pickupDate).toLocaleDateString()}</p>
-                            </div>
-                         </div>
+                          <div className="flex items-start gap-4">
+                             <div className="w-10 h-10 bg-brand-bg rounded-xl flex items-center justify-center text-brand-primary">
+                                <Calendar size={18} />
+                             </div>
+                             <div>
+                                <p className="text-[10px] font-black text-brand-text uppercase tracking-widest">Authorized Release Period</p>
+                                <p className="font-black text-brand-heading">
+                                   {(() => {
+                                      const startDateStr = new Date(request.pickupDate).toLocaleDateString();
+                                      if (request.pickupTimeEnd && request.pickupTimeEnd.trim() !== '') {
+                                         const endDate = new Date(request.pickupTimeEnd);
+                                         if (!isNaN(endDate.getTime())) {
+                                            return `${startDateStr} to ${endDate.toLocaleDateString()}`;
+                                         }
+                                      }
+                                      return startDateStr;
+                                   })()}
+                                </p>
+                                <p className="text-xs font-bold text-brand-secondary uppercase">
+                                   {request.pickupTimeEnd && request.pickupTimeEnd.trim() !== '' ? 'Multi-day window' : 'Single-day release'}
+                                </p>
+                             </div>
+                          </div>
                       </div>
                     </div>
                   </div>
@@ -454,13 +474,24 @@ export default function PickupPage() {
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-black text-brand-text uppercase tracking-widest block mb-2 px-2">Pickup Date</label>
+                  <label className="text-[10px] font-black text-brand-text uppercase tracking-widest block mb-2 px-2">Start Date (From)</label>
                   <input
                     type="date"
                     value={newRequest.pickupDate}
                     onChange={(e) => setNewRequest({...newRequest, pickupDate: e.target.value})}
-                    className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none"
+                    className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-primary/10"
                     required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black text-brand-text uppercase tracking-widest block mb-2 px-2">End Date (Upto)</label>
+                  <input
+                    type="date"
+                    value={newRequest.pickupTimeEnd}
+                    onChange={(e) => setNewRequest({...newRequest, pickupTimeEnd: e.target.value})}
+                    className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-primary/10"
+                    placeholder="Optional date limit"
                   />
                 </div>
               </div>

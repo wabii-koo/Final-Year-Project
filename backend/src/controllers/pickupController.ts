@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { PickupRequestModel } from '../models/PickupRequest';
 import { StudentModel } from '../models/Student';
 import { UserModel } from '../models/User';
+import { ClassroomModel } from '../models/Classroom';
+import { Op } from 'sequelize';
 
 export class PickupController {
   // Get all pickup requests for the user
@@ -18,8 +20,29 @@ export class PickupController {
           where: { guardianId: userId },
           order: [['createdAt', 'DESC']]
         });
-      } else if (userRole === 'teacher' || userRole === 'homeroom_teacher' || userRole === 'registrar') {
-        // Teachers/registrars see all pending requests
+      } else if (userRole === 'teacher' || userRole === 'homeroom_teacher') {
+        // Teachers see only requests for students in classes they teach/manage
+        const assignedClassrooms = await ClassroomModel.findAll({
+          where: {
+            [Op.or]: [
+              { teacherId: userId },
+              { homeroomTeacherId: userId }
+            ]
+          }
+        });
+        const classIds = assignedClassrooms.map((c: any) => c.classId);
+
+        const students = await StudentModel.findAll({
+          where: { classId: classIds }
+        });
+        const studentIds = students.map((s: any) => s.studentId);
+
+        pickupRequests = await PickupRequestModel.findAll({
+          where: { studentId: studentIds },
+          order: [['createdAt', 'DESC']]
+        });
+      } else if (userRole === 'registrar') {
+        // Registrars see all requests
         pickupRequests = await PickupRequestModel.findAll({
           order: [['createdAt', 'DESC']]
         });
@@ -66,6 +89,8 @@ export class PickupController {
         authorizedPersonPhone,
         authorizedPersonNationalId,
         pickupDate,
+        pickupTimeStart,
+        pickupTimeEnd,
         notes
       } = req.body;
 
@@ -112,6 +137,8 @@ export class PickupController {
         authorizedPersonPhone,
         authorizedPersonNationalId,
         pickupDate: new Date(pickupDate),
+        pickupTimeStart: pickupTimeStart || '',
+        pickupTimeEnd: pickupTimeEnd || '',
         status: 'pending',
         notes: notes || '',
         createdAt: new Date()
@@ -171,6 +198,36 @@ export class PickupController {
           message: 'Request has already been processed'
         });
         return;
+      }
+
+      // Restrict access for teachers/homeroom teachers
+      if (userRole === 'teacher' || userRole === 'homeroom_teacher') {
+        const student = await StudentModel.findByPk(pickupRequest.studentId);
+        if (!student) {
+          res.status(404).json({
+            success: false,
+            message: 'Student associated with this request not found'
+          });
+          return;
+        }
+
+        const classroom = await ClassroomModel.findOne({
+          where: {
+            classId: student.classId,
+            [Op.or]: [
+              { teacherId: userId },
+              { homeroomTeacherId: userId }
+            ]
+          }
+        });
+
+        if (!classroom) {
+          res.status(403).json({
+            success: false,
+            message: 'Access denied: You do not teach this student\'s class'
+          });
+          return;
+        }
       }
 
       await pickupRequest.update({

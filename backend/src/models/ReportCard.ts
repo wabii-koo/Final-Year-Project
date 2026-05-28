@@ -101,12 +101,12 @@ ReportCardModel.init(
       field: 'attendance_record',
     },
     conductGrade: {
-      type: DataTypes.STRING(10),
+      type: DataTypes.STRING(50),
       allowNull: true,
       field: 'conduct_grade',
     },
     overallGrade: {
-      type: DataTypes.STRING(10),
+      type: DataTypes.STRING(50),
       allowNull: true,
       field: 'overall_grade',
     },

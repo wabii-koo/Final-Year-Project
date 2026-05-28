@@ -13,6 +13,8 @@ interface PickupRequestAttributes {
   authorizedPersonNationalId: string;
   status: 'pending' | 'approved' | 'rejected';
   pickupDate: Date;
+  pickupTimeStart?: string;
+  pickupTimeEnd?: string;
   notes?: string;
   processedBy?: number;
   processedAt?: Date;
@@ -33,6 +35,8 @@ export class PickupRequestModel extends Model<PickupRequestAttributes, PickupReq
   public authorizedPersonNationalId!: string;
   public status!: 'pending' | 'approved' | 'rejected';
   public pickupDate!: Date;
+  public pickupTimeStart?: string;
+  public pickupTimeEnd?: string;
   public notes?: string;
   public processedBy?: number;
   public processedAt?: Date;
@@ -97,6 +101,16 @@ PickupRequestModel.init(
       type: DataTypes.DATE,
       allowNull: false,
       field: 'pickup_date'
+    },
+    pickupTimeStart: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+      field: 'pickup_time_start'
+    },
+    pickupTimeEnd: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+      field: 'pickup_time_end'
     },
     notes: {
       type: DataTypes.TEXT,

@@ -20,6 +20,7 @@ import {
   searchStudents,
   importStudentsCSV
 } from '../controllers/registrarController';
+import { getAuditLogs } from '../controllers/directorController';
 
 const router = Router();
 
@@ -124,6 +125,13 @@ router.post(
   checkRole([UserRole.REGISTRAR]),
   csvUpload.single('file'),
   importStudentsCSV
+);
+
+router.get(
+  '/registrar/audit-logs',
+  authenticateToken,
+  checkRole([UserRole.REGISTRAR, UserRole.DIRECTOR]),
+  getAuditLogs
 );
 
 router.get(

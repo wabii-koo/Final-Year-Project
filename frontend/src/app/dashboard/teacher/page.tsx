@@ -97,6 +97,23 @@ export default function TeacherDashboard() {
             </div>
           </div>
 
+          <div className="relative z-10 flex flex-wrap gap-3">
+            {user.role === 'homeroom_teacher' && (
+              <Link 
+                href="/dashboard/report-cards" 
+                className="px-6 py-3 bg-brand-primary text-white rounded-2xl font-bold shadow-lg shadow-brand-primary/20 hover:scale-105 active:scale-95 transition-all text-xs uppercase tracking-wider"
+              >
+                Manage Report Cards
+              </Link>
+            )}
+            <Link 
+              href="/dashboard/homework/create" 
+              className="px-6 py-3 bg-white border border-brand-primary text-brand-primary rounded-2xl font-bold hover:bg-brand-primary/5 hover:scale-105 active:scale-95 transition-all text-xs uppercase tracking-wider"
+            >
+              Create Homework
+            </Link>
+          </div>
+
           <Leaf className="absolute -bottom-8 -right-8 text-brand-accent/10 rotate-12" size={160} />
         </header>
 

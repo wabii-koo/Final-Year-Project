@@ -159,7 +159,7 @@ export default function DirectorDashboard() {
           </div>
           <div className="flex gap-3 relative z-10">
             <button 
-              onClick={() => router.push('/dashboard/director/reports')}
+              onClick={() => router.push('/dashboard/report-cards')}
               className="flex items-center gap-2 px-8 py-4 bg-linear-to-r from-brand-primary to-brand-accent text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-brand-primary/20 hover:scale-105 active:scale-95 transition-all"
             >
               <Download size={18} />

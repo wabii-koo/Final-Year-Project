@@ -12,8 +12,8 @@ export class MessageController {
 
       console.log('🔍 Getting messages for role:', userRole, 'userId:', userId);
 
-      // Teachers (both subject and homeroom) and Guardians can message each other
-      if (userRole !== UserRole.GUARDIAN && userRole !== UserRole.HOMEROOM_TEACHER && userRole !== UserRole.TEACHER) {
+      // Homeroom teachers and Guardians can message each other
+      if (userRole !== UserRole.GUARDIAN && userRole !== UserRole.HOMEROOM_TEACHER) {
         res.status(403).json({
           success: false,
           error: {
@@ -30,7 +30,7 @@ export class MessageController {
 
       // Build query based on user role
       if (userRole === UserRole.GUARDIAN) {
-        // Guardian can see messages with any teacher (homeroom or subject)
+        // Guardian can ONLY see messages with their children's homeroom teachers
         query = `
           SELECT m.message_id, m.sender_id, m.receiver_id, m.content, m.sent_at, m.is_read, m.message_type,
                  u.full_name as sender_name, u.role as sender_role
@@ -38,22 +38,39 @@ export class MessageController {
           JOIN users u ON m.sender_id = u.user_id
           WHERE (m.receiver_id = ? OR m.sender_id = ?)
           AND (
-            (m.sender_id = ? AND u.role IN ('homeroom_teacher','teacher')) OR
-            (m.receiver_id = ? AND u.role IN ('homeroom_teacher','teacher'))
+            CASE 
+              WHEN m.sender_id = ? THEN m.receiver_id
+              ELSE m.sender_id
+            END
+          ) IN (
+            SELECT DISTINCT c.homeroom_teacher_id 
+            FROM "Classrooms" c 
+            JOIN "Students" s ON s.class_id = c.class_id 
+            WHERE s.guardian_id = ?
           )
           ORDER BY m.sent_at DESC
           LIMIT ? OFFSET ?
         `;
         replacements = [userId, userId, userId, userId, parseInt(limit as string), (parseInt(page as string) - 1) * parseInt(limit as string)];
-      } else if (userRole === UserRole.HOMEROOM_TEACHER || userRole === UserRole.TEACHER) {
-        // Teacher can only see messages with guardians
+      } else if (userRole === UserRole.HOMEROOM_TEACHER) {
+        // Homeroom teacher can ONLY see messages with their children's guardians
         query = `
           SELECT m.message_id, m.sender_id, m.receiver_id, m.content, m.sent_at, m.is_read, m.message_type,
                  u.full_name as sender_name, u.role as sender_role
           FROM messages m
           JOIN users u ON m.sender_id = u.user_id
           WHERE (m.receiver_id = ? OR m.sender_id = ?)
-          AND ((m.sender_id = ? AND u.role = 'guardian') OR (m.receiver_id = ? AND u.role = 'guardian'))
+          AND (
+            CASE 
+              WHEN m.sender_id = ? THEN m.receiver_id
+              ELSE m.sender_id
+            END
+          ) IN (
+            SELECT DISTINCT s.guardian_id 
+            FROM "Students" s 
+            JOIN "Classrooms" c ON s.class_id = c.class_id 
+            WHERE c.homeroom_teacher_id = ? AND s.guardian_id IS NOT NULL
+          )
           ORDER BY m.sent_at DESC
           LIMIT ? OFFSET ?
         `;
@@ -109,8 +126,8 @@ export class MessageController {
 
       console.log('📤 Sending message from role:', senderRole, 'to userId:', receiverId);
 
-      // Teachers (subject and homeroom) and Guardians can message each other
-      if (senderRole !== UserRole.GUARDIAN && senderRole !== UserRole.HOMEROOM_TEACHER && senderRole !== UserRole.TEACHER) {
+      // Homeroom teachers and Guardians can message each other
+      if (senderRole !== UserRole.GUARDIAN && senderRole !== UserRole.HOMEROOM_TEACHER) {
         res.status(403).json({
           success: false,
           error: {
@@ -143,21 +160,47 @@ export class MessageController {
         return;
       }
 
-      // Validate messaging relationship: teacher (any type) ↔ guardian
-      const isValidRelationship = 
-        (senderRole === UserRole.GUARDIAN && (receiver.role === 'homeroom_teacher' || receiver.role === 'teacher')) ||
-        ((senderRole === UserRole.HOMEROOM_TEACHER || senderRole === UserRole.TEACHER) && receiver.role === 'guardian');
-
-      if (!isValidRelationship) {
-        res.status(403).json({
-          success: false,
-          error: {
-            code: 'INVALID_RELATIONSHIP',
-            message: 'Messages can only be sent between guardians and teachers',
-          },
-          timestamp: new Date().toISOString(),
+      // Validate messaging relationship: homeroom teacher ↔ guardian of their child
+      if (senderRole === UserRole.GUARDIAN) {
+        const [allowed] = await sequelize.query(`
+          SELECT 1 FROM "Classrooms" c
+          JOIN "Students" s ON s.class_id = c.class_id
+          WHERE s.guardian_id = ? AND c.homeroom_teacher_id = ?
+          LIMIT 1
+        `, {
+          replacements: [senderId, receiverId]
         });
-        return;
+        if ((allowed as any[]).length === 0) {
+          res.status(403).json({
+            success: false,
+            error: {
+              code: 'ACCESS_DENIED',
+              message: 'You can only message your child\'s homeroom teacher.',
+            },
+            timestamp: new Date().toISOString(),
+          });
+          return;
+        }
+      } else if (senderRole === UserRole.HOMEROOM_TEACHER) {
+        const [allowed] = await sequelize.query(`
+          SELECT 1 FROM "Students" s
+          JOIN "Classrooms" c ON s.class_id = c.class_id
+          WHERE c.homeroom_teacher_id = ? AND s.guardian_id = ?
+          LIMIT 1
+        `, {
+          replacements: [senderId, receiverId]
+        });
+        if ((allowed as any[]).length === 0) {
+          res.status(403).json({
+            success: false,
+            error: {
+              code: 'ACCESS_DENIED',
+              message: 'You can only message guardians of students in your homeroom classroom.',
+            },
+            timestamp: new Date().toISOString(),
+          });
+          return;
+        }
       }
 
       // Create message
@@ -208,8 +251,8 @@ export class MessageController {
       const userId = req.user.userId;
       const userRole = req.user.role;
 
-      // Teachers (subject and homeroom) and Guardians can access messages
-      if (userRole !== UserRole.GUARDIAN && userRole !== UserRole.HOMEROOM_TEACHER && userRole !== UserRole.TEACHER) {
+      // Homeroom teachers and Guardians can access messages
+      if (userRole !== UserRole.GUARDIAN && userRole !== UserRole.HOMEROOM_TEACHER) {
         res.status(403).json({
           success: false,
           error: {
@@ -272,6 +315,46 @@ export class MessageController {
     }
   }
 
+  // Bulk-mark ALL messages from a partner as read in one query
+  async markConversationRead(req: any, res: Response): Promise<void> {
+    try {
+      const { partnerId } = req.params;
+      const userId = req.user.userId;
+      const userRole = req.user.role;
+
+      if (userRole !== UserRole.GUARDIAN && userRole !== UserRole.HOMEROOM_TEACHER) {
+        res.status(403).json({
+          success: false,
+          error: { code: 'ACCESS_DENIED', message: 'Access denied' },
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      // Single UPDATE — marks every message sent by partnerId to me as read
+      await sequelize.query(
+        `UPDATE messages SET is_read = true
+         WHERE sender_id = ? AND receiver_id = ? AND is_read = false`,
+        { replacements: [parseInt(partnerId), userId] }
+      );
+
+      console.log('📖 Conversation marked as read — partner:', partnerId, 'user:', userId);
+
+      res.status(200).json({
+        success: true,
+        message: 'Conversation marked as read',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Mark conversation read error:', error);
+      res.status(500).json({
+        success: false,
+        error: { code: 'MARK_READ_FAILED', message: 'Failed to mark conversation as read' },
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
   async getConversations(req: any, res: Response): Promise<void> {
     try {
       const userId = req.user.userId;
@@ -279,8 +362,8 @@ export class MessageController {
 
       console.log('💬 Getting conversations for role:', userRole);
 
-      // Teachers (subject and homeroom) and Guardians can access conversations
-      if (userRole !== UserRole.GUARDIAN && userRole !== UserRole.HOMEROOM_TEACHER && userRole !== UserRole.TEACHER) {
+      // Homeroom teachers and Guardians can access conversations
+      if (userRole !== UserRole.GUARDIAN && userRole !== UserRole.HOMEROOM_TEACHER) {
         res.status(403).json({
           success: false,
           error: {
@@ -297,7 +380,7 @@ export class MessageController {
 
       // Get conversations based on user role
       if (userRole === UserRole.GUARDIAN) {
-        // Guardian sees conversations with any teacher (homeroom or subject)
+        // Guardian sees conversations strictly with their children's homeroom teachers
         query = `
           SELECT DISTINCT u.user_id, u.full_name, u.role,
                  (SELECT m.content FROM messages m 
@@ -312,14 +395,20 @@ export class MessageController {
                   WHERE m.receiver_id = ? AND m.sender_id = u.user_id AND m.is_read = false) as unread_count
           FROM users u
           JOIN messages m ON (m.sender_id = u.user_id OR m.receiver_id = u.user_id)
-          WHERE u.role IN ('homeroom_teacher', 'teacher')
+          WHERE u.role = 'homeroom_teacher'
           AND (m.sender_id = ? OR m.receiver_id = ?)
           AND u.user_id != ?
+          AND u.user_id IN (
+            SELECT DISTINCT c.homeroom_teacher_id 
+            FROM "Classrooms" c 
+            JOIN "Students" s ON s.class_id = c.class_id 
+            WHERE s.guardian_id = ?
+          )
           GROUP BY u.user_id, u.full_name, u.role
         `;
-        replacements = [userId, userId, userId, userId, userId, userId, userId, userId];
-      } else if (userRole === UserRole.HOMEROOM_TEACHER || userRole === UserRole.TEACHER) {
-        // Teacher sees conversations with guardians
+        replacements = [userId, userId, userId, userId, userId, userId, userId, userId, userId];
+      } else if (userRole === UserRole.HOMEROOM_TEACHER) {
+        // Homeroom teacher sees conversations strictly with their children's guardians
         query = `
           SELECT DISTINCT u.user_id, u.full_name, u.role,
                  (SELECT m.content FROM messages m 
@@ -337,9 +426,15 @@ export class MessageController {
           WHERE u.role = 'guardian'
           AND (m.sender_id = ? OR m.receiver_id = ?)
           AND u.user_id != ?
+          AND u.user_id IN (
+            SELECT DISTINCT s.guardian_id 
+            FROM "Students" s 
+            JOIN "Classrooms" c ON s.class_id = c.class_id 
+            WHERE c.homeroom_teacher_id = ? AND s.guardian_id IS NOT NULL
+          )
           GROUP BY u.user_id, u.full_name, u.role
         `;
-        replacements = [userId, userId, userId, userId, userId, userId, userId, userId];
+        replacements = [userId, userId, userId, userId, userId, userId, userId, userId, userId];
       }
 
       const [conversations] = await sequelize.query(query, { replacements });

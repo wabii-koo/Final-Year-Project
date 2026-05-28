@@ -175,10 +175,10 @@ export const pickupAPI = {
     api.post('/api/pickup-requests', requestData),
   
   processPickupRequest: (requestId: number, processData: {
-    action: 'approved' | 'rejected'
+    status: 'approved' | 'rejected'
     notes?: string
   }) =>
-    api.put(`/api/pickup-requests/${requestId}/process`, processData),
+    api.post(`/api/pickup-requests/${requestId}/process`, processData),
 }
 
 // Users API

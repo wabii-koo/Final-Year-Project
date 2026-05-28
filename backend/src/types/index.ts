@@ -154,6 +154,8 @@ export interface PickupRequest {
   status: 'pending' | 'approved' | 'rejected';
   requestDate: Date;
   pickupDate: Date;
+  pickupTimeStart?: string;
+  pickupTimeEnd?: string;
   createdAt: Date;
   processedBy?: number;
   processedAt?: Date;

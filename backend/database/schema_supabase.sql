@@ -169,8 +169,8 @@ CREATE TABLE IF NOT EXISTS ReportCards (
     teacher_comments TEXT,
     principal_comments TEXT,
     attendance_record JSONB,
-    conduct_grade VARCHAR(10),
-    overall_grade VARCHAR(10)
+    conduct_grade VARCHAR(50),
+    overall_grade VARCHAR(50)
 );
 
 -- PickupRequests Table
@@ -185,6 +185,8 @@ CREATE TABLE IF NOT EXISTS PickupRequests (
     status pickup_status NOT NULL DEFAULT 'pending',
     request_date DATE NOT NULL,
     pickup_date DATE NOT NULL,
+    pickup_time_start VARCHAR(20),
+    pickup_time_end VARCHAR(20),
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     processed_by INT REFERENCES Users(user_id) ON DELETE SET NULL,
     processed_at TIMESTAMP WITH TIME ZONE,

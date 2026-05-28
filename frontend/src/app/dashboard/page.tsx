@@ -114,12 +114,12 @@ export default function GuardianDashboard() {
         fetch(`${apiUrl}/api/students/my-children`, { headers }),
         fetch(`${apiUrl}/api/notifications`, { headers }),
         fetch(`${apiUrl}/api/homework`, { headers }),
-        fetch(`${apiUrl}/api/pickup`, { headers })
+        fetch(`${apiUrl}/api/pickup-requests`, { headers })
       ])
 
       if (studentsRes.ok) {
         const d = await studentsRes.json()
-        setStudents(d.data?.students || [])
+        setStudents(d.data?.students || d.data || [])
       }
       if (notificationsRes.ok) {
         const d = await notificationsRes.json()
@@ -131,7 +131,7 @@ export default function GuardianDashboard() {
       }
       if (pickupRes.ok) {
         const d = await pickupRes.json()
-        setPickupRequests(d.data?.pickupRequests || [])
+        setPickupRequests(d.data?.pickupRequests || d.data || [])
       }
 
     } catch (error) {
