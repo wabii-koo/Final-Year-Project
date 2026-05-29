@@ -210,7 +210,8 @@ export default function DashboardLayout({
   }, [user, pathname])
 
   const handleLogout = () => {
-    localStorage.clear()
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
     router.push('/auth/login')
   }
 
