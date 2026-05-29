@@ -10,7 +10,6 @@ import {
   Clock, 
   Search, 
   Filter, 
-  Leaf, 
   ChevronRight,
   TrendingUp,
   Award,
@@ -608,7 +607,7 @@ export default function ReportCardsPage() {
     <div className="min-h-screen bg-brand-bg relative overflow-hidden font-sans">
       {/* Decorative Background */}
       <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none rotate-12">
-        <Leaf size={300} className="text-brand-accent" />
+        <Award size={300} className="text-brand-accent" />
       </div>
 
       <div className="relative mx-auto max-w-7xl p-6 lg:p-8 space-y-10">

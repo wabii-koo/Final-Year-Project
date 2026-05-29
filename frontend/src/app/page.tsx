@@ -5,7 +5,6 @@ import Link from 'next/link'
 import {
   User,
   GraduationCap,
-  Leaf,
   Menu,
   X,
   ChevronRight,
@@ -138,7 +137,7 @@ export default function HomePage() {
 
         <div className="container mx-auto px-4 text-center relative z-10">
           <div className="inline-flex items-center space-x-2 bg-brand-primary/5 border border-brand-primary/10 px-4 py-2 rounded-full mb-8 animate-slideDown">
-            <Leaf className="text-brand-primary w-4 h-4" />
+            <GraduationCap className="text-brand-primary w-4 h-4" />
             <span className="text-brand-primary text-xs font-black uppercase tracking-widest">Welcome to Hawi Dandi Boru</span>
           </div>
 
@@ -327,7 +326,7 @@ export default function HomePage() {
       {/* CONTACT SECTION */}
       <section id="contact" className="py-24 bg-white relative overflow-hidden border-t border-brand-100">
         <div className="absolute top-0 right-0 p-20 opacity-[0.03] text-brand-primary">
-          <Leaf size={300} />
+          <GraduationCap size={300} />
         </div>
 
         <div className="container mx-auto px-4 text-center relative z-10">

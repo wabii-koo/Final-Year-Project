@@ -16,7 +16,6 @@ import {
   Search, 
   Filter, 
   History,
-  Leaf,
   ChevronRight,
   ShieldCheck,
   MapPin,
@@ -211,7 +210,7 @@ export default function PickupPage() {
     <div className="min-h-screen bg-brand-bg relative overflow-hidden font-sans">
       {/* Decorative Leaves */}
       <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none rotate-45 scale-125">
-        <Leaf size={280} className="text-brand-accent" />
+        <Car size={280} className="text-brand-accent" />
       </div>
 
       <div className="relative mx-auto max-w-7xl p-6 lg:p-8 space-y-10">
@@ -235,7 +234,7 @@ export default function PickupPage() {
               New Request
             </button>
           )}
-          <Leaf className="absolute -bottom-10 -right-10 text-brand-accent/10 -rotate-12" size={180} />
+          <Car className="absolute -bottom-10 -right-10 text-brand-accent/10 -rotate-12" size={180} />
         </header>
 
         {/* Filter Bar */}

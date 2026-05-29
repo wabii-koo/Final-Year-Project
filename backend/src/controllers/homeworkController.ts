@@ -33,32 +33,13 @@ export class HomeworkController {
         // regular teachers see homework they created
         whereClause.teacherId = userId;
       } else if (userRole === UserRole.HOMEROOM_TEACHER) {
-        // Homeroom teachers see:
-        //  1. All homework THEY created (any class, as subject or homeroom teacher)
-        //  2. Homework assigned to any class where they are the homeroom teacher
-        const homeroomClassrooms = await ClassroomModel.findAll({
-          where: { homeroomTeacherId: userId }
-        });
-        
-        const classLevels: string[] = homeroomClassrooms.map((c: any) => c.classLevel);
-        
+        // Homeroom teachers see homework they created
+        whereClause.teacherId = userId;
         if (classId) {
           const targetClass = await ClassroomModel.findByPk(classId);
-          if (targetClass && !classLevels.includes(targetClass.classLevel)) {
-            classLevels.push(targetClass.classLevel);
+          if (targetClass) {
+            whereClause.className = targetClass.classLevel;
           }
-        }
-        
-        if (classLevels.length > 0) {
-          whereClause = {
-            isActive: true,
-            [Op.or]: [
-              { teacherId: userId },
-              { className: classLevels }
-            ]
-          };
-        } else {
-          whereClause.teacherId = userId;
         }
       } else if (userRole === UserRole.GUARDIAN) {
         // For guardians, show homework for their children's classes

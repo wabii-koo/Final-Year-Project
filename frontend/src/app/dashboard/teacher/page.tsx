@@ -13,7 +13,6 @@ import {
   Eye,
   Activity,
   Clock,
-  Leaf,
   ChevronRight,
   CheckCircle
 } from 'lucide-react'
@@ -114,7 +113,7 @@ export default function TeacherDashboard() {
             </Link>
           </div>
 
-          <Leaf className="absolute -bottom-8 -right-8 text-brand-accent/10 rotate-12" size={160} />
+          <BookOpen className="absolute -bottom-8 -right-8 text-brand-accent/10 rotate-12" size={160} />
         </header>
 
         {/* Stats Grid - Standard Corners */}

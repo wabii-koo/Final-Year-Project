@@ -11,7 +11,6 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
-  Leaf,
   ChevronRight,
   ShieldCheck,
   Upload,
@@ -158,7 +157,7 @@ export default function RegistrarDashboard() {
     <div className="min-h-screen bg-brand-bg relative overflow-hidden font-sans">
       {/* Decorative Elements */}
       <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none rotate-45">
-        <Leaf size={240} className="text-brand-accent" />
+        <ShieldCheck size={240} className="text-brand-accent" />
       </div>
 
       <div className="relative mx-auto max-w-7xl p-6 lg:p-8 space-y-10">
@@ -184,7 +183,7 @@ export default function RegistrarDashboard() {
               REVIEW APPLICATIONS
             </button>
           </div>
-          <Leaf className="absolute -bottom-8 -left-8 text-brand-accent/5 -rotate-12" size={160} />
+          <ShieldCheck className="absolute -bottom-8 -left-8 text-brand-accent/5 -rotate-12" size={160} />
         </header>
 
         {/* Stats Grid */}
@@ -350,7 +349,7 @@ export default function RegistrarDashboard() {
                   <h4 className="text-xl font-black tracking-tight">System Alert</h4>
                   <p className="text-white/80 text-sm mt-2 font-medium">You have {stats.pendingRegistrations} applications that require immediate attention.</p>
                 </div>
-                <Leaf className="absolute -bottom-6 -right-6 text-white/10 group-hover:rotate-45 transition-transform" size={100} />
+                <ShieldCheck className="absolute -bottom-6 -right-6 text-white/10 group-hover:rotate-45 transition-transform" size={100} />
               </div>
             )}
           </div>

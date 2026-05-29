@@ -17,8 +17,7 @@ import {
   FileText,
   Settings,
   ClipboardList,
-  Car,
-  Leaf
+  Car
 } from 'lucide-react'
 
 interface UserData {
@@ -221,93 +220,110 @@ export default function DashboardLayout({
 
   return (
     <div className="flex h-screen bg-brand-bg font-sans">
-      {/* Fixed Mini Sidebar / Trigger - Match Green Header */}
-      <div className="w-20 bg-brand-primary flex flex-col items-center py-6 shadow-2xl z-50">
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-3 bg-white/10 rounded-2xl text-white hover:bg-white/20 transition-all border border-white/20 shadow-lg"
-        >
-          {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-        <div className="mt-8 flex flex-col items-center gap-6">
-           <Leaf className="text-white animate-pulse" size={32} />
-        </div>
-      </div>
+      {/* Unified Brand Sidebar */}
+      <aside 
+        className={`${
+          sidebarOpen ? 'w-72' : 'w-20'
+        } bg-brand-primary text-white flex flex-col justify-between transition-all duration-300 ease-in-out shadow-2xl z-50 shrink-0`}
+      >
+        {/* Top Header: Hamburger & Logo */}
+        <div className="flex flex-col items-center py-6 px-4 shrink-0">
+          <div className={`w-full flex items-center ${sidebarOpen ? 'justify-between' : 'justify-center'}`}>
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-3 bg-white/10 rounded-2xl text-white hover:bg-white/20 transition-all border border-white/20 shadow-lg cursor-pointer"
+            >
+              {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+            
+            {sidebarOpen && (
+              <div className="bg-white p-1 rounded-xl w-10 h-10 flex items-center justify-center overflow-hidden shadow-inner border border-white/10 animate-in fade-in zoom-in-95 duration-200">
+                <img src="/logo.png" alt="School Logo" className="object-contain w-full h-full" />
+              </div>
+            )}
+          </div>
 
-      {/* Main Collapsible Sidebar Overlay */}
-      {sidebarOpen && (
-        <>
-          {/* Backdrop to close sidebar when clicking outside */}
-          <div 
-            className="fixed inset-0 z-30 bg-black/5 backdrop-blur-[2px]"
-            onClick={() => setSidebarOpen(false)}
-            aria-hidden="true"
-          />
-          <aside className="fixed inset-y-0 left-20 z-40 w-72 bg-brand-white shadow-[20px_0_60px_-15px_rgba(0,0,0,0.1)] border-r border-brand-100 transition-transform duration-300 ease-in-out">
-            <div className="h-full flex flex-col p-6">
-            {/* User Profile Summary */}
-            <div className="flex items-center gap-4 mb-10 p-4 bg-brand-bg rounded-3xl border border-brand-100 shadow-inner">
-              <div className="w-14 h-14 bg-brand-primary rounded-2xl flex items-center justify-center shadow-lg text-white">
-                <User size={28} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-brand-heading truncate text-lg">{user?.fullName}</p>
-                <p className="text-sm text-brand-primary/80 font-semibold uppercase tracking-wider">{user?.role?.replace('_', ' ')}</p>
-              </div>
+          {!sidebarOpen && (
+            <div className="bg-white p-1 rounded-xl w-10 h-10 flex items-center justify-center overflow-hidden shadow-inner border border-white/10 mt-6 transition-all duration-200">
+              <img src="/logo.png" alt="School Logo" className="object-contain w-full h-full" />
             </div>
+          )}
+        </div>
 
-            {/* Navigation Menu */}
-            <nav className="flex-1 space-y-2 overflow-y-auto no-scrollbar">
-              {filteredMenuItems.map((item) => {
-                const Icon = item.icon
-                const isActive = pathname === item.href
-                return (
-                  <button
-                    key={item.href}
-                    onClick={() => {
-                      router.push(item.href)
-                      setSidebarOpen(false)
-                    }}
-                    className={`group w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-200
-                      ${isActive 
-                        ? 'bg-brand-primary text-white shadow-xl scale-105' 
-                        : 'text-brand-text hover:bg-brand-bg hover:text-brand-primary'
-                      }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <Icon size={22} className={isActive ? 'text-white' : 'group-hover:scale-110 transition-transform'} />
-                      <span className="font-bold text-base">{item.label}</span>
-                    </div>
-                    {(() => {
-                      const count = item.label === 'Notifications' ? unreadNotifCount
-                        : item.label === 'Events' ? unreadEventCount
-                        : item.label === 'Messages' ? unreadMsgCount
-                        : 0
-                      return count > 0 ? (
-                        <span className={`${isActive ? 'bg-white text-brand-primary' : 'bg-brand-primary text-white'} text-[10px] font-black px-2 py-0.5 rounded-full ring-2 ring-brand-white`}>
-                          {count}
-                        </span>
-                      ) : null
-                    })()}
-                  </button>
-                )
-              })}
-            </nav>
-
-            {/* Logout Section */}
-            <div className="mt-6 pt-6 border-t border-brand-100">
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-3 py-4 text-red-500 font-bold hover:bg-red-50 rounded-2xl transition-all"
-              >
-                <LogOut size={20} />
-                Sign Out
-              </button>
+        {/* User Profile Summary */}
+        {sidebarOpen && user && (
+          <div className="px-5 py-4 mx-4 bg-white/10 rounded-2xl border border-white/10 shadow-inner flex items-center gap-3 mb-6 shrink-0 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shadow text-white shrink-0">
+              <User size={20} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-white truncate text-sm leading-snug">{user.fullName}</p>
+              <p className="text-[10px] text-white/70 font-semibold uppercase tracking-wider leading-none mt-1">{user.role?.replace('_', ' ')}</p>
             </div>
           </div>
-        </aside>
-        </>
-      )}
+        )}
+
+        {/* Navigation Menu */}
+        <nav className="flex-1 px-4 space-y-2 overflow-y-auto no-scrollbar py-2">
+          {filteredMenuItems.map((item) => {
+            const Icon = item.icon
+            const isActive = pathname === item.href
+            const count = item.label === 'Notifications' ? unreadNotifCount
+              : item.label === 'Events' ? unreadEventCount
+              : item.label === 'Messages' ? unreadMsgCount
+              : 0
+
+            return (
+              <button
+                key={item.href}
+                onClick={() => router.push(item.href)}
+                className={`group w-full flex items-center transition-all duration-200 relative cursor-pointer
+                  ${isActive 
+                    ? 'bg-brand-white text-brand-primary shadow-xl scale-[1.02]' 
+                    : 'text-white/80 hover:bg-white/10 hover:text-white'
+                  } ${sidebarOpen 
+                    ? 'p-4 rounded-2xl justify-between' 
+                    : 'p-3 rounded-xl justify-center w-12 h-12 mx-auto'
+                  }`}
+                title={!sidebarOpen ? item.label : undefined}
+              >
+                <div className="flex items-center gap-4">
+                  <Icon size={20} className={isActive ? 'text-brand-primary' : 'group-hover:scale-110 transition-transform'} />
+                  {sidebarOpen && <span className="font-bold text-sm tracking-wide">{item.label}</span>}
+                </div>
+                
+                {count > 0 && (
+                  sidebarOpen ? (
+                    <span className={`${isActive ? 'bg-brand-primary text-white' : 'bg-brand-white text-brand-primary'} text-[10px] font-black px-2 py-0.5 rounded-full ring-2 ring-white/10`}>
+                      {count}
+                    </span>
+                  ) : (
+                    <span className="absolute top-1.5 right-1.5 bg-brand-accent text-brand-primary text-[8px] font-black w-4.5 h-4.5 flex items-center justify-center rounded-full ring-2 ring-brand-primary animate-pulse">
+                      {count}
+                    </span>
+                  )
+                )}
+              </button>
+            )
+          })}
+        </nav>
+
+        {/* Logout Section */}
+        <div className="p-4 border-t border-white/10 shrink-0">
+          <button
+            onClick={handleLogout}
+            className={`w-full flex items-center text-white/95 hover:bg-white/10 rounded-2xl transition-all font-bold cursor-pointer
+              ${sidebarOpen 
+                ? 'justify-center gap-3 py-4 border border-white/10 bg-white/5 hover:bg-white/10 shadow-lg' 
+                : 'justify-center w-12 h-12 mx-auto hover:bg-white/10'
+              }`}
+            title={!sidebarOpen ? 'Sign Out' : undefined}
+          >
+            <LogOut size={20} className={sidebarOpen ? 'text-white' : 'mx-auto'} />
+            {sidebarOpen && <span className="text-sm">Sign Out</span>}
+          </button>
+        </div>
+      </aside>
 
       {/* Main Viewport */}
       <div className="flex-1 flex flex-col relative overflow-hidden">

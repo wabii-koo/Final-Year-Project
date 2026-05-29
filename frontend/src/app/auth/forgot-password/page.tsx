@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Mail, Lock, Key, ArrowRight, ArrowLeft, CheckCircle, AlertCircle, Leaf, GraduationCap } from 'lucide-react'
+import { Mail, Lock, Key, ArrowRight, ArrowLeft, CheckCircle, AlertCircle, GraduationCap } from 'lucide-react'
 import { Button } from '../../../components/ui/Button'
 import { Input } from '../../../components/ui/Input'
 
@@ -93,7 +93,7 @@ export default function ForgotPasswordPage() {
               Digital School
             </span>
           </div>
-          <Leaf className="text-white/40 w-5 h-5 hidden md:block" />
+          <GraduationCap className="text-white/40 w-5 h-5 hidden md:block" />
         </div>
       </header>
 

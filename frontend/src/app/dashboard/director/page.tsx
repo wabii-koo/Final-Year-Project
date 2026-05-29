@@ -20,7 +20,6 @@ import {
   Download,
   ChevronRight,
   Activity,
-  Leaf
 } from 'lucide-react'
 
 // Types
@@ -142,10 +141,10 @@ export default function DirectorDashboard() {
     <div className="min-h-screen bg-brand-bg relative overflow-hidden font-sans">
       {/* Decorative Leaves */}
       <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none rotate-45">
-        <Leaf size={240} className="text-brand-accent" />
+        <Shield size={240} className="text-brand-accent" />
       </div>
       <div className="absolute bottom-0 left-0 p-8 opacity-10 pointer-events-none -rotate-12">
-        <Leaf size={180} className="text-brand-accent" />
+        <TrendingUp size={180} className="text-brand-accent" />
       </div>
 
       <div className="relative mx-auto max-w-7xl p-6 lg:p-8 space-y-8">
@@ -166,7 +165,7 @@ export default function DirectorDashboard() {
               VIEW CLASSROOM REPORTS
             </button>
           </div>
-          <Leaf className="absolute -bottom-8 -right-8 text-brand-accent/10 rotate-12" size={160} />
+          <Shield className="absolute -bottom-8 -right-8 text-brand-accent/10 rotate-12" size={160} />
         </header>
 
         {/* Stats Grid */}

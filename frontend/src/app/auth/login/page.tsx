@@ -12,7 +12,6 @@ import {
   ChevronRight,
   ChevronDown,
   Menu,
-  Leaf,
   BookOpen,
 } from "lucide-react";
 import { Button } from "../../../components/ui/Button";
@@ -129,7 +128,7 @@ function LoginContent() {
             <span className="text-white font-black text-xl tracking-tighter uppercase">Digital School</span>
           </div>
           <div className="flex items-center gap-2">
-            <Leaf className="text-white/40 w-5 h-5 hidden md:block" />
+            <GraduationCap className="text-white/40 w-5 h-5 hidden md:block" />
             <button
               aria-label="Open menu"
               className="text-white p-2 hover:bg-white/10 rounded-lg transition-colors"

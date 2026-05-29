@@ -16,7 +16,6 @@ import {
   Home,
   LogOut,
   Menu,
-  Leaf,
   ChevronRight,
   TrendingUp
 } from 'lucide-react'
@@ -202,8 +201,7 @@ export default function GuardianDashboard() {
                 <p className="text-brand-text font-bold text-xs uppercase tracking-widest">{stat.label}</p>
                 <h3 className="text-3xl font-black text-brand-heading mt-1">{stat.value}</h3>
               </div>
-              <Leaf size={80} className="absolute -bottom-4 -right-4 text-brand-accent/5 -rotate-12" />
-            </div>
+              </div>
           ))}
         </section>
 
@@ -234,7 +232,6 @@ export default function GuardianDashboard() {
                           Reports <ChevronRight size={14} />
                         </Link>
                       </div>
-                      <Leaf className="absolute top-2 right-2 text-brand-accent/10 opacity-0 group-hover:opacity-100 transition-opacity" size={40} />
                     </div>
                   ))}
                </div>

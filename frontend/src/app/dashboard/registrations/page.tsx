@@ -20,7 +20,6 @@ import {
   Clock,
   UserX,
   CheckCircle,
-  Leaf,
   ChevronRight,
   TrendingUp,
   ShieldCheck,
@@ -274,7 +273,7 @@ export default function RegistrationsPage() {
     <div className="min-h-screen bg-brand-bg relative overflow-hidden font-sans">
       {/* Decorative Leaves */}
       <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none rotate-45">
-        <Leaf size={240} className="text-brand-accent" />
+        <ShieldCheck size={240} className="text-brand-accent" />
       </div>
 
       <div className="relative mx-auto max-w-7xl p-6 lg:p-8 space-y-10">
@@ -300,7 +299,7 @@ export default function RegistrationsPage() {
               <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
             </button>
           </div>
-          <Leaf
+          <ShieldCheck
             className="absolute -bottom-8 -right-8 text-brand-accent/10 rotate-12"
             size={160}
           />

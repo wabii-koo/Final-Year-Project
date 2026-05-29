@@ -16,7 +16,6 @@ import {
   ArrowRight,
   ArrowLeft,
   Shield,
-  Leaf,
   GraduationCap,
   Eye,
   EyeOff,
@@ -559,7 +558,7 @@ export default function RegisterPage() {
       </div>
 
       <div className="bg-brand-50 border border-brand-100 rounded-2xl p-5 text-left relative overflow-hidden">
-        <Leaf className="absolute -bottom-4 -right-4 w-16 h-16 text-brand-accent/10 -rotate-12" />
+        <GraduationCap className="absolute -bottom-4 -right-4 w-16 h-16 text-brand-accent/10 -rotate-12" />
         <h4 className="font-black text-brand-primary mb-3 flex items-center gap-2 uppercase text-xs tracking-widest">
           <Shield className="h-4 w-4" /> What happens next?
         </h4>
@@ -601,7 +600,7 @@ export default function RegisterPage() {
               Digital School
             </span>
           </div>
-          <Leaf className="text-white/40 w-5 h-5 hidden md:block" />
+          <GraduationCap className="text-white/40 w-5 h-5 hidden md:block" />
         </div>
       </header>
 
@@ -609,7 +608,7 @@ export default function RegisterPage() {
         <div className="w-full max-w-lg my-auto">
           {/* Step Indicators */}
           <div className="flex items-center justify-between mb-10 px-4 relative">
-            <Leaf className="absolute -left-12 -top-8 w-12 h-12 text-brand-accent/20 -rotate-45" />
+            <GraduationCap className="absolute -left-12 -top-8 w-12 h-12 text-brand-accent/20 -rotate-45" />
             {[1, 2, 3, 4].map((s) => (
               <div key={s} className="flex items-center flex-1 last:flex-none">
                 <div
@@ -634,7 +633,7 @@ export default function RegisterPage() {
           </div>
 
           <div className="bg-brand-white rounded-[3rem] shadow-2xl shadow-brand-primary/5 p-8 md:p-10 border border-brand-100 relative overflow-hidden">
-            <Leaf className="absolute -top-6 -right-6 w-20 h-20 text-brand-accent/5 rotate-90" />
+            <GraduationCap className="absolute -top-6 -right-6 w-20 h-20 text-brand-accent/5 rotate-90" />
             <div className="text-center mb-8 relative z-10">
               <h2 className="text-3xl font-black text-brand-heading tracking-tight uppercase">
                 Registration
