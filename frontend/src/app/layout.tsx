@@ -6,7 +6,7 @@ import { Providers } from './providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'GuardianGate - Parent-School Portal',
+  title: 'GuardianGate',
   description: 'GuardianGate - Secure communication platform for parents and schools',
   icons: {
     icon: '/logo.png?v=2',
