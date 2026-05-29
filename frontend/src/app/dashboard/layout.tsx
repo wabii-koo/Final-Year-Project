@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -41,6 +41,22 @@ export default function DashboardLayout({
 
   const router = useRouter()
   const pathname = usePathname()
+  const sidebarRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (!sidebarOpen) return
+
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+        setSidebarOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleOutsideClick)
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick)
+    }
+  }, [sidebarOpen])
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -222,6 +238,7 @@ export default function DashboardLayout({
     <div className="flex h-screen bg-brand-bg font-sans">
       {/* Unified Brand Sidebar */}
       <aside 
+        ref={sidebarRef}
         className={`${
           sidebarOpen ? 'w-72' : 'w-20'
         } bg-brand-primary text-white flex flex-col justify-between transition-all duration-300 ease-in-out shadow-2xl z-50 shrink-0`}
@@ -276,7 +293,10 @@ export default function DashboardLayout({
             return (
               <button
                 key={item.href}
-                onClick={() => router.push(item.href)}
+                onClick={() => {
+                  router.push(item.href)
+                  setSidebarOpen(false)
+                }}
                 className={`group w-full flex items-center transition-all duration-200 relative cursor-pointer
                   ${isActive 
                     ? 'bg-brand-white text-brand-primary shadow-xl scale-[1.02]' 
@@ -311,7 +331,10 @@ export default function DashboardLayout({
         {/* Logout Section */}
         <div className="p-4 border-t border-white/10 shrink-0">
           <button
-            onClick={handleLogout}
+            onClick={() => {
+              handleLogout()
+              setSidebarOpen(false)
+            }}
             className={`w-full flex items-center text-white/95 hover:bg-white/10 rounded-2xl transition-all font-bold cursor-pointer
               ${sidebarOpen 
                 ? 'justify-center gap-3 py-4 border border-white/10 bg-white/5 hover:bg-white/10 shadow-lg' 
