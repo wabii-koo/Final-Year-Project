@@ -24,12 +24,35 @@ export default function HomePage() {
   const [activeSection, setActiveSection] = useState('home')
   const [isScrolled, setIsScrolled] = useState(false)
 
-  // Handle scroll effect for header
+  // Handle scroll effect for header and active section (ScrollSpy)
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50)
+
+      // Check if we reached the bottom of the page
+      const isAtBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 50
+      if (isAtBottom) {
+        setActiveSection('contact')
+        return
+      }
+
+      const sections = ['home', 'about-us', 'features', 'workflow', 'contact']
+
+      for (const sectionId of sections) {
+        const element = document.getElementById(sectionId)
+        if (element) {
+          const rect = element.getBoundingClientRect()
+          // If the top of the section is above 150px and the bottom is below 150px, it's active
+          if (rect.top <= 150 && rect.bottom >= 150) {
+            setActiveSection(sectionId)
+            break
+          }
+        }
+      }
     }
     window.addEventListener('scroll', handleScroll)
+    // Run once on mount
+    handleScroll()
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
