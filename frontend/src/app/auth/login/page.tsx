@@ -8,10 +8,8 @@ import {
   Lock,
   Eye,
   EyeOff,
-  GraduationCap,
   ChevronRight,
   ChevronDown,
-  Menu,
   BookOpen,
 } from "lucide-react";
 import { Button } from "../../../components/ui/Button";
@@ -118,7 +116,7 @@ function LoginContent() {
 
   return (
     <div className="min-h-screen bg-brand-bg flex flex-col font-sans">
-      {/* Header */}
+      {/* Header (App Bar) - Clean version without Hamburger Menu */}
       <header className="w-full bg-brand-primary shadow-lg">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -126,15 +124,6 @@ function LoginContent() {
               <img src="/logo.png" alt="School Logo" className="object-contain w-full h-full" />
             </div>
             <span className="text-white font-black text-xl tracking-tighter uppercase">Digital School</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <GraduationCap className="text-white/40 w-5 h-5 hidden md:block" />
-            <button
-              aria-label="Open menu"
-              className="text-white p-2 hover:bg-white/10 rounded-lg transition-colors"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
           </div>
         </div>
       </header>
