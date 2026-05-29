@@ -6,8 +6,13 @@ import { Providers } from './providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Digital Parent-School Communication',
-  description: 'Secure communication platform for parents and schools',
+  title: 'GuardianGate - Parent-School Portal',
+  description: 'GuardianGate - Secure communication platform for parents and schools',
+  icons: {
+    icon: '/logo.png?v=2',
+    shortcut: '/logo.png?v=2',
+    apple: '/logo.png?v=2',
+  },
 }
 
 export default function RootLayout({

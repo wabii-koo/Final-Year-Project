@@ -147,7 +147,7 @@ export default function GuardianDashboard() {
         const uid = user?.userId || (user as any)?.user_id || (user as any)?.id || 'default'
         const lastIdStr = localStorage.getItem(`lastReadNotifId_${uid}`)
         const lastId = lastIdStr ? parseInt(lastIdStr) : 0
-        return notifications.filter(n => (n.notificationId || n.id || 0) > lastId).length
+        return notifications.filter(n => ((n as any).notificationId || (n as any).id || 0) > lastId).length
       })(),
       pendingHomework: homework.filter(h => h.isActive).length,
       pendingPickups: pickupRequests.filter(p => p.status === 'pending').length

@@ -284,7 +284,7 @@ export default function RegistrationsPage() {
               Registration Review
             </h1>
             <p className="text-brand-text mt-2 text-lg font-medium">
-              Verifying credentials for the Digital School ecosystem.
+              Verifying credentials for the GuardianGate ecosystem.
             </p>
           </div>
           <div className="flex gap-3 relative z-10">

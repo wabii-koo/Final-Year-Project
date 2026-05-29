@@ -246,23 +246,17 @@ export default function DashboardLayout({
       >
         {/* Top Header: Hamburger & Logo */}
         <div className="flex flex-col items-center py-6 px-4 shrink-0">
-          <div className={`w-full flex items-center ${sidebarOpen ? 'justify-between' : 'justify-center'}`}>
+          <div className={`w-full flex items-center ${sidebarOpen ? 'justify-start px-2' : 'justify-center'}`}>
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="p-3 bg-white/10 rounded-2xl text-white hover:bg-white/20 transition-all border border-white/20 shadow-lg cursor-pointer"
             >
               {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            
-            {sidebarOpen && (
-              <div className="bg-white p-1 rounded-xl w-10 h-10 flex items-center justify-center overflow-hidden shadow-inner border border-white/10 animate-in fade-in zoom-in-95 duration-200">
-                <img src="/logo.png" alt="School Logo" className="object-contain w-full h-full" />
-              </div>
-            )}
           </div>
 
           {!sidebarOpen && (
-            <div className="bg-white p-1 rounded-xl w-10 h-10 flex items-center justify-center overflow-hidden shadow-inner border border-white/10 mt-6 transition-all duration-200">
+            <div className="bg-white p-1 rounded-full w-10 h-10 flex items-center justify-center overflow-hidden shadow-inner border border-white/10 mt-6 transition-all duration-200">
               <img src="/logo.png" alt="School Logo" className="object-contain w-full h-full" />
             </div>
           )}

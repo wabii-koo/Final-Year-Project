@@ -63,11 +63,11 @@ export default function HomePage() {
       <header className="fixed w-full z-50 bg-brand-primary shadow-lg py-3">
         <div className="container mx-auto px-4 flex justify-between items-center h-10">
           <div className="flex items-center space-x-2">
-            <div className="bg-white p-1 rounded-xl border border-white/20 w-10 h-10 flex items-center justify-center overflow-hidden">
-              <img src="/logo.png" alt="Hawi Dandi Boru School Logo" className="object-contain w-full h-full" />
+            <div className="bg-white p-1 rounded-full border border-white/20 w-10 h-10 flex items-center justify-center overflow-hidden">
+              <img src="/logo.png" alt="GuardianGate Logo" className="object-contain w-full h-full" />
             </div>
             <span className="font-black text-xl tracking-tighter uppercase text-white">
-              Digital School
+              GuardianGate
             </span>
           </div>
 
@@ -356,11 +356,11 @@ export default function HomePage() {
       <footer className="bg-brand-bg py-16 border-t border-brand-100">
         <div className="container mx-auto px-4">
           <div className="flex items-center space-x-3 mb-6 justify-center md:justify-start">
-            <div className="bg-white p-1 rounded-xl shadow-md border border-brand-100 w-12 h-12 flex items-center justify-center overflow-hidden">
-              <img src="/logo.png" alt="Hawi Dandi Boru School Logo" className="object-contain w-full h-full" />
+            <div className="bg-white p-1 rounded-full shadow-md border border-brand-100 w-12 h-12 flex items-center justify-center overflow-hidden">
+              <img src="/logo.png" alt="GuardianGate Logo" className="object-contain w-full h-full" />
             </div>
             <span className="font-black text-xl tracking-tighter uppercase text-brand-heading">
-              Digital School
+              GuardianGate
             </span>
           </div>
 
