@@ -3,6 +3,21 @@ import { AuthService } from '../services/authService';
 import { ApiResponse, AuthUser } from '../types';
 import { UserRole } from '../types';
 import { sequelize } from '../database/connection';
+import nodemailer from 'nodemailer';
+
+// Create a reusable Nodemailer transporter using credentials from .env
+const transporter = nodemailer.createTransport({
+  host: process.env.MAIL_HOST || 'smtp.gmail.com',
+  port: Number(process.env.MAIL_PORT) || 465,
+  secure: Number(process.env.MAIL_PORT) === 465,
+  auth: {
+    user: process.env.MAIL_USER,
+    pass: process.env.MAIL_PASS,
+  },
+  connectionTimeout: 5000,
+  greetingTimeout: 5000,
+  socketTimeout: 5000,
+});
 
 export class AuthController {
   async register(req: Request, res: Response): Promise<void> {
@@ -320,10 +335,38 @@ export class AuthController {
 
       console.log(`Password reset requested for ${email}. Token: ${resetToken}`);
 
+      // Send real email using nodemailer
+      const mailOptions = {
+        from: `"School Communication" <${process.env.MAIL_FROM}>`,
+        to: email,
+        subject: 'Reset Your Password - GuardianGate',
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 10px;">
+            <h2 style="color: #4F46E5; text-align: center;">Password Reset Request</h2>
+            <p>Hello,</p>
+            <p>We received a request to reset the password for your account on the GuardianGate parent portal. Please use the following 6-digit verification code to reset your password:</p>
+            <div style="font-size: 32px; font-weight: bold; letter-spacing: 5px; text-align: center; margin: 30px 0; padding: 15px; background-color: #F3F4F6; border-radius: 5px; color: #1F2937;">
+              ${resetToken}
+            </div>
+            <p>This code is valid for 1 hour. If you did not make this request, you can safely ignore this email and your password will remain unchanged.</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin-top: 30px;" />
+            <p style="font-size: 12px; color: #9CA3AF; text-align: center;">Hawi Dandi Boru Kindergarten/School</p>
+          </div>
+        `,
+      };
+
+      try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Password reset email successfully sent to ${email}`);
+      } catch (mailError) {
+        console.error(`Failed to send password reset email to ${email}:`, mailError);
+        // Do not throw the error to the client, but return a clear message
+      }
+
       res.status(200).json({
         success: true,
-        message: 'Password reset token generated.',
-        data: { token: resetToken }, // For demo, we return it. In production, this would be an email.
+        message: 'If an account exists with this email, a reset token has been generated.',
+        data: { token: resetToken }, // Return token in response for convenience/testing
         timestamp: new Date().toISOString(),
       });
     } catch (error) {

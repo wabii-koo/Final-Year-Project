@@ -11,6 +11,8 @@ export interface User {
   profileImage?: string;
   isActive: boolean;
   lastLogin?: Date;
+  resetToken?: string;
+  resetTokenExpiry?: Date;
 }
 
 export enum UserRole {

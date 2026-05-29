@@ -17,6 +17,8 @@ export class UserModel extends Model<User, UserCreationAttributes> implements Us
   public profileImage?: string;
   public isActive!: boolean;
   public lastLogin?: Date;
+  public resetToken?: string;
+  public resetTokenExpiry?: Date;
 }
 
 UserModel.init(
@@ -87,6 +89,16 @@ UserModel.init(
       type: DataTypes.DATE,
       allowNull: true,
       field: 'last_login',
+    },
+    resetToken: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      field: 'reset_token',
+    },
+    resetTokenExpiry: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'reset_token_expiry',
     },
   },
   {
