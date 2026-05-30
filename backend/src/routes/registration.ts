@@ -18,7 +18,8 @@ import {
   rejectRegistration,
   getRegistrationStats,
   searchStudents,
-  importStudentsCSV
+  importStudentsCSV,
+  exportStudentsCSV
 } from '../controllers/registrarController';
 import { getAuditLogs } from '../controllers/directorController';
 
@@ -125,6 +126,13 @@ router.post(
   checkRole([UserRole.REGISTRAR]),
   csvUpload.single('file'),
   importStudentsCSV
+);
+
+router.get(
+  '/registrar/students/export',
+  authenticateToken,
+  checkRole([UserRole.REGISTRAR]),
+  exportStudentsCSV
 );
 
 router.get(

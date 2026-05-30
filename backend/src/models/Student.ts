@@ -70,9 +70,14 @@ StudentModel.init(
 // Define associations - lazy loaded to avoid circular imports
 export const initStudentAssociations = () => {
   const { ReportCardModel } = require('./ReportCard');
+  const { ClassroomModel } = require('./Classroom');
   StudentModel.hasMany(ReportCardModel, {
     foreignKey: 'studentId',
     as: 'reportCards'
+  });
+  StudentModel.belongsTo(ClassroomModel, {
+    foreignKey: 'classId',
+    as: 'classroom'
   });
 };
 

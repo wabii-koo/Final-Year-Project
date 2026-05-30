@@ -470,7 +470,29 @@ const findClassroomId = async (classLevelStr: string): Promise<number | null> =>
   const match = allClasses.find((c: any) => normalizeClassLevel(c.classLevel) === normalizedInput)
   if (match) return (match as any).classId
 
-  return null
+  // Dynamically create the classroom if not found
+  const teacherUser = await UserModel.findOne({
+    where: { role: { [Op.in]: ['teacher', 'homeroom_teacher'] } } as any
+  })
+
+  if (!teacherUser) {
+    logger.warn(`Could not auto-create classroom "${classLevelStr}" because no teacher user was found.`)
+    return null
+  }
+
+  try {
+    const newClass = await ClassroomModel.create({
+      classLevel: classLevelStr.trim(),
+      teacherId: (teacherUser as any).userId,
+      homeroomTeacherId: (teacherUser as any).userId,
+      academicYear: new Date().getFullYear().toString()
+    } as any)
+    logger.info(`Auto-created missing classroom "${classLevelStr}" (ID: ${newClass.classId}) with teacher ID ${(teacherUser as any).userId}`)
+    return (newClass as any).classId
+  } catch (err: any) {
+    logger.error(`Error auto-creating classroom "${classLevelStr}":`, err)
+    return null
+  }
 }
 
 /**
@@ -594,6 +616,46 @@ export const importStudentsCSV = async (req: Request, res: Response): Promise<vo
       success: false,
       error: { code: 'IMPORT_ERROR', message: 'Failed to import students from CSV.' }
     })
+  }
+};
+
+/**
+ * Export all students from the database as a CSV file
+ */
+export const exportStudentsCSV = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const students = await StudentModel.findAll({
+      include: [
+        {
+          model: ClassroomModel,
+          as: 'classroom',
+          attributes: ['classLevel']
+        }
+      ],
+      order: [['fullName', 'ASC']]
+    });
+
+    let csvContent = 'fullName,dob,emergencyContact,classLevel\n';
+    
+    for (const student of students as any[]) {
+      const name = student.fullName.replace(/"/g, '""');
+      const dob = student.dob;
+      const contact = student.emergencyContact || 'N/A';
+      const classLevel = student.classroom?.classLevel || 'N/A';
+      
+      csvContent += `"${name}",${dob},"${contact}","${classLevel}"\n`;
+    }
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=students_export.csv');
+    res.status(200).send(csvContent);
+
+  } catch (error) {
+    logger.error('Export students CSV error:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'EXPORT_ERROR', message: 'Failed to export students.' }
+    });
   }
 };
 

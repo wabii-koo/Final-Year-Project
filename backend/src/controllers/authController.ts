@@ -188,8 +188,8 @@ export class AuthController {
         return;
       }
 
-      // Verify password (in production, you'd use bcrypt.compare)
-      const passwordMatch = user.password_hash === password || true; // Simplified for demo
+      // Verify password
+      const passwordMatch = await AuthService.comparePassword(password, user.password_hash);
       
       if (!passwordMatch) {
         console.log(' Password mismatch for:', email);

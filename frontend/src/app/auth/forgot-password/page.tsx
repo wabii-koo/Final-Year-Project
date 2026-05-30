@@ -13,6 +13,7 @@ export default function ForgotPasswordPage() {
   const [token, setToken] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [demoToken, setDemoToken] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
@@ -38,6 +39,8 @@ export default function ForgotPasswordPage() {
         // In this demo, the token is returned in the response for convenience
         if (data.data?.token) {
           console.log('Reset Token (Demo):', data.data.token)
+          setDemoToken(data.data.token)
+          setToken(data.data.token)
         }
         setStep(2)
       } else {
@@ -147,9 +150,17 @@ export default function ForgotPasswordPage() {
 
             {step === 2 && (
               <form onSubmit={handleResetPassword} className="space-y-6 relative z-10">
-                <div className="p-4 bg-brand-bg border border-brand-100 rounded-2xl text-brand-primary text-sm font-bold mb-4">
-                  Check your logs or console for the reset token (Demo Mode).
-                </div>
+                {demoToken ? (
+                  <div className="p-5 bg-brand-accent/15 border border-brand-accent/30 rounded-2.5xl text-brand-primary text-sm font-bold text-center flex flex-col gap-2">
+                    <span className="text-xs text-brand-text/60 uppercase tracking-widest block">Reset Verification Code:</span>
+                    <span className="text-2xl font-black tracking-[0.25em] text-center select-all bg-white px-4 py-2.5 rounded-2xl border border-brand-accent/30 shadow-inner inline-block mx-auto">{demoToken}</span>
+                    <span className="text-[10px] text-brand-text/50 font-semibold block mt-1">(Auto-filled in the field below)</span>
+                  </div>
+                ) : (
+                  <div className="p-4 bg-brand-bg border border-brand-100 rounded-2xl text-brand-primary text-sm font-bold mb-4">
+                    Check your logs or console for the reset token (Demo Mode).
+                  </div>
+                )}
                 <Input
                   label="Reset Token *"
                   icon={Key}

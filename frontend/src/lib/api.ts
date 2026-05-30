@@ -218,6 +218,7 @@ export const studentImportAPI = {
     const formData = new FormData()
     formData.append('file', file)
     return api.post('/api/registration/registrar/students/import', formData, {
+      timeout: 60000, // 60 seconds timeout for bulk operations
       headers: {
         'Content-Type': 'multipart/form-data',
       },
