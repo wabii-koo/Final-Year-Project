@@ -170,8 +170,8 @@ export default function GuardianDashboard() {
         {/* Profile Header - Simplified */}
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-brand-white p-8 rounded-3xl shadow-xl shadow-brand-primary/5 border border-brand-100">
           <div className="flex items-center gap-6">
-            <div className="w-20 h-20 bg-brand-bg rounded-3xl flex items-center justify-center shadow-inner border border-brand-100 group">
-              <User size={40} className="text-brand-primary group-hover:scale-110 transition-transform" />
+            <div className="w-20 h-20 bg-brand-bg rounded-3xl overflow-hidden flex items-center justify-center shadow-inner border border-brand-100 group">
+              <img src="/ethiopian-woman.png" alt="User Profile" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
             </div>
             <div>
               <h1 className="text-3xl font-black text-brand-heading tracking-tight">Welcome, {user?.fullName?.split(' ')[0]}!</h1>
@@ -223,8 +223,8 @@ export default function GuardianDashboard() {
                   {students.map((student, idx) => (
                     <div key={idx} className="bg-brand-bg p-6 rounded-2xl border border-brand-100 hover:border-brand-primary/20 transition-colors relative overflow-hidden group">
                       <div className="flex items-center gap-4 relative z-10">
-                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">
-                           <User size={24} className="text-brand-secondary" />
+                        <div className="w-12 h-12 rounded-2xl overflow-hidden flex items-center justify-center shadow-sm">
+                           <img src="/ethiopian-woman.png" alt="Student Profile" className="w-full h-full object-cover" />
                         </div>
                         <div>
                           <h4 className="font-bold text-brand-heading">{student.fullName}</h4>

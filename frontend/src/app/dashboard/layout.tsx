@@ -275,8 +275,8 @@ export default function DashboardLayout({
         {/* User Profile Summary */}
         {sidebarOpen && user && (
           <div className="px-5 py-4 mx-4 bg-white/10 rounded-2xl border border-white/10 shadow-inner flex items-center gap-3 mb-6 shrink-0 animate-in fade-in slide-in-from-top-2 duration-300">
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shadow text-white shrink-0">
-              <User size={20} />
+            <div className="w-10 h-10 rounded-xl overflow-hidden shadow shrink-0 flex items-center justify-center bg-white/20">
+              <img src="/ethiopian-woman.png" alt="User Profile" className="w-full h-full object-cover" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="font-bold text-white truncate text-sm leading-snug">{user.fullName}</p>

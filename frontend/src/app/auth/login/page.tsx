@@ -171,17 +171,41 @@ function LoginContent() {
       </header>
 
       {/* Main */}
-      <main className="flex-1 flex justify-center p-4 py-12 md:p-8 overflow-y-auto">
-        <div className="w-full max-w-[520px] my-auto">
-          {/* Back Button */}
-          <Link
-            href="/"
-            className="flex items-center gap-2 text-brand-primary hover:text-brand-secondary font-bold mb-6 transition-colors cursor-pointer group w-fit"
-          >
-            <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
-            <span>Back to Home</span>
-          </Link>
-          <div className="bg-brand-white rounded-[3rem] shadow-2xl shadow-brand-primary/5 p-8 md:p-12 relative overflow-hidden border border-brand-100">
+      <main className="flex-1 flex items-center justify-center p-4 py-12 md:p-8 overflow-y-auto">
+        <div className="w-full max-w-5xl my-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          
+          {/* Left Column: Visual Illustration (Desktop Only) */}
+          <div className="hidden lg:flex lg:col-span-5 flex-col items-center text-center lg:items-start lg:text-left space-y-6">
+            <div className="relative w-full max-w-[280px] mx-auto lg:mx-0">
+              <div className="absolute -inset-4 bg-brand-primary/5 rounded-[2rem] blur-xl -z-10 animate-pulse" />
+              <img
+                src="/user-connections.png"
+                alt="Connected School Community Network"
+                className="w-full h-auto object-contain animate-float"
+              />
+            </div>
+            <div>
+              <h2 className="text-3xl font-black text-brand-heading tracking-tight leading-tight mb-3">
+                Connected School <br />
+                <span className="text-brand-primary">Community</span>
+              </h2>
+              <p className="text-brand-text text-sm font-medium leading-relaxed max-w-sm">
+                GuardianGate bridges the gap between home and classroom, keeping parents, teachers, and administrators connected in real-time.
+              </p>
+            </div>
+          </div>
+
+          {/* Right Column: Form Card */}
+          <div className="lg:col-span-7 w-full">
+            {/* Back Button */}
+            <Link
+              href="/"
+              className="flex items-center gap-2 text-brand-primary hover:text-brand-secondary font-bold mb-6 transition-colors cursor-pointer group w-fit"
+            >
+              <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
+              <span>Back to Home</span>
+            </Link>
+            <div className="bg-brand-white rounded-[3rem] shadow-2xl shadow-brand-primary/5 p-8 md:p-12 relative overflow-hidden border border-brand-100">
 
             {/* Role Tabs */}
             <div className="bg-brand-100 p-1.5 rounded-2xl flex mb-10 overflow-x-auto no-scrollbar relative z-10 gap-0.5">
@@ -444,6 +468,7 @@ function LoginContent() {
                 </div>
               </div>
             )}
+            </div>
           </div>
         </div>
       </main>

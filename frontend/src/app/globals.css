@@ -24,6 +24,9 @@
   --animate-float: float 3s ease-in-out infinite;
   --animate-fade-in-up: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   --animate-pulse-glow: pulseGlow 2.5s ease-in-out infinite;
+  --animate-marquee-ltr: marqueeLtr 30s linear infinite;
+  --animate-marquee-rtl: marqueeRtl 30s linear infinite;
+  --animate-slide-in-right: slideInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 
   @keyframes float {
     0%, 100% { transform: translateY(0); }
@@ -42,6 +45,24 @@
   @keyframes pulseGlow {
     0%, 100% { transform: scale(1); opacity: 0.15; }
     50% { transform: scale(1.2); opacity: 0.35; }
+  }
+  @keyframes marqueeLtr {
+    0% { transform: translateX(-50%); }
+    100% { transform: translateX(0%); }
+  }
+  @keyframes marqueeRtl {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+  }
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(-40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 }
 
