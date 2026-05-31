@@ -87,7 +87,7 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen bg-brand-bg flex flex-col font-sans">
       {/* Top Header Bar - Consistent Green Header */}
       <header className="w-full bg-brand-primary shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="w-full px-6 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="bg-white p-1 rounded-full border border-white/20 w-10 h-10 flex items-center justify-center overflow-hidden">
               <img src="/logo.png" alt="GuardianGate Logo" className="object-contain w-full h-full" />

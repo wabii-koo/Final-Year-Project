@@ -245,13 +245,23 @@ export default function DashboardLayout({
         } bg-brand-primary text-white flex flex-col justify-between transition-all duration-300 ease-in-out shadow-2xl z-50 shrink-0`}
       >
         {/* Top Header: Hamburger & Logo */}
-        <div className="flex flex-col items-center py-6 px-4 shrink-0">
-          <div className={`w-full flex items-center ${sidebarOpen ? 'justify-start px-2' : 'justify-center'}`}>
+        <div className="w-full flex flex-col py-6 px-4 shrink-0">
+          <div className={`flex items-center justify-between w-full ${sidebarOpen ? 'px-1' : 'justify-center'}`}>
+            {sidebarOpen && (
+              <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2 duration-300 min-w-0">
+                <div className="bg-white p-1 rounded-full w-9 h-9 flex items-center justify-center overflow-hidden shadow-inner border border-white/10 shrink-0">
+                  <img src="/logo.png" alt="School Logo" className="object-contain w-full h-full" />
+                </div>
+                <span className="font-black text-sm tracking-tighter uppercase text-white truncate">GuardianGate</span>
+              </div>
+            )}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-3 bg-white/10 rounded-2xl text-white hover:bg-white/20 transition-all border border-white/20 shadow-lg cursor-pointer"
+              className={`${
+                sidebarOpen ? 'p-2 rounded-xl' : 'p-3 rounded-2xl'
+              } bg-white/10 text-white hover:bg-white/20 transition-all border border-white/20 shadow-lg cursor-pointer shrink-0`}
             >
-              {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+              {sidebarOpen ? <X size={18} /> : <Menu size={24} />}
             </button>
           </div>
 
