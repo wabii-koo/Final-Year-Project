@@ -19,7 +19,8 @@ import {
   BookOpen,
   Check,
   X,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Lock
 } from 'lucide-react'
 
 interface ReportCard {
@@ -108,6 +109,7 @@ export default function ReportCardsPage() {
   const [students, setStudents] = useState<any[]>([])
   const [loadingStudents, setLoadingStudents] = useState(false)
   const [activeTab, setActiveTab] = useState<'roster' | 'history'>('roster')
+  const [modalTab, setModalTab] = useState<'transcript' | 'analytics'>('transcript')
 
   // Modal / Form state
   const [showModal, setShowModal] = useState(false)
@@ -291,15 +293,15 @@ export default function ReportCardsPage() {
     }
   }
 
-  const openFillModal = (student: any) => {
-    setSelectedStudent(student)
-    
-    // Check if report card exists for this student
-    const existing = reportCards.find(rc => rc.studentId === student.id || rc.studentId === student.studentId)
+  const loadTermData = (studentId: number, termStr: string) => {
+    const studentIdToMatch = Number(studentId)
+    const existing = reportCards.find(rc => 
+      Number(rc.studentId) === studentIdToMatch && 
+      rc.term === termStr
+    )
     
     if (existing) {
       setEditingReportCard(existing)
-      setFormTerm(existing.term)
       setFormAcademicYear(existing.academicYear)
       
       const parsedGrades: Record<string, { score: string; grade: string }> = {}
@@ -312,7 +314,6 @@ export default function ReportCardsPage() {
       setFormConduct(existing.conductGrade || 'Excellent')
       setFormComments(existing.teacherComments || '')
 
-      // Recalculate average on load if scores exist to ensure it is format-compliant
       const scores = Object.values(parsedGrades)
         .map(d => d.score)
         .filter(s => s !== '')
@@ -323,24 +324,11 @@ export default function ReportCardsPage() {
         const average = Math.round(scores.reduce((sum, val) => sum + val, 0) / scores.length)
         const calculatedOverall = getLetterGradeFromScore(average)
         setFormOverall(`${average} (${calculatedOverall})`)
-
-        if (!existing.conductGrade) {
-          let autoConduct = 'Excellent'
-          if (average >= 90) autoConduct = 'Excellent'
-          else if (average >= 80) autoConduct = 'Very Good'
-          else if (average >= 70) autoConduct = 'Good'
-          else if (average >= 50) autoConduct = 'Satisfactory'
-          else autoConduct = 'Needs Improvement'
-          setFormConduct(autoConduct)
-        }
       } else {
         setFormOverall(existing.overallGrade || '')
       }
     } else {
       setEditingReportCard(null)
-      setFormTerm('Semester 1')
-      setFormAcademicYear('2025-2026')
-      
       const defaultGrades: Record<string, { score: string; grade: string }> = {}
       SUBJECTS.forEach(subject => {
         defaultGrades[subject] = { score: '', grade: '—' }
@@ -351,7 +339,13 @@ export default function ReportCardsPage() {
       setFormOverall('')
       setFormComments('')
     }
-    
+  }
+
+  const openFillModal = (student: any) => {
+    setSelectedStudent(student)
+    setModalTab('transcript')
+    setFormTerm('Semester 1')
+    loadTermData(student.id || student.studentId, 'Semester 1')
     setShowModal(true)
   }
 
@@ -361,7 +355,7 @@ export default function ReportCardsPage() {
       studentId: card.studentId,
       fullName: card.studentName || card.student?.fullName || 'Unknown Student'
     })
-    setEditingReportCard(card)
+    setModalTab('transcript')
     setFormTerm(card.term)
     setFormAcademicYear(card.academicYear)
     
@@ -390,6 +384,7 @@ export default function ReportCardsPage() {
       setFormOverall(card.overallGrade || '')
     }
     
+    setEditingReportCard(card)
     setShowModal(true)
   }
 
@@ -722,14 +717,15 @@ export default function ReportCardsPage() {
                         <tr>
                           <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Student</th>
                           <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Student Code</th>
-                          <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Guardian</th>
-                          <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Report Card Status</th>
+                          <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Semester 1</th>
+                          <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Semester 2</th>
                           <th className="px-8 py-5 text-right text-[10px] font-black uppercase tracking-widest text-brand-text">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-brand-bg/30">
                         {students.map((student) => {
-                          const rc = reportCards.find(card => card.studentId === student.id || card.studentId === student.studentId)
+                          const rc1 = reportCards.find(card => (Number(card.studentId) === Number(student.id) || Number(card.studentId) === Number(student.studentId)) && card.term === 'Semester 1')
+                          const rc2 = reportCards.find(card => (Number(card.studentId) === Number(student.id) || Number(card.studentId) === Number(student.studentId)) && card.term === 'Semester 2')
                           return (
                             <tr key={student.id || student.studentId} className="hover:bg-brand-bg/20 transition-colors group">
                               <td className="px-8 py-6">
@@ -747,60 +743,48 @@ export default function ReportCardsPage() {
                                 {student.studentCode || `KG${student.id || student.studentId}`}
                               </td>
                               <td className="px-8 py-6">
-                                <p className="text-xs font-bold text-brand-heading">{student.guardianName || 'Unassigned'}</p>
-                              </td>
-                              <td className="px-8 py-6">
-                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                                  rc?.status === 'approved' 
+                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border flex items-center gap-1.5 w-fit ${
+                                  rc1?.status === 'approved' 
                                     ? 'bg-brand-success/10 text-brand-success border-brand-success/20'
-                                    : rc?.status === 'unlocked'
+                                    : rc1?.status === 'unlocked'
                                     ? 'bg-red-50 text-red-600 border-red-100'
-                                    : rc?.status === 'pending'
+                                    : rc1?.status === 'pending'
                                     ? 'bg-brand-accent/10 text-brand-primary border-brand-accent/20'
                                     : 'bg-slate-100 text-slate-500 border-slate-200'
                                 }`}>
-                                  {rc ? (rc.status === 'unlocked' ? 'Revision Needed' : rc.status) : 'Not Filled'}
+                                  {rc1?.status === 'approved' && <Lock size={12} />}
+                                  {rc1 ? (rc1.status === 'unlocked' ? 'Revision' : rc1.status) : 'Not Filled'}
+                                </span>
+                              </td>
+                              <td className="px-8 py-6">
+                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border flex items-center gap-1.5 w-fit ${
+                                  rc2?.status === 'approved' 
+                                    ? 'bg-brand-success/10 text-brand-success border-brand-success/20'
+                                    : rc2?.status === 'unlocked'
+                                    ? 'bg-red-50 text-red-600 border-red-100'
+                                    : rc2?.status === 'pending'
+                                    ? 'bg-brand-accent/10 text-brand-primary border-brand-accent/20'
+                                    : 'bg-slate-100 text-slate-500 border-slate-200'
+                                }`}>
+                                  {rc2?.status === 'approved' && <Lock size={12} />}
+                                  {rc2 ? (rc2.status === 'unlocked' ? 'Revision' : rc2.status) : 'Not Filled'}
                                 </span>
                               </td>
                               <td className="px-8 py-6 text-right">
                                 {isHomeroomTeacherOfSelectedClass ? (
-                                  rc ? (
-                                    rc.status === 'approved' ? (
-                                      <button 
-                                        onClick={() => openFillModal(student)}
-                                        className="px-4 py-2 border border-brand-primary/30 text-brand-primary hover:bg-brand-primary hover:text-white transition-all text-xs font-black uppercase tracking-wider rounded-xl"
-                                      >
-                                        View Card
-                                      </button>
-                                    ) : (
-                                      <button 
-                                        onClick={() => openFillModal(student)}
-                                        className="px-4 py-2 bg-brand-accent text-brand-primary shadow-sm hover:scale-105 active:scale-95 transition-all text-xs font-black uppercase tracking-wider rounded-xl"
-                                      >
-                                        {rc.status === 'unlocked' ? 'Correct/Revise' : 'Edit Draft'}
-                                      </button>
-                                    )
-                                  ) : (
-                                    <button 
-                                      onClick={() => openFillModal(student)}
-                                      className="px-4 py-2 bg-brand-primary text-white shadow-lg shadow-brand-primary/10 hover:scale-105 active:scale-95 transition-all text-xs font-black uppercase tracking-wider rounded-xl"
-                                    >
-                                      Fill Report Card
-                                    </button>
-                                  )
+                                  <button 
+                                    onClick={() => openFillModal(student)}
+                                    className="px-4 py-2 bg-brand-primary text-white shadow-lg shadow-brand-primary/10 hover:scale-105 active:scale-95 transition-all text-xs font-black uppercase tracking-wider rounded-xl"
+                                  >
+                                    Manage Grades
+                                  </button>
                                 ) : (
-                                  rc ? (
-                                    <button 
-                                      onClick={() => openFillModal(student)}
-                                      className="px-4 py-2 border border-slate-300 text-slate-500 hover:bg-slate-50 transition-all text-xs font-black uppercase tracking-wider rounded-xl"
-                                    >
-                                      {rc.status === 'approved' ? 'View Card' : 'View Draft'}
-                                    </button>
-                                  ) : (
-                                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-lg">
-                                      View Only
-                                    </span>
-                                  )
+                                  <button 
+                                    onClick={() => openFillModal(student)}
+                                    className="px-4 py-2 border border-slate-300 text-slate-500 hover:bg-slate-50 transition-all text-xs font-black uppercase tracking-wider rounded-xl"
+                                  >
+                                    View Grades
+                                  </button>
                                 )}
                               </td>
                             </tr>
@@ -1007,290 +991,520 @@ export default function ReportCardsPage() {
               </button>
             </div>
 
-            {/* Modal Scrollable Body */}
-            <form onSubmit={handleFormSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
-              {/* Read Only State warning */}
-              {isDirector && editingReportCard?.status === 'pending' ? (
-                <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-center gap-3 animate-fadeIn">
-                  <Clock size={18} className="text-amber-600" />
-                  <p className="text-xs font-bold">This report card is Pending. Please inspect the grades below and choose to Approve or Request Revision.</p>
-                </div>
-              ) : editingReportCard?.status === 'approved' ? (
-                <div className="bg-brand-success/10 border border-brand-success/20 text-brand-success p-4 rounded-xl flex items-center gap-3">
-                  <CheckCircle size={18} />
-                  <p className="text-xs font-bold">This report card is Approved and cannot be modified (Read-Only).</p>
-                </div>
-              ) : !isHomeroomTeacherOfSelectedClass ? (
-                <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-center gap-3">
-                  <AlertCircle size={18} className="text-amber-600" />
-                  <p className="text-xs font-bold">You are viewing this class as a Subject Teacher. Only the homeroom teacher can fill or modify report cards.</p>
-                </div>
-              ) : null}
-
-              {editingReportCard?.status === 'unlocked' && editingReportCard?.principalComments && (
-                <div className="bg-red-50 border border-red-200 text-red-800 p-5 rounded-2xl space-y-2 animate-fadeIn">
-                  <div className="flex items-center gap-2 font-black text-xs uppercase tracking-wider text-red-700">
-                    <AlertCircle size={18} />
-                    Director Rejection Feedback:
-                  </div>
-                  <p className="text-xs font-bold leading-relaxed bg-white/60 p-3 rounded-xl border border-red-100 italic">
-                    "{editingReportCard.principalComments}"
-                  </p>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Term */}
-                <div>
-                  <label className="block text-[10px] font-black text-brand-heading uppercase tracking-widest mb-2">Academic Term</label>
-                  <select
-                    value={formTerm}
-                    onChange={(e) => setFormTerm(e.target.value)}
-                    disabled={submitting || editingReportCard?.status === 'approved' || !isHomeroomTeacherOfSelectedClass}
-                    className="w-full bg-brand-bg border border-brand-100 rounded-xl px-4 py-3 text-xs font-bold text-brand-heading outline-none focus:border-brand-primary"
+            {/* Sub-navigation Tabs */}
+            {(() => {
+              const studentIdToMatch = selectedStudent.studentId || selectedStudent.id;
+              const hasAnyReportCard = reportCards.some(rc => Number(rc.studentId) === Number(studentIdToMatch));
+              if (!hasAnyReportCard) return null;
+              return (
+                <div className="flex border-b border-brand-100 bg-brand-bg/20 px-6">
+                  <button
+                    type="button"
+                    onClick={() => setModalTab('transcript')}
+                    className={`px-6 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition-all ${
+                      modalTab === 'transcript'
+                        ? 'border-brand-primary text-brand-primary'
+                        : 'border-transparent text-brand-text hover:text-brand-heading'
+                    }`}
                   >
-                    <option value="Semester 1">Semester 1</option>
-                    <option value="Semester 2">Semester 2</option>
-                    <option value="Final Term">Final Term</option>
-                  </select>
+                    Academic Transcript
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModalTab('analytics')}
+                    className={`px-6 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition-all ${
+                      modalTab === 'analytics'
+                        ? 'border-brand-primary text-brand-primary'
+                        : 'border-transparent text-brand-text hover:text-brand-heading'
+                    }`}
+                  >
+                    Semester Progress Analytics
+                  </button>
                 </div>
+              );
+            })()}
 
-                {/* Academic Year */}
-                <div>
-                  <label className="block text-[10px] font-black text-brand-heading uppercase tracking-widest mb-2">Academic Year</label>
-                  <input
-                    type="text"
-                    value={formAcademicYear}
-                    onChange={(e) => setFormAcademicYear(e.target.value)}
-                    disabled={submitting || editingReportCard?.status === 'approved' || !isHomeroomTeacherOfSelectedClass}
-                    required
-                    className="w-full bg-brand-bg border border-brand-100 rounded-xl px-4 py-3 text-xs font-bold text-brand-heading outline-none focus:border-brand-primary"
-                  />
-                </div>
-              </div>
+            {/* Modal Scrollable Body */}
+            {modalTab === 'analytics' ? (
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 animate-fadeIn bg-brand-bg/10">
+                {(() => {
+                  const studentIdToMatch = selectedStudent.studentId || selectedStudent.id;
+                  const studentReportCards = reportCards.filter(rc => Number(rc.studentId) === Number(studentIdToMatch));
+                  const sem1 = studentReportCards.find(rc => rc.term === 'Semester 1');
+                  const sem2 = studentReportCards.find(rc => rc.term === 'Semester 2');
 
-              {/* Subjects & Grades */}
-              <div>
-                <h4 className="text-[10px] font-black text-brand-heading uppercase tracking-widest mb-4 border-b border-brand-100 pb-2">Subject Performance (Score & Grade)</h4>
-                <div className="space-y-3">
-                  {SUBJECTS.map((subject) => (
-                    <div key={subject} className="flex flex-col sm:flex-row sm:items-center justify-between bg-brand-bg/30 p-4 rounded-2xl border border-brand-100 gap-3">
-                      <span className="text-xs font-black text-brand-heading">{subject}</span>
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] text-slate-400 font-bold uppercase">Score:</span>
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            required
-                            value={formSubjectData[subject]?.score || ''}
-                            onChange={(e) => handleSubjectScoreChange(subject, e.target.value)}
-                            disabled={submitting || editingReportCard?.status === 'approved' || !isHomeroomTeacherOfSelectedClass}
-                            placeholder="0-100"
-                            className="bg-white border border-brand-100 rounded-lg px-2.5 py-1.5 text-xs font-bold text-brand-heading outline-none focus:border-brand-primary w-20 text-center"
-                          />
+                  const parseOverallScore = (val: string | undefined) => {
+                    if (!val) return null;
+                    const parsed = parseSubjectGrade(val);
+                    if (parsed.score) return parseInt(parsed.score);
+                    const num = parseInt(val);
+                    return isNaN(num) ? null : num;
+                  };
+
+                  const sem1Avg = parseOverallScore(sem1?.overallGrade);
+                  const sem2Avg = parseOverallScore(sem2?.overallGrade);
+                  const avgDelta = (sem1Avg !== null && sem2Avg !== null) ? (sem2Avg - sem1Avg) : null;
+
+                  return (
+                    <div className="space-y-6">
+                      {/* Top Overall cards */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="bg-white border border-brand-100 rounded-2xl p-5 shadow-sm">
+                          <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider">Semester 1 Average</span>
+                          <div className="text-3xl font-black text-brand-heading mt-2">
+                            {sem1Avg !== null ? `${sem1Avg}%` : '—'}
+                          </div>
+                          {sem1?.overallGrade && (
+                            <span className="text-[10px] text-brand-primary font-bold uppercase mt-1 block">
+                              Grade: {parseSubjectGrade(sem1.overallGrade).grade}
+                            </span>
+                          )}
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] text-slate-400 font-bold uppercase">Grade:</span>
-                          <span className="bg-brand-primary/10 border border-brand-primary/20 px-3.5 py-1.5 rounded-lg text-xs font-black text-brand-primary min-w-[3.5rem] text-center" title={GRADE_DESCRIPTIONS[formSubjectData[subject]?.grade] || ''}>
-                            {formSubjectData[subject]?.grade || '—'}
-                          </span>
-                          {GRADE_DESCRIPTIONS[formSubjectData[subject]?.grade] && (
-                            <span className="text-[10px] text-slate-500 font-bold italic max-w-[150px] truncate" title={GRADE_DESCRIPTIONS[formSubjectData[subject]?.grade]}>
-                              {GRADE_DESCRIPTIONS[formSubjectData[subject]?.grade]}
+
+                        <div className="bg-white border border-brand-100 rounded-2xl p-5 shadow-sm">
+                          <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider">Semester 2 Average</span>
+                          <div className="text-3xl font-black text-brand-heading mt-2">
+                            {sem2Avg !== null ? `${sem2Avg}%` : '—'}
+                          </div>
+                          {sem2?.overallGrade ? (
+                            <span className="text-[10px] text-brand-primary font-bold uppercase mt-1 block">
+                              Grade: {parseSubjectGrade(sem2.overallGrade).grade}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-amber-600 font-bold uppercase mt-1 block italic animate-pulse">
+                              Pending Submission
+                            </span>
+                          )}
+                        </div>
+
+                        <div className={`rounded-2xl p-5 border shadow-sm ${
+                          avgDelta !== null 
+                            ? (avgDelta >= 0 
+                               ? 'bg-emerald-50 border-emerald-100 text-emerald-800' 
+                               : 'bg-rose-50 border-rose-100 text-rose-800') 
+                            : 'bg-white border-brand-100 text-brand-heading'
+                        }`}>
+                          <span className="text-[10px] font-black uppercase tracking-wider opacity-60">Yearly Progress</span>
+                          <div className="text-2xl font-black mt-2 flex items-center gap-2">
+                            {avgDelta !== null ? (
+                              <>
+                                <TrendingUp className={`transition-transform ${avgDelta < 0 ? 'rotate-180 text-rose-500' : 'text-emerald-500'}`} size={24} />
+                                <span>{avgDelta >= 0 ? `+${avgDelta}` : avgDelta} pts</span>
+                              </>
+                            ) : (
+                              <span className="text-xs font-bold text-slate-500">Need both semesters</span>
+                            )}
+                          </div>
+                          {avgDelta !== null && (
+                            <span className="text-[10px] font-bold uppercase mt-1 block">
+                              {avgDelta >= 0 ? 'Performance Improved' : 'Performance Dropped'}
                             </span>
                           )}
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
 
-              {/* Behavior & Summary Metrics */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Conduct */}
-                <div>
-                  <label className="block text-[10px] font-black text-brand-heading uppercase tracking-widest mb-2">Conduct Grade</label>
-                  <select
-                    value={formConduct}
-                    onChange={(e) => setFormConduct(e.target.value)}
-                    disabled={submitting || editingReportCard?.status === 'approved' || !isHomeroomTeacherOfSelectedClass}
-                    className="w-full bg-brand-bg border border-brand-100 rounded-xl px-4 py-3 text-xs font-bold text-brand-heading outline-none focus:border-brand-primary"
-                  >
-                    <option value="Excellent">Excellent</option>
-                    <option value="Very Good">Very Good</option>
-                    <option value="Good">Good</option>
-                    <option value="Satisfactory">Satisfactory</option>
-                    <option value="Needs Improvement">Needs Improvement</option>
-                  </select>
-                </div>
+                      {/* Subject Comparison */}
+                      <div>
+                        <h4 className="text-[10px] font-black text-brand-heading uppercase tracking-widest mb-4 border-b border-brand-100 pb-2">Subject Performance Comparison</h4>
+                        <div className="space-y-4">
+                          {SUBJECTS.map(subject => {
+                            const s1Val = sem1?.subjectsGrades?.[subject] || '';
+                            const s1Parsed = parseSubjectGrade(s1Val);
+                            const s1Score = s1Parsed.score ? parseInt(s1Parsed.score) : null;
 
-                {/* Overall */}
-                <div>
-                  <label className="block text-[10px] font-black text-brand-heading uppercase tracking-widest mb-2">Overall Term Grade</label>
-                  <div className="w-full bg-brand-bg border border-brand-100 rounded-xl px-4 py-3.5 text-xs font-black text-brand-primary flex items-center justify-between shadow-inner">
-                    <span className="text-slate-400">Calculated Average:</span>
-                    <span className="bg-brand-primary/10 border border-brand-primary/20 px-4 py-1.5 rounded-lg text-sm">
-                      {formOverall || '—'}
-                    </span>
-                  </div>
-                </div>
-              </div>
+                            const s2Val = sem2?.subjectsGrades?.[subject] || '';
+                            const s2Parsed = parseSubjectGrade(s2Val);
+                            const s2Score = s2Parsed.score ? parseInt(s2Parsed.score) : null;
 
-              {/* Teacher Comments */}
-              {!isDirector && (
-                <div>
-                  <label className="block text-[10px] font-black text-brand-heading uppercase tracking-widest mb-2">Teacher's Comments on Student</label>
-                  <textarea
-                    rows={4}
-                    value={formComments}
-                    onChange={(e) => setFormComments(e.target.value)}
-                    disabled={submitting || editingReportCard?.status === 'approved' || !isHomeroomTeacherOfSelectedClass}
-                    placeholder="Provide comments about the student's cognitive, physical and social development during this term..."
-                    className="w-full bg-brand-bg border border-brand-100 rounded-[1.25rem] p-4 text-xs font-medium text-brand-heading outline-none focus:border-brand-primary resize-none"
-                  ></textarea>
-                </div>
-              )}
+                            const sDelta = (s1Score !== null && s2Score !== null) ? (s2Score - s1Score) : null;
 
-              {/* Comment Board Section (visible to Guardians and Teachers) */}
-              {(user?.role === 'guardian' || user?.role === 'teacher' || user?.role === 'homeroom_teacher') && editingReportCard && (
-                <div className="bg-brand-bg/50 border border-brand-100 rounded-[2rem] p-6 space-y-4 animate-fadeIn">
-                  <h4 className="text-[10px] font-black text-brand-heading uppercase tracking-widest border-b border-brand-100 pb-2 flex items-center justify-between">
-                    <span>Parent-Teacher Comment Board</span>
-                    <span className="bg-brand-primary/10 text-brand-primary px-3 py-1 rounded-full text-[9px]">
-                      {user?.role === 'guardian' 
-                        ? `Teacher: ${editingReportCard.homeroomTeacher?.fullName || 'Sarah Smith'}` 
-                        : `Parent: ${editingReportCard.studentName || 'Guardian'}`}
-                    </span>
-                  </h4>
-                  
-                  {/* Messages Feed */}
-                  <div className="space-y-3 max-h-[220px] overflow-y-auto pr-2 custom-scrollbar">
-                    {loadingComments ? (
-                      <div className="py-6 text-center text-xs text-brand-text/60 animate-pulse font-bold">
-                        Synchronizing Comment Feed...
+                            return (
+                              <div key={subject} className="bg-white border border-brand-100 rounded-2xl p-4 shadow-sm space-y-3">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-xs font-black text-brand-heading">{subject}</span>
+                                  {sDelta !== null ? (
+                                    <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
+                                      sDelta >= 0 
+                                        ? 'bg-emerald-100 text-emerald-800' 
+                                        : 'bg-rose-100 text-rose-800'
+                                    }`}>
+                                      {sDelta >= 0 ? `+${sDelta}` : sDelta} points
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] text-slate-400 font-bold uppercase">Semester 2 Missing</span>
+                                  )}
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  {/* Semester 1 bar */}
+                                  <div className="space-y-1">
+                                    <div className="flex justify-between text-[10px] font-bold text-slate-400">
+                                      <span>Semester 1</span>
+                                      <span>{s1Score !== null ? `${s1Score}/100 (${s1Parsed.grade})` : '—'}</span>
+                                    </div>
+                                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                      <div 
+                                        className="bg-brand-secondary h-full rounded-full transition-all duration-500" 
+                                        style={{ width: `${s1Score ?? 0}%` }}
+                                      ></div>
+                                    </div>
+                                  </div>
+
+                                  {/* Semester 2 bar */}
+                                  <div className="space-y-1">
+                                    <div className="flex justify-between text-[10px] font-bold text-slate-400">
+                                      <span>Semester 2</span>
+                                      <span>{s2Score !== null ? `${s2Score}/100 (${s2Parsed.grade})` : '—'}</span>
+                                    </div>
+                                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                      <div 
+                                        className="bg-brand-primary h-full rounded-full transition-all duration-500" 
+                                        style={{ width: `${s2Score ?? 0}%` }}
+                                      ></div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    ) : commentsList.length === 0 ? (
-                      <div className="py-8 text-center text-xs text-brand-text/50 font-bold italic">
-                        No comments recorded yet. Start the conversation below.
-                      </div>
-                    ) : (
-                      commentsList.map((msg) => {
-                        const isMe = msg.senderId === user?.userId
-                        return (
-                          <div 
-                            key={msg.messageId} 
-                            className={`flex flex-col max-w-[85%] rounded-2xl p-4 text-xs font-bold leading-relaxed shadow-sm transition-all hover:shadow-md ${
-                              isMe 
-                                ? 'bg-brand-primary text-white ml-auto rounded-tr-none' 
-                                : 'bg-white border border-brand-100 text-brand-heading rounded-tl-none'
-                            }`}
-                          >
-                            <div className="flex justify-between items-center gap-4 mb-1">
-                              <span className={`text-[9px] uppercase tracking-wider font-black ${isMe ? 'text-white/80' : 'text-brand-secondary'}`}>
-                                {isMe ? 'You' : msg.senderName}
-                              </span>
-                              <span className={`text-[8px] ${isMe ? 'text-white/60' : 'text-slate-400'}`}>
-                                {new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
+
+                      {/* Conduct & Comments Comparison */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="bg-white border border-brand-100 rounded-2xl p-5 shadow-sm">
+                          <h5 className="text-[10px] font-black text-brand-heading uppercase tracking-widest mb-3 border-b border-brand-100 pb-1.5">Conduct Grade</h5>
+                          <div className="space-y-2 text-xs font-bold">
+                            <div className="flex justify-between">
+                              <span className="text-slate-400">Semester 1:</span>
+                              <span className="text-brand-heading">{sem1?.conductGrade || '—'}</span>
                             </div>
-                            <p className="font-semibold">{msg.content}</p>
+                            <div className="flex justify-between">
+                              <span className="text-slate-400">Semester 2:</span>
+                              <span className="text-brand-heading">{sem2?.conductGrade || '—'}</span>
+                            </div>
                           </div>
-                        )
-                      })
-                    )}
+                        </div>
+
+                        <div className="bg-white border border-brand-100 rounded-2xl p-5 shadow-sm">
+                          <h5 className="text-[10px] font-black text-brand-heading uppercase tracking-widest mb-3 border-b border-brand-100 pb-1.5">Semester Comments</h5>
+                          <div className="space-y-3 text-xs font-medium italic text-slate-600">
+                            <div>
+                              <strong className="text-[9px] uppercase tracking-wider text-slate-400 not-italic block mb-0.5">Semester 1 Feedback:</strong>
+                              "{sem1?.teacherComments || 'No feedback submitted.'}"
+                            </div>
+                            <div>
+                              <strong className="text-[9px] uppercase tracking-wider text-slate-400 not-italic block mt-2 mb-0.5">Semester 2 Feedback:</strong>
+                              "{sem2?.teacherComments || 'No feedback submitted.'}"
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Modal Footer Actions inside the analytics view */}
+                <div className="pt-4 border-t border-brand-100 flex justify-end gap-3 bg-white">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="px-6 py-3 border border-slate-200 text-slate-500 rounded-2xl text-xs font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleFormSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
+                {/* Read Only State warning */}
+                {isDirector && editingReportCard?.status === 'pending' ? (
+                  <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-center gap-3 animate-fadeIn">
+                    <Clock size={18} className="text-amber-600" />
+                    <p className="text-xs font-bold">This report card is Pending. Please inspect the grades below and choose to Approve or Request Revision.</p>
+                  </div>
+                ) : editingReportCard?.status === 'approved' ? (
+                  <div className="bg-brand-success/10 border border-brand-success/20 text-brand-success p-4 rounded-xl flex items-center gap-3">
+                    <CheckCircle size={18} />
+                    <p className="text-xs font-bold">This report card is Approved and cannot be modified (Read-Only).</p>
+                  </div>
+                ) : !isHomeroomTeacherOfSelectedClass ? (
+                  <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-center gap-3">
+                    <AlertCircle size={18} className="text-amber-600" />
+                    <p className="text-xs font-bold">You are viewing this class as a Subject Teacher. Only the homeroom teacher can fill or modify report cards.</p>
+                  </div>
+                ) : null}
+
+                {editingReportCard?.status === 'unlocked' && editingReportCard?.principalComments && (
+                  <div className="bg-red-50 border border-red-200 text-red-800 p-5 rounded-2xl space-y-2 animate-fadeIn">
+                    <div className="flex items-center gap-2 font-black text-xs uppercase tracking-wider text-red-700">
+                      <AlertCircle size={18} />
+                      Director Rejection Feedback:
+                    </div>
+                    <p className="text-xs font-bold leading-relaxed bg-white/60 p-3 rounded-xl border border-red-100 italic">
+                      "{editingReportCard.principalComments}"
+                    </p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Term */}
+                  <div>
+                    <label className="block text-[10px] font-black text-brand-heading uppercase tracking-widest mb-2">Academic Term</label>
+                    <select
+                      value={formTerm}
+                      onChange={(e) => {
+                        const newTerm = e.target.value;
+                        setFormTerm(newTerm);
+                        const sId = selectedStudent.studentId || selectedStudent.id;
+                        loadTermData(sId, newTerm);
+                      }}
+                      disabled={submitting}
+                      className="w-full bg-brand-bg border border-brand-100 rounded-xl px-4 py-3 text-xs font-bold text-brand-heading outline-none focus:border-brand-primary"
+                    >
+                      <option value="Semester 1">Semester 1</option>
+                      <option value="Semester 2">Semester 2</option>
+                      <option value="Final Term">Final Term</option>
+                    </select>
                   </div>
 
-                  {/* Comment Input Box */}
-                  <div className="flex gap-3 pt-2">
+                  {/* Academic Year */}
+                  <div>
+                    <label className="block text-[10px] font-black text-brand-heading uppercase tracking-widest mb-2">Academic Year</label>
                     <input
                       type="text"
-                      placeholder="Write a comment regarding this grade report..."
-                      value={newCommentText}
-                      onChange={(e) => setNewCommentText(e.target.value)}
-                      disabled={sendingComment}
-                      className="flex-1 bg-white border border-brand-100 rounded-xl px-4 py-3 text-xs font-bold text-brand-heading outline-none focus:ring-2 focus:ring-brand-primary/10 placeholder-brand-text/40"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault()
+                      value={formAcademicYear}
+                      onChange={(e) => setFormAcademicYear(e.target.value)}
+                      disabled={submitting || editingReportCard?.status === 'approved' || !isHomeroomTeacherOfSelectedClass}
+                      required
+                      className="w-full bg-brand-bg border border-brand-100 rounded-xl px-4 py-3 text-xs font-bold text-brand-heading outline-none focus:border-brand-primary"
+                    />
+                  </div>
+                </div>
+
+                {/* Subjects & Grades */}
+                <div>
+                  <h4 className="text-[10px] font-black text-brand-heading uppercase tracking-widest mb-4 border-b border-brand-100 pb-2">Subject Performance (Score & Grade)</h4>
+                  <div className="space-y-3">
+                    {SUBJECTS.map((subject) => (
+                      <div key={subject} className="flex flex-col sm:flex-row sm:items-center justify-between bg-brand-bg/30 p-4 rounded-2xl border border-brand-100 gap-3">
+                        <span className="text-xs font-black text-brand-heading">{subject}</span>
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] text-slate-400 font-bold uppercase">Score:</span>
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              required
+                              value={formSubjectData[subject]?.score || ''}
+                              onChange={(e) => handleSubjectScoreChange(subject, e.target.value)}
+                              disabled={submitting || editingReportCard?.status === 'approved' || !isHomeroomTeacherOfSelectedClass}
+                              placeholder="0-100"
+                              className="bg-white border border-brand-100 rounded-lg px-2.5 py-1.5 text-xs font-bold text-brand-heading outline-none focus:border-brand-primary w-20 text-center"
+                            />
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] text-slate-400 font-bold uppercase">Grade:</span>
+                            <span className="bg-brand-primary/10 border border-brand-primary/20 px-3.5 py-1.5 rounded-lg text-xs font-black text-brand-primary min-w-[3.5rem] text-center" title={GRADE_DESCRIPTIONS[formSubjectData[subject]?.grade] || ''}>
+                              {formSubjectData[subject]?.grade || '—'}
+                            </span>
+                            {GRADE_DESCRIPTIONS[formSubjectData[subject]?.grade] && (
+                              <span className="text-[10px] text-slate-500 font-bold italic max-w-[150px] truncate" title={GRADE_DESCRIPTIONS[formSubjectData[subject]?.grade]}>
+                                {GRADE_DESCRIPTIONS[formSubjectData[subject]?.grade]}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Behavior & Summary Metrics */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Conduct */}
+                  <div>
+                    <label className="block text-[10px] font-black text-brand-heading uppercase tracking-widest mb-2">Conduct Grade</label>
+                    <select
+                      value={formConduct}
+                      onChange={(e) => setFormConduct(e.target.value)}
+                      disabled={submitting || editingReportCard?.status === 'approved' || !isHomeroomTeacherOfSelectedClass}
+                      className="w-full bg-brand-bg border border-brand-100 rounded-xl px-4 py-3 text-xs font-bold text-brand-heading outline-none focus:border-brand-primary"
+                    >
+                      <option value="Excellent">Excellent</option>
+                      <option value="Very Good">Very Good</option>
+                      <option value="Good">Good</option>
+                      <option value="Satisfactory">Satisfactory</option>
+                      <option value="Needs Improvement">Needs Improvement</option>
+                    </select>
+                  </div>
+
+                  {/* Overall */}
+                  <div>
+                    <label className="block text-[10px] font-black text-brand-heading uppercase tracking-widest mb-2">Overall Term Grade</label>
+                    <div className="w-full bg-brand-bg border border-brand-100 rounded-xl px-4 py-3.5 text-xs font-black text-brand-primary flex items-center justify-between shadow-inner">
+                      <span className="text-slate-400">Calculated Average:</span>
+                      <span className="bg-brand-primary/10 border border-brand-primary/20 px-4 py-1.5 rounded-lg text-sm">
+                        {formOverall || '—'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Teacher Comments */}
+                {!isDirector && (
+                  <div>
+                    <label className="block text-[10px] font-black text-brand-heading uppercase tracking-widest mb-2">Teacher's Comments on Student</label>
+                    <textarea
+                      rows={4}
+                      value={formComments}
+                      onChange={(e) => setFormComments(e.target.value)}
+                      disabled={submitting || editingReportCard?.status === 'approved' || !isHomeroomTeacherOfSelectedClass}
+                      placeholder="Provide comments about the student's cognitive, physical and social development during this term..."
+                      className="w-full bg-brand-bg border border-brand-100 rounded-[1.25rem] p-4 text-xs font-medium text-brand-heading outline-none focus:border-brand-primary resize-none"
+                    ></textarea>
+                  </div>
+                )}
+
+                {/* Comment Board Section (visible to Guardians and Teachers) */}
+                {(user?.role === 'guardian' || user?.role === 'teacher' || user?.role === 'homeroom_teacher') && editingReportCard && (
+                  <div className="bg-brand-bg/50 border border-brand-100 rounded-[2rem] p-6 space-y-4 animate-fadeIn">
+                    <h4 className="text-[10px] font-black text-brand-heading uppercase tracking-widest border-b border-brand-100 pb-2 flex items-center justify-between">
+                      <span>Parent-Teacher Comment Board</span>
+                      <span className="bg-brand-primary/10 text-brand-primary px-3 py-1 rounded-full text-[9px]">
+                        {user?.role === 'guardian' 
+                          ? `Teacher: ${editingReportCard.homeroomTeacher?.fullName || 'Sarah Smith'}` 
+                          : `Parent: ${editingReportCard.studentName || 'Guardian'}`}
+                      </span>
+                    </h4>
+                    
+                    {/* Messages Feed */}
+                    <div className="space-y-3 max-h-[220px] overflow-y-auto pr-2 custom-scrollbar">
+                      {loadingComments ? (
+                        <div className="py-6 text-center text-xs text-brand-text/60 animate-pulse font-bold">
+                          Synchronizing Comment Feed...
+                        </div>
+                      ) : commentsList.length === 0 ? (
+                        <div className="py-8 text-center text-xs text-brand-text/50 font-bold italic">
+                          No comments recorded yet. Start the conversation below.
+                        </div>
+                      ) : (
+                        commentsList.map((msg) => {
+                          const isMe = msg.senderId === user?.userId
+                          return (
+                            <div 
+                              key={msg.messageId} 
+                              className={`flex flex-col max-w-[85%] rounded-2xl p-4 text-xs font-bold leading-relaxed shadow-sm transition-all hover:shadow-md ${
+                                isMe 
+                                  ? 'bg-brand-primary text-white ml-auto rounded-tr-none' 
+                                  : 'bg-white border border-brand-100 text-brand-heading rounded-tl-none'
+                              }`}
+                            >
+                              <div className="flex justify-between items-center gap-4 mb-1">
+                                <span className={`text-[9px] uppercase tracking-wider font-black ${isMe ? 'text-white/80' : 'text-brand-secondary'}`}>
+                                  {isMe ? 'You' : msg.senderName}
+                                </span>
+                                <span className={`text-[8px] ${isMe ? 'text-white/60' : 'text-slate-400'}`}>
+                                  {new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                              <p className="font-semibold">{msg.content}</p>
+                            </div>
+                          )
+                        })
+                      )}
+                    </div>
+
+                    {/* Comment Input Box */}
+                    <div className="flex gap-3 pt-2">
+                      <input
+                        type="text"
+                        placeholder="Write a comment regarding this grade report..."
+                        value={newCommentText}
+                        onChange={(e) => setNewCommentText(e.target.value)}
+                        disabled={sendingComment}
+                        className="flex-1 bg-white border border-brand-100 rounded-xl px-4 py-3 text-xs font-bold text-brand-heading outline-none focus:ring-2 focus:ring-brand-primary/10 placeholder-brand-text/40"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            const recipientId = user?.role === 'guardian' 
+                              ? editingReportCard.homeroomTeacher?.userId 
+                              : editingReportCard.student?.guardianId
+                            if (recipientId) handleSendComment(recipientId)
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        disabled={sendingComment || !newCommentText.trim()}
+                        onClick={() => {
                           const recipientId = user?.role === 'guardian' 
                             ? editingReportCard.homeroomTeacher?.userId 
                             : editingReportCard.student?.guardianId
                           if (recipientId) handleSendComment(recipientId)
-                        }
-                      }}
-                    />
-                    <button
-                      type="button"
-                      disabled={sendingComment || !newCommentText.trim()}
-                      onClick={() => {
-                        const recipientId = user?.role === 'guardian' 
-                          ? editingReportCard.homeroomTeacher?.userId 
-                          : editingReportCard.student?.guardianId
-                        if (recipientId) handleSendComment(recipientId)
-                      }}
-                      className="bg-brand-primary text-white px-5 py-3 rounded-xl font-black text-xs uppercase tracking-wider shadow-lg shadow-brand-primary/10 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:pointer-events-none transition-all flex items-center justify-center whitespace-nowrap"
-                    >
-                      {sendingComment ? 'Sending...' : 'Post Comment'}
-                    </button>
+                        }}
+                        className="bg-brand-primary text-white px-5 py-3 rounded-xl font-black text-xs uppercase tracking-wider shadow-lg shadow-brand-primary/10 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:pointer-events-none transition-all flex items-center justify-center whitespace-nowrap"
+                      >
+                        {sendingComment ? 'Sending...' : 'Post Comment'}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
-
-              {/* Modal Footer Actions */}
-              <div className="pt-4 border-t border-brand-100 flex justify-end gap-3 bg-white">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  disabled={submitting}
-                  className="px-6 py-3 border border-slate-200 text-slate-500 rounded-2xl text-xs font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors"
-                >
-                  {editingReportCard?.status === 'approved' || !isHomeroomTeacherOfSelectedClass ? 'Close' : 'Cancel'}
-                </button>
-                
-                {isDirector && editingReportCard?.status === 'pending' && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        const reason = prompt("Please enter the reason for revision / what is incorrect:")
-                        if (reason === null) return
-                        setShowModal(false)
-                        await handleReject(editingReportCard.id, reason)
-                      }}
-                      className="px-6 py-3 bg-red-500 text-white rounded-2xl text-xs font-black uppercase tracking-wider hover:scale-105 active:scale-95 transition-all shadow-md"
-                    >
-                      Request Revision
-                    </button>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        setShowModal(false)
-                        await handleApprove(editingReportCard.id)
-                      }}
-                      className="px-6 py-3 bg-brand-success text-white rounded-2xl text-xs font-black uppercase tracking-wider hover:scale-105 active:scale-95 transition-all shadow-md"
-                    >
-                      Endorse / Approve
-                    </button>
-                  </>
                 )}
 
-                {editingReportCard?.status !== 'approved' && isHomeroomTeacherOfSelectedClass && (
+                {/* Modal Footer Actions */}
+                <div className="pt-4 border-t border-brand-100 flex justify-end gap-3 bg-white">
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={() => setShowModal(false)}
                     disabled={submitting}
-                    className="px-6 py-3 bg-brand-primary text-white rounded-2xl text-xs font-black uppercase tracking-wider shadow-lg shadow-brand-primary/20 hover:scale-105 active:scale-95 transition-all"
+                    className="px-6 py-3 border border-slate-200 text-slate-500 rounded-2xl text-xs font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors"
                   >
-                    {submitting 
-                      ? 'Submitting...' 
-                      : (editingReportCard ? 'Update & Re-Submit' : 'Submit for Endorsement')
-                    }
+                    {editingReportCard?.status === 'approved' || !isHomeroomTeacherOfSelectedClass ? 'Close' : 'Cancel'}
                   </button>
-                )}
-              </div>
-            </form>
+                  
+                  {isDirector && editingReportCard?.status === 'pending' && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const reason = prompt("Please enter the reason for revision / what is incorrect:")
+                          if (reason === null) return
+                          setShowModal(false)
+                          await handleReject(editingReportCard.id, reason)
+                        }}
+                        className="px-6 py-3 bg-red-500 text-white rounded-2xl text-xs font-black uppercase tracking-wider hover:scale-105 active:scale-95 transition-all shadow-md"
+                      >
+                        Request Revision
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setShowModal(false)
+                          await handleApprove(editingReportCard.id)
+                        }}
+                        className="px-6 py-3 bg-brand-success text-white rounded-2xl text-xs font-black uppercase tracking-wider hover:scale-105 active:scale-95 transition-all shadow-md"
+                      >
+                        Endorse / Approve
+                      </button>
+                    </>
+                  )}
+
+                  {editingReportCard?.status !== 'approved' && isHomeroomTeacherOfSelectedClass && (
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="px-6 py-3 bg-brand-primary text-white rounded-2xl text-xs font-black uppercase tracking-wider shadow-lg shadow-brand-primary/20 hover:scale-105 active:scale-95 transition-all"
+                    >
+                      {submitting 
+                        ? 'Submitting...' 
+                        : (editingReportCard ? 'Update & Re-Submit' : 'Submit for Endorsement')
+                      }
+                    </button>
+                  )}
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
