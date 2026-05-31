@@ -163,9 +163,11 @@ export class TeacherController {
           s.full_name as "fullName",
           s.class_id as "classId",
           s.guardian_id,
-          u.full_name as "guardianName"
+          u.full_name as "guardianName",
+          u.email as "guardianEmail",
+          u.phone_no as "guardianPhone"
         FROM "Students" s
-        LEFT JOIN users u ON s.guardian_id = u.user_id
+        INNER JOIN users u ON s.guardian_id = u.user_id
       `;
       let replacements: any[] = [];
       

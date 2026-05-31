@@ -385,17 +385,21 @@ export class MessageController {
           SELECT DISTINCT u.user_id, u.full_name, u.role,
                  (SELECT m.content FROM messages m 
                   WHERE ((m.sender_id = ? AND m.receiver_id = u.user_id) OR 
-                         (m.receiver_id = ? AND m.sender_id = u.user_id)) 
+                         (m.receiver_id = ? AND m.sender_id = u.user_id))
+                  AND m.message_type != 'report_card'
                   ORDER BY m.sent_at DESC LIMIT 1) as last_message_content,
                  (SELECT m.sent_at FROM messages m 
                   WHERE ((m.sender_id = ? AND m.receiver_id = u.user_id) OR 
-                         (m.receiver_id = ? AND m.sender_id = u.user_id)) 
+                         (m.receiver_id = ? AND m.sender_id = u.user_id))
+                  AND m.message_type != 'report_card'
                   ORDER BY m.sent_at DESC LIMIT 1) as last_message_sent_at,
                  (SELECT COUNT(*) FROM messages m 
-                  WHERE m.receiver_id = ? AND m.sender_id = u.user_id AND m.is_read = false) as unread_count
+                  WHERE m.receiver_id = ? AND m.sender_id = u.user_id AND m.is_read = false
+                  AND m.message_type != 'report_card') as unread_count
           FROM users u
           JOIN messages m ON (m.sender_id = u.user_id OR m.receiver_id = u.user_id)
           WHERE u.role = 'homeroom_teacher'
+          AND m.message_type != 'report_card'
           AND (m.sender_id = ? OR m.receiver_id = ?)
           AND u.user_id != ?
           AND u.user_id IN (
@@ -413,17 +417,21 @@ export class MessageController {
           SELECT DISTINCT u.user_id, u.full_name, u.role,
                  (SELECT m.content FROM messages m 
                   WHERE ((m.sender_id = ? AND m.receiver_id = u.user_id) OR 
-                         (m.receiver_id = ? AND m.sender_id = u.user_id)) 
+                         (m.receiver_id = ? AND m.sender_id = u.user_id))
+                  AND m.message_type != 'report_card'
                   ORDER BY m.sent_at DESC LIMIT 1) as last_message_content,
                  (SELECT m.sent_at FROM messages m 
                   WHERE ((m.sender_id = ? AND m.receiver_id = u.user_id) OR 
-                         (m.receiver_id = ? AND m.sender_id = u.user_id)) 
+                         (m.receiver_id = ? AND m.sender_id = u.user_id))
+                  AND m.message_type != 'report_card'
                   ORDER BY m.sent_at DESC LIMIT 1) as last_message_sent_at,
                  (SELECT COUNT(*) FROM messages m 
-                  WHERE m.receiver_id = ? AND m.sender_id = u.user_id AND m.is_read = false) as unread_count
+                  WHERE m.receiver_id = ? AND m.sender_id = u.user_id AND m.is_read = false
+                  AND m.message_type != 'report_card') as unread_count
           FROM users u
           JOIN messages m ON (m.sender_id = u.user_id OR m.receiver_id = u.user_id)
           WHERE u.role = 'guardian'
+          AND m.message_type != 'report_card'
           AND (m.sender_id = ? OR m.receiver_id = ?)
           AND u.user_id != ?
           AND u.user_id IN (

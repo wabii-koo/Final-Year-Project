@@ -865,99 +865,158 @@ export default function ReportCardsPage() {
         )}
 
         {/* DIRECTOR / ARCHIVE VIEW */}
-        {!isTeacher && (
-          <div className="bg-brand-white rounded-[3.5rem] shadow-2xl shadow-brand-primary/5 border border-brand-100 overflow-hidden">
-            <div className="p-8 border-b border-brand-bg flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-brand-bg/20">
-              <h2 className="text-xl font-black text-brand-heading uppercase tracking-widest flex items-center gap-3">
-                <Award className="text-brand-primary" />
-                Directory of Records
-              </h2>
-              <div className="relative w-full sm:w-64">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-accent" size={16} />
-                <input 
-                  type="text" 
-                  placeholder="Filter by student..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white border border-brand-100 rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold outline-none focus:border-brand-primary" 
-                />
+        {!isTeacher && (() => {
+          // Group filteredReportCards by studentId so each student gets one row
+          const studentMap = new Map<number, { studentName: string; grade: string; submittedBy: string; rc1: ReportCard | undefined; rc2: ReportCard | undefined }>()
+          filteredReportCards.forEach(card => {
+            if (!studentMap.has(card.studentId)) {
+              studentMap.set(card.studentId, {
+                studentName: card.studentName,
+                grade: card.grade,
+                submittedBy: card.submittedBy,
+                rc1: undefined,
+                rc2: undefined,
+              })
+            }
+            const entry = studentMap.get(card.studentId)!
+            if (card.term === 'Semester 1') entry.rc1 = card
+            if (card.term === 'Semester 2') entry.rc2 = card
+          })
+          const groupedStudents = Array.from(studentMap.entries())
+
+          return (
+            <div className="bg-brand-white rounded-[3.5rem] shadow-2xl shadow-brand-primary/5 border border-brand-100 overflow-hidden">
+              <div className="p-8 border-b border-brand-bg flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-brand-bg/20">
+                <h2 className="text-xl font-black text-brand-heading uppercase tracking-widest flex items-center gap-3">
+                  <Award className="text-brand-primary" />
+                  Directory of Records
+                </h2>
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-accent" size={16} />
+                  <input
+                    type="text"
+                    placeholder="Filter by student..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-white border border-brand-100 rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold outline-none focus:border-brand-primary"
+                  />
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                {groupedStudents.length === 0 ? (
+                  <div className="py-24 text-center">
+                    <FileText className="mx-auto text-brand-accent/20 mb-6" size={80} />
+                    <h3 className="text-2xl font-black text-brand-heading">No results in archive</h3>
+                    <p className="text-brand-text font-medium mt-2">Transcripts will populate once teacher validation is complete.</p>
+                  </div>
+                ) : (
+                  <table className="w-full">
+                    <thead className="bg-brand-bg/10">
+                      <tr>
+                        <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Student</th>
+                        <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Class</th>
+                        <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Semester 1</th>
+                        <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Semester 2</th>
+                        {isDirector && <th className="px-8 py-5 text-right text-[10px] font-black uppercase tracking-widest text-brand-text">Actions</th>}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-brand-bg/30">
+                      {groupedStudents.map(([studentId, entry]) => (
+                        <tr key={studentId} className="hover:bg-brand-bg/20 transition-colors group">
+                          {/* Student Name */}
+                          <td className="px-8 py-6">
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center text-brand-primary font-black text-sm">
+                                {entry.studentName.charAt(0)}
+                              </div>
+                              <div>
+                                <p className="text-sm font-black text-brand-heading">{entry.studentName}</p>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Grade / Class */}
+                          <td className="px-8 py-6">
+                            <p className="text-sm font-bold text-brand-heading">{entry.grade}</p>
+                          </td>
+
+                          {/* Semester 1 Status */}
+                          <td className="px-8 py-6">
+                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border flex items-center gap-1.5 w-fit ${
+                              entry.rc1?.status === 'approved'
+                                ? 'bg-brand-success/10 text-brand-success border-brand-success/20'
+                                : entry.rc1?.status === 'unlocked'
+                                ? 'bg-red-50 text-red-600 border-red-100'
+                                : entry.rc1?.status === 'pending'
+                                ? 'bg-brand-accent/10 text-brand-primary border-brand-accent/20'
+                                : 'bg-slate-100 text-slate-500 border-slate-200'
+                            }`}>
+                              {entry.rc1?.status === 'approved' && <Lock size={12} />}
+                              {entry.rc1 ? (entry.rc1.status === 'unlocked' ? 'Revision' : entry.rc1.status) : 'Not Filled'}
+                            </span>
+                          </td>
+
+                          {/* Semester 2 Status */}
+                          <td className="px-8 py-6">
+                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border flex items-center gap-1.5 w-fit ${
+                              entry.rc2?.status === 'approved'
+                                ? 'bg-brand-success/10 text-brand-success border-brand-success/20'
+                                : entry.rc2?.status === 'unlocked'
+                                ? 'bg-red-50 text-red-600 border-red-100'
+                                : entry.rc2?.status === 'pending'
+                                ? 'bg-brand-accent/10 text-brand-primary border-brand-accent/20'
+                                : 'bg-slate-100 text-slate-500 border-slate-200'
+                            }`}>
+                              {entry.rc2?.status === 'approved' && <Lock size={12} />}
+                              {entry.rc2 ? (entry.rc2.status === 'unlocked' ? 'Revision' : entry.rc2.status) : 'Not Filled'}
+                            </span>
+                          </td>
+
+                          {/* Actions — review pending first; otherwise view the most recent card */}
+                          {isDirector && (
+                            <td className="px-8 py-6 text-right">
+                              <div className="flex gap-2 justify-end">
+                                {entry.rc1 && (
+                                  <button
+                                    onClick={() => openViewModal(entry.rc1!)}
+                                    className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all active:scale-95 ${
+                                      entry.rc1.status === 'pending'
+                                        ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg'
+                                        : 'border border-brand-primary/30 text-brand-primary hover:bg-brand-primary/10'
+                                    }`}
+                                  >
+                                    {entry.rc1.status === 'pending' ? 'Review S1' : 'View S1'}
+                                  </button>
+                                )}
+                                {entry.rc2 && (
+                                  <button
+                                    onClick={() => openViewModal(entry.rc2!)}
+                                    className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all active:scale-95 ${
+                                      entry.rc2.status === 'pending'
+                                        ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg'
+                                        : 'border border-brand-primary/30 text-brand-primary hover:bg-brand-primary/10'
+                                    }`}
+                                  >
+                                    {entry.rc2.status === 'pending' ? 'Review S2' : 'View S2'}
+                                  </button>
+                                )}
+                                {!entry.rc1 && !entry.rc2 && (
+                                  <span className="text-xs text-slate-400 italic">No cards yet</span>
+                                )}
+                              </div>
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
+          )
+        })()}
 
-            <div className="overflow-x-auto">
-              {filteredReportCards.length === 0 ? (
-                <div className="py-24 text-center">
-                  <FileText className="mx-auto text-brand-accent/20 mb-6" size={80} />
-                  <h3 className="text-2xl font-black text-brand-heading">No results in archive</h3>
-                  <p className="text-brand-text font-medium mt-2">Transcripts will populate once teacher validation is complete.</p>
-                </div>
-              ) : (
-                <table className="w-full">
-                  <thead className="bg-brand-bg/10">
-                    <tr>
-                      <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Student</th>
-                      <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Academic Context</th>
-                      <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Status</th>
-                      <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Validator</th>
-                      {(isDirector || user?.role === 'guardian') && <th className="px-8 py-5 text-right text-[10px] font-black uppercase tracking-widest text-brand-text">Actions</th>}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-brand-bg/30">
-                    {filteredReportCards.map((card) => (
-                      <tr key={card.id} className="hover:bg-brand-bg/20 transition-colors group">
-                        <td className="px-8 py-6">
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-white rounded-xl shadow-sm border border-brand-100 flex items-center justify-center">
-                              <FileText size={18} className="text-brand-secondary" />
-                            </div>
-                            <p className="text-sm font-black text-brand-heading">{card.studentName}</p>
-                          </div>
-                        </td>
-                        <td className="px-8 py-6">
-                          <p className="text-sm font-bold text-brand-heading">{card.grade}</p>
-                          <p className="text-[10px] text-brand-text font-black uppercase">{card.term} • {card.academicYear}</p>
-                        </td>
-                        <td className="px-8 py-6">
-                          <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                            card.status === 'approved' 
-                              ? 'bg-brand-success/10 text-brand-success border-brand-success/20'
-                              : card.status === 'unlocked'
-                              ? 'bg-red-50 text-red-600 border-red-100'
-                              : 'bg-brand-accent/10 text-brand-primary border-brand-accent/20'
-                          }`}>
-                            {card.status === 'unlocked' ? 'unlocked' : card.status}
-                          </span>
-                        </td>
-                        <td className="px-8 py-6">
-                          <p className="text-xs font-bold text-brand-text uppercase">{card.submittedBy}</p>
-                        </td>
-                        {(isDirector || user?.role === 'guardian') && (
-                          <td className="px-8 py-6 text-right">
-                            {card.status === 'pending' && isDirector ? (
-                              <button 
-                                onClick={() => openViewModal(card)}
-                                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white shadow-lg active:scale-95 transition-all text-xs font-black uppercase tracking-wider rounded-xl"
-                              >
-                                Review Card
-                              </button>
-                            ) : (
-                              <button 
-                                onClick={() => openViewModal(card)}
-                                className="px-4 py-2 border border-brand-primary/30 text-brand-primary hover:bg-brand-primary/10 transition-all text-xs font-black uppercase tracking-wider rounded-xl"
-                              >
-                                View Details
-                              </button>
-                            )}
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* DYNAMIC FORM MODAL OVERLAY */}
@@ -1264,7 +1323,6 @@ export default function ReportCardsPage() {
                     >
                       <option value="Semester 1">Semester 1</option>
                       <option value="Semester 2">Semester 2</option>
-                      <option value="Final Term">Final Term</option>
                     </select>
                   </div>
 
