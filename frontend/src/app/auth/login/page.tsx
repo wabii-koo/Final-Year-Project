@@ -407,7 +407,7 @@ function LoginContent() {
                 </form>
               </>
             ) : (
-              <div className="space-y-6">
+              <div key={activeRole} className="space-y-6 animate-fade-in-up">
                 {error && (
                   <div className="p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-sm">
                     {error}
@@ -415,12 +415,19 @@ function LoginContent() {
                 )}
 
                 <div className="flex flex-col items-center text-center py-6">
-                  <div className="w-24 h-24 rounded-full bg-[#FEF9C3] flex items-center justify-center text-4xl shadow-md transform hover:scale-105 transition-transform duration-300">
-                    {activeRole === "Teacher" && "🧑‍🏫"}
-                    {activeRole === "Registrar" && "🏢"}
-                    {activeRole === "Director" && "💼"}
+                  <div className="relative mb-6 flex items-center justify-center">
+                    {/* Glowing pulse ring behind circle */}
+                    <div className="absolute w-24 h-24 rounded-full bg-brand-primary/20 blur-xl animate-pulse-glow" />
+                    
+                    {/* Floating animated role emoji circle */}
+                    <div className="relative w-28 h-28 rounded-full bg-[#FEF9C3] flex items-center justify-center text-5xl shadow-lg border border-yellow-200/50 animate-float hover:scale-110 transition-transform duration-300 cursor-default">
+                      {activeRole === "Teacher" && "🧑‍🏫"}
+                      {activeRole === "Registrar" && "🏢"}
+                      {activeRole === "Director" && "💼"}
+                    </div>
                   </div>
-                  <h2 className="text-3xl font-bold text-brand-heading mt-6 tracking-tight">
+
+                  <h2 className="text-3xl font-black text-brand-heading mt-2 tracking-tight">
                     {activeRole} Login
                   </h2>
                   <p className="text-brand-text font-medium text-base mt-2 mb-8 max-w-xs leading-relaxed">
@@ -429,9 +436,10 @@ function LoginContent() {
                   <button
                     type="button"
                     onClick={handleRedirectToDedicatedPage}
-                    className="w-full max-w-[280px] py-4 bg-[#e5a900] hover:bg-[#d49c00] active:bg-[#c38f00] text-white font-black text-base rounded-full shadow-lg shadow-yellow-500/10 hover:shadow-yellow-500/20 active:translate-y-0.5 transition-all duration-200 cursor-pointer inline-flex items-center justify-center gap-2"
+                    className="w-full max-w-[280px] py-4 bg-linear-to-r from-brand-primary to-brand-accent hover:opacity-95 active:translate-y-0.5 hover:scale-[1.02] active:scale-[0.98] text-white font-black text-base rounded-full shadow-xl shadow-brand-primary/20 hover:shadow-brand-primary/30 transition-all duration-200 cursor-pointer inline-flex items-center justify-center gap-2 group"
                   >
-                    Go to {activeRole} Login
+                    <span>Go to {activeRole} Login</span>
+                    <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                   </button>
                 </div>
               </div>
