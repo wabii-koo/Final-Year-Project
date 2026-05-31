@@ -17,6 +17,7 @@ import {
   XCircle,
   AlertTriangle,
   Megaphone,
+  Download,
   ChevronRight,
   Activity,
 } from 'lucide-react'
@@ -39,6 +40,11 @@ interface ActivityItem {
   details: string
 }
 
+interface ChartData {
+  className: string
+  averageScore: number
+}
+
 export default function DirectorDashboard() {
   const [user, setUser] = useState<any>(null)
   const [stats, setStats] = useState<Stats>({
@@ -49,6 +55,7 @@ export default function DirectorDashboard() {
     pendingReportCards: 0
   })
   const [activities, setActivities] = useState<ActivityItem[]>([])
+  const [classPerformance, setClassPerformance] = useState<ChartData[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
@@ -76,17 +83,21 @@ export default function DirectorDashboard() {
       const token = localStorage.getItem('token')
       
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-      const [statsRes, activityRes] = await Promise.all([
+      const [statsRes, activityRes, performanceRes] = await Promise.all([
         fetch(`${apiUrl}/api/director/stats`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }).catch(() => null),
         fetch(`${apiUrl}/api/director/activity`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).catch(() => null),
+        fetch(`${apiUrl}/api/director/analytics/performance`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }).catch(() => null)
       ])
 
       const statsData = statsRes?.ok ? await statsRes.json() : null
       const activityData = activityRes?.ok ? await activityRes.json() : null
+      const performanceData = performanceRes?.ok ? await performanceRes.json() : null
 
       setStats(statsData?.data || {
         totalStudents: 124,
@@ -101,6 +112,14 @@ export default function DirectorDashboard() {
         { id: 2, userName: 'System', action: 'Emergency Alert Sent', entity: 'Security Update', timestamp: '2026-05-02T09:15:00Z', details: 'Campus perimeter check complete' },
         { id: 3, userName: 'Sarah Johnson', action: 'Created Event', entity: 'Science Fair 2026', timestamp: '2026-05-01T16:45:00Z', details: 'Main Hall, 10:00 AM' },
         { id: 4, userName: 'Mulugeta Haile', action: 'Updated Profile', entity: 'Staff Record', timestamp: '2026-05-01T14:20:00Z', details: 'Certification added' }
+      ])
+
+      setClassPerformance(performanceData?.data || [
+        { className: 'KG-A', averageScore: 88 },
+        { className: 'KG-B', averageScore: 82 },
+        { className: 'Grade 1', averageScore: 91 },
+        { className: 'Grade 2', averageScore: 78 },
+        { className: 'Grade 3', averageScore: 85 }
       ])
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
@@ -133,9 +152,18 @@ export default function DirectorDashboard() {
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-brand-white p-8 rounded-3xl shadow-xl shadow-brand-primary/5 border border-brand-100 relative overflow-hidden">
           <div className="relative z-10">
             <h1 className="text-4xl font-black text-brand-heading tracking-tight leading-tight">
-              Greetings, <span className="text-brand-primary">{user?.fullName || 'Director'}</span>
+              Greetings, <span className="text-brand-primary">{user?.fullName?.split(' ')[0] || 'Director'}</span>
             </h1>
             <p className="text-brand-text mt-2 text-lg font-medium">Digital insights for school operations and performance.</p>
+          </div>
+          <div className="flex gap-3 relative z-10">
+            <button 
+              onClick={() => router.push('/dashboard/report-cards')}
+              className="flex items-center gap-2 px-8 py-4 bg-linear-to-r from-brand-primary to-brand-accent text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-brand-primary/20 hover:scale-105 active:scale-95 transition-all"
+            >
+              <Download size={18} />
+              VIEW CLASSROOM REPORTS
+            </button>
           </div>
           <Shield className="absolute -bottom-8 -right-8 text-brand-accent/10 rotate-12" size={160} />
         </header>
@@ -170,8 +198,36 @@ export default function DirectorDashboard() {
 
         {/* Main Insights Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* System Controls */}
+          {/* Performance & Charts */}
           <div className="lg:col-span-2 space-y-8">
+            <div className="bg-brand-white rounded-3xl shadow-sm border border-brand-100 overflow-hidden">
+              <div className="p-6 border-b border-brand-bg flex items-center justify-between">
+                <h3 className="text-xl font-bold text-brand-heading flex items-center gap-2">
+                  <TrendingUp className="text-brand-primary" />
+                  Participation & Performance
+                </h3>
+                <div className="flex items-center gap-2 text-xs font-semibold text-brand-text">
+                  <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-brand-primary"></div> Score</span>
+                  <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-brand-accent"></div> Target</span>
+                </div>
+              </div>
+              <div className="p-8 space-y-6">
+                {classPerformance.map((item, idx) => (
+                  <div key={idx} className="space-y-2">
+                    <div className="flex justify-between text-sm font-bold text-brand-heading">
+                      <span>{item.className} Classroom</span>
+                      <span>{item.averageScore}%</span>
+                    </div>
+                    <div className="h-3 w-full bg-brand-bg rounded-full overflow-hidden">
+                      <div 
+                        className="h-full rounded-full transition-all duration-1000 ease-out bg-gradient-to-r from-brand-primary to-brand-accent"
+                        style={{ width: `${item.averageScore}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
             {/* System Controls */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
