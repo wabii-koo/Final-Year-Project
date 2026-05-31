@@ -224,12 +224,54 @@ export class HomeworkController {
     try {
       const { title, description, subject, className, dueDate } = req.body;
       const userId = req.user.userId;
+      const userRole = req.user.role;
+
+      // 1. Verify classroom assignment
+      const classroom = await ClassroomModel.findOne({
+        where: {
+          classLevel: { [Op.iLike]: className.trim() },
+          [Op.or]: [
+            { teacherId: userId },
+            { homeroomTeacherId: userId }
+          ]
+        }
+      });
+
+      if (!classroom) {
+        res.status(403).json({
+          success: false,
+          message: `Access denied: You are not assigned to teach or manage classroom "${className}"`
+        });
+        return;
+      }
+
+      // 2. Verify subject assignment:
+      // - If the user is a regular teacher, they must match the subject.
+      // - If the user is a homeroom teacher, but is posting to a class they do not manage as homeroom, they must match the subject.
+      const isHomeroomForThisClass = classroom.homeroomTeacherId === userId;
+      if (userRole === UserRole.TEACHER || (userRole === UserRole.HOMEROOM_TEACHER && !isHomeroomForThisClass)) {
+        const subjectAssignment = await ClassroomModel.findOne({
+          where: {
+            classLevel: { [Op.iLike]: className.trim() },
+            teacherId: userId,
+            subject: { [Op.iLike]: subject.trim() }
+          }
+        });
+
+        if (!subjectAssignment) {
+          res.status(403).json({
+            success: false,
+            message: `Access denied: You are not assigned to teach "${subject}" in classroom "${className}"`
+          });
+          return;
+        }
+      }
 
       const homework = await Homework.create({
         title,
         description,
-        subject,
-        className,
+        subject: subject.trim(),
+        className: className.trim(),
         teacherId: userId,
         dueDate: new Date(dueDate),
         isActive: true

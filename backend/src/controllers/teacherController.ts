@@ -43,7 +43,7 @@ export class TeacherController {
             c.homeroom_teacher_id as "homeroomTeacherId",
             (SELECT COUNT(*) FROM "Students" s WHERE s.class_id IN (SELECT class_id FROM "Classrooms" WHERE class_level = c.class_level)) as "totalStudents"
           FROM "Classrooms" c
-          WHERE c.teacher_id = ?
+          WHERE c.teacher_id = ? AND c.subject IS NOT NULL
           ORDER BY c.class_level
         `, {
           replacements: [userId],
