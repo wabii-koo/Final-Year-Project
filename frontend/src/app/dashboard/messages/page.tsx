@@ -49,8 +49,12 @@ export default function MessagesPage() {
   }, [messages, selectedConversation])
 
   useEffect(() => {
-    const handleOutsideClick = () => {
-      setActiveDeleteMenuId(null)
+    const handleOutsideClick = (e: MouseEvent) => {
+      // Only close if the click was not inside a delete-menu element
+      const target = e.target as HTMLElement
+      if (!target.closest('[data-delete-menu]')) {
+        setActiveDeleteMenuId(null)
+      }
     }
     document.addEventListener('click', handleOutsideClick)
     return () => {
@@ -480,37 +484,42 @@ export default function MessagesPage() {
                            className={`flex items-center gap-2 group relative ${isMe ? 'justify-end' : 'justify-start'}`}
                          >
                            {isMe && (
-                             <div className="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-200 relative shrink-0">
+                             <div data-delete-menu className="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-200 relative shrink-0">
                                <button
                                  type="button"
+                                 data-delete-menu
                                  onClick={(e) => {
                                    e.stopPropagation();
-                                   setActiveDeleteMenuId(activeDeleteMenuId === message.messageId ? null : message.messageId);
+                                   setActiveDeleteMenuId(prev => prev === message.messageId ? null : message.messageId);
                                  }}
-                                 className="p-1 hover:bg-gray-150 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
+                                 className="p-1.5 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-700 transition-colors"
                                  title="Delete options"
                                 >
-                                 <MoreHorizontal size={16} />
+                                 <MoreHorizontal size={15} />
                                </button>
                                
                                {activeDeleteMenuId === message.messageId && (
                                  <div 
-                                   onClick={(e) => e.stopPropagation()} 
-                                   className="absolute right-0 bottom-full mb-1 z-50 w-36 bg-white border border-gray-250 rounded-xl shadow-lg py-1 text-left animate-fadeIn"
+                                   data-delete-menu
+                                   className="absolute right-0 top-full mt-1 z-[999] w-40 bg-white border border-gray-200 rounded-xl shadow-xl py-1 text-left"
+                                   style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.12)' }}
                                  >
                                    <button
+                                     data-delete-menu
                                      type="button"
                                      onClick={() => handleDeleteMessage(message.messageId, 'self')}
-                                     className="w-full px-3 py-2 text-xs font-bold text-gray-700 hover:bg-slate-50 transition-colors block text-left"
+                                     className="w-full px-3.5 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
                                    >
-                                     Delete for me
+                                     <span className="text-gray-400">🙈</span> Delete for me
                                    </button>
+                                   <div className="mx-3 border-t border-gray-100" />
                                    <button
+                                     data-delete-menu
                                      type="button"
                                      onClick={() => handleDeleteMessage(message.messageId, 'both')}
-                                     className="w-full px-3 py-2 text-xs font-bold text-red-650 hover:bg-red-50 hover:text-red-700 transition-colors block text-left border-t border-gray-100"
+                                     className="w-full px-3.5 py-2.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
                                    >
-                                     Delete for everyone
+                                     <span>🗑️</span> Delete for everyone
                                    </button>
                                  </div>
                                )}
