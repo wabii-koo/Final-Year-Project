@@ -159,21 +159,27 @@ export default function DashboardLayout({
               }
             }
 
-            const unacked = currentNotifs.filter((n: any) => {
-              const nid = n.notificationId || n.notification_id || n.id || 0
-              const ts = new Date(n.sentAt || n.createdAt || 0).getTime()
-              if (lastAckTs > 0) {
-                return ts > lastAckTs
-              }
-              return nid > lastAckId
-            })
+            const unackedNew = lastAckTs > 0
+              ? currentNotifs.filter((n: any) => {
+                  const nid = n.notificationId || n.notification_id || n.id || 0
+                  const ts = new Date(n.sentAt || n.createdAt || 0).getTime()
+                  return ts > lastAckTs
+                })
+              : currentNotifs.filter((n: any) => (n.notificationId || n.notification_id || n.id || 0) > lastAckId)
+
+            const unacked = unackedNew
+
             if (unacked.length > 0 && user?.role !== 'director') {
               const newest = unacked[0] // API returns DESC order
+              // Check if newest item is an update (ID already existed before this session)
+              const isUpdate = lastAckTs > 0 && (newest.notificationId || newest.notification_id || newest.id || 0) <= lastAckId
               setLiveAlert({
-                title: unacked.length > 1 ? `${unacked.length} Unread Alerts` : 'Unread Announcement',
+                title: unacked.length > 1 ? `${unacked.length} Unread Alerts` : (isUpdate ? 'Announcement Updated' : 'New Announcement'),
                 message: unacked.length > 1
                   ? `You have ${unacked.length} unread announcements. Latest: "${newest.title}"`
-                  : `"${newest.title}"`
+                  : isUpdate
+                    ? `"${newest.title}" has been updated.`
+                    : `"${newest.title}"`
               })
             }
           } else if (skipNextNotifDiff.current) {
