@@ -13,6 +13,8 @@ export class MessageModel extends Model<Message, MessageCreationAttributes> impl
   public isRead!: boolean;
   public readAt?: Date;
   public messageType!: 'homework' | 'general' | 'report_card' | 'pickup';
+  public deletedBySender?: boolean;
+  public deletedByReceiver?: boolean;
 }
 
 MessageModel.init(
@@ -72,6 +74,18 @@ MessageModel.init(
       allowNull: false,
       defaultValue: 'general',
       field: 'message_type',
+    },
+    deletedBySender: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'deleted_by_sender',
+    },
+    deletedByReceiver: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'deleted_by_receiver',
     },
   },
   {

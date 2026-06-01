@@ -14,5 +14,6 @@ router.get('/conversations', messageController.getConversations);
 router.post('/', validate(schemas.message), messageController.sendMessage);
 router.put('/conversations/:partnerId/read', messageController.markConversationRead.bind(messageController));
 router.put('/:id/read', messageController.markAsRead);
+router.delete('/:id', messageController.deleteMessage);
 
 export default router;

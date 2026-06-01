@@ -41,11 +41,45 @@ export default function MessagesPage() {
   const [students, setStudents] = useState<any[]>([])
   const [showNewChatModal, setShowNewChatModal] = useState(false)
   const [searchStudentTerm, setSearchStudentTerm] = useState('')
+  const [activeDeleteMenuId, setActiveDeleteMenuId] = useState<number | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, selectedConversation])
+
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      setActiveDeleteMenuId(null)
+    }
+    document.addEventListener('click', handleOutsideClick)
+    return () => {
+      document.removeEventListener('click', handleOutsideClick)
+    }
+  }, [])
+
+  const handleDeleteMessage = async (messageId: number, type: 'self' | 'both') => {
+    try {
+      const token = localStorage.getItem('token')
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${apiUrl}/api/messages/${messageId}?type=${type}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+      const data = await response.json()
+      if (data.success) {
+        fetchMessages()
+        fetchConversations()
+        setActiveDeleteMenuId(null)
+      } else {
+        alert(data.error?.message || 'Failed to delete message')
+      }
+    } catch (error) {
+      console.error('Error deleting message:', error)
+    }
+  }
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
@@ -438,32 +472,70 @@ export default function MessagesPage() {
                       No messages in this conversation thread yet.
                     </div>
                   ) : (
-                    filteredMessages.map((message) => {
-                      const isMe = message.senderId === user?.userId
-                      return (
-                        <div
-                          key={message.messageId}
-                          className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
-                        >
-                          <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${
-                            isMe
-                              ? 'bg-blue-500 text-white rounded-tr-none'
-                              : 'bg-white text-gray-900 border border-gray-150 rounded-tl-none'
-                          }`}
-                          >
-                            <div className="flex items-center justify-between gap-4 mb-1">
-                              <span className={`text-[9px] font-black ${isMe ? 'text-white/80' : 'text-gray-500'} uppercase tracking-wider`}>
-                                {isMe ? 'You' : message.senderName}
-                              </span>
-                              <span className={`text-[8px] ${isMe ? 'text-white/60' : 'text-slate-450'}`}>
-                                {new Date(message.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            </div>
-                            <p className="text-xs font-semibold leading-relaxed">{message.content}</p>
-                          </div>
-                        </div>
-                      )
-                    })
+                     filteredMessages.map((message) => {
+                       const isMe = message.senderId === user?.userId
+                       return (
+                         <div
+                           key={message.messageId}
+                           className={`flex items-center gap-2 group relative ${isMe ? 'justify-end' : 'justify-start'}`}
+                         >
+                           {isMe && (
+                             <div className="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-200 relative shrink-0">
+                               <button
+                                 type="button"
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   setActiveDeleteMenuId(activeDeleteMenuId === message.messageId ? null : message.messageId);
+                                 }}
+                                 className="p-1 hover:bg-gray-150 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
+                                 title="Delete options"
+                                >
+                                 <MoreHorizontal size={16} />
+                               </button>
+                               
+                               {activeDeleteMenuId === message.messageId && (
+                                 <div 
+                                   onClick={(e) => e.stopPropagation()} 
+                                   className="absolute right-0 bottom-full mb-1 z-50 w-36 bg-white border border-gray-250 rounded-xl shadow-lg py-1 text-left animate-fadeIn"
+                                 >
+                                   <button
+                                     type="button"
+                                     onClick={() => handleDeleteMessage(message.messageId, 'self')}
+                                     className="w-full px-3 py-2 text-xs font-bold text-gray-700 hover:bg-slate-50 transition-colors block text-left"
+                                   >
+                                     Delete for me
+                                   </button>
+                                   <button
+                                     type="button"
+                                     onClick={() => handleDeleteMessage(message.messageId, 'both')}
+                                     className="w-full px-3 py-2 text-xs font-bold text-red-650 hover:bg-red-50 hover:text-red-700 transition-colors block text-left border-t border-gray-100"
+                                   >
+                                     Delete for everyone
+                                   </button>
+                                 </div>
+                               )}
+                             </div>
+                           )}
+
+                           <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${
+                             isMe
+                               ? 'bg-blue-500 text-white rounded-tr-none'
+                               : 'bg-white text-gray-900 border border-gray-150 rounded-tl-none'
+                           }`}
+                           >
+                             <div className="flex items-center justify-between gap-4 mb-1">
+                               <span className={`text-[9px] font-black ${isMe ? 'text-white/80' : 'text-gray-500'} uppercase tracking-wider`}>
+                                 {isMe ? 'You' : message.senderName}
+                               </span>
+                               <span className={`text-[8px] ${isMe ? 'text-white/60' : 'text-slate-450'}`}>
+                                 {new Date(message.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                               </span>
+                             </div>
+                             <p className="text-xs font-semibold leading-relaxed">{message.content}</p>
+                           </div>
+                         </div>
+                       )
+                     })
                   )}
                   <div ref={messagesEndRef} />
                 </div>

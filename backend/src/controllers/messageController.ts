@@ -36,7 +36,7 @@ export class MessageController {
                  u.full_name as sender_name, u.role as sender_role
           FROM messages m
           JOIN users u ON m.sender_id = u.user_id
-          WHERE (m.receiver_id = ? OR m.sender_id = ?)
+          WHERE ((m.sender_id = ? AND m.deleted_by_sender = false) OR (m.receiver_id = ? AND m.deleted_by_receiver = false))
           AND (
             CASE 
               WHEN m.sender_id = ? THEN m.receiver_id
@@ -59,7 +59,7 @@ export class MessageController {
                  u.full_name as sender_name, u.role as sender_role
           FROM messages m
           JOIN users u ON m.sender_id = u.user_id
-          WHERE (m.receiver_id = ? OR m.sender_id = ?)
+          WHERE ((m.sender_id = ? AND m.deleted_by_sender = false) OR (m.receiver_id = ? AND m.deleted_by_receiver = false))
           AND (
             CASE 
               WHEN m.sender_id = ? THEN m.receiver_id
@@ -384,23 +384,24 @@ export class MessageController {
         query = `
           SELECT DISTINCT u.user_id, u.full_name, u.role,
                  (SELECT m.content FROM messages m 
-                  WHERE ((m.sender_id = ? AND m.receiver_id = u.user_id) OR 
-                         (m.receiver_id = ? AND m.sender_id = u.user_id))
+                  WHERE ((m.sender_id = ? AND m.receiver_id = u.user_id AND m.deleted_by_sender = false) OR 
+                         (m.receiver_id = ? AND m.sender_id = u.user_id AND m.deleted_by_receiver = false))
                   AND m.message_type != 'report_card'
                   ORDER BY m.sent_at DESC LIMIT 1) as last_message_content,
                  (SELECT m.sent_at FROM messages m 
-                  WHERE ((m.sender_id = ? AND m.receiver_id = u.user_id) OR 
-                         (m.receiver_id = ? AND m.sender_id = u.user_id))
+                  WHERE ((m.sender_id = ? AND m.receiver_id = u.user_id AND m.deleted_by_sender = false) OR 
+                         (m.receiver_id = ? AND m.sender_id = u.user_id AND m.deleted_by_receiver = false))
                   AND m.message_type != 'report_card'
                   ORDER BY m.sent_at DESC LIMIT 1) as last_message_sent_at,
                  (SELECT COUNT(*) FROM messages m 
                   WHERE m.receiver_id = ? AND m.sender_id = u.user_id AND m.is_read = false
+                  AND m.deleted_by_receiver = false
                   AND m.message_type != 'report_card') as unread_count
           FROM users u
           JOIN messages m ON (m.sender_id = u.user_id OR m.receiver_id = u.user_id)
           WHERE u.role = 'homeroom_teacher'
           AND m.message_type != 'report_card'
-          AND (m.sender_id = ? OR m.receiver_id = ?)
+          AND ((m.sender_id = ? AND m.deleted_by_sender = false) OR (m.receiver_id = ? AND m.deleted_by_receiver = false))
           AND u.user_id != ?
           AND u.user_id IN (
             SELECT DISTINCT c.homeroom_teacher_id 
@@ -416,23 +417,24 @@ export class MessageController {
         query = `
           SELECT DISTINCT u.user_id, u.full_name, u.role,
                  (SELECT m.content FROM messages m 
-                  WHERE ((m.sender_id = ? AND m.receiver_id = u.user_id) OR 
-                         (m.receiver_id = ? AND m.sender_id = u.user_id))
+                  WHERE ((m.sender_id = ? AND m.receiver_id = u.user_id AND m.deleted_by_sender = false) OR 
+                         (m.receiver_id = ? AND m.sender_id = u.user_id AND m.deleted_by_receiver = false))
                   AND m.message_type != 'report_card'
                   ORDER BY m.sent_at DESC LIMIT 1) as last_message_content,
                  (SELECT m.sent_at FROM messages m 
-                  WHERE ((m.sender_id = ? AND m.receiver_id = u.user_id) OR 
-                         (m.receiver_id = ? AND m.sender_id = u.user_id))
+                  WHERE ((m.sender_id = ? AND m.receiver_id = u.user_id AND m.deleted_by_sender = false) OR 
+                         (m.receiver_id = ? AND m.sender_id = u.user_id AND m.deleted_by_receiver = false))
                   AND m.message_type != 'report_card'
                   ORDER BY m.sent_at DESC LIMIT 1) as last_message_sent_at,
                  (SELECT COUNT(*) FROM messages m 
                   WHERE m.receiver_id = ? AND m.sender_id = u.user_id AND m.is_read = false
+                  AND m.deleted_by_receiver = false
                   AND m.message_type != 'report_card') as unread_count
           FROM users u
           JOIN messages m ON (m.sender_id = u.user_id OR m.receiver_id = u.user_id)
           WHERE u.role = 'guardian'
           AND m.message_type != 'report_card'
-          AND (m.sender_id = ? OR m.receiver_id = ?)
+          AND ((m.sender_id = ? AND m.deleted_by_sender = false) OR (m.receiver_id = ? AND m.deleted_by_receiver = false))
           AND u.user_id != ?
           AND u.user_id IN (
             SELECT DISTINCT s.guardian_id 
@@ -475,6 +477,135 @@ export class MessageController {
         error: {
           code: 'FETCH_CONVERSATIONS_FAILED',
           message: 'Failed to fetch conversations',
+        },
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  async deleteMessage(req: any, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const { type = 'self' } = req.query; // 'self' or 'both'
+      const userId = req.user.userId;
+      const userRole = req.user.role;
+
+      console.log('🗑️ Deleting message:', id, 'type:', type, 'by user:', userId);
+
+      if (userRole !== UserRole.GUARDIAN && userRole !== UserRole.HOMEROOM_TEACHER) {
+        res.status(403).json({
+          success: false,
+          error: {
+            code: 'ACCESS_DENIED',
+            message: 'Only guardians and homeroom teachers can access messages',
+          },
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      // Find the message
+      const [messages] = await sequelize.query(`
+        SELECT message_id, sender_id, receiver_id, deleted_by_sender, deleted_by_receiver FROM messages WHERE message_id = ?
+      `, {
+        replacements: [parseInt(id)]
+      });
+
+      const message = (messages as any[])[0];
+
+      if (!message) {
+        res.status(404).json({
+          success: false,
+          error: {
+            code: 'MESSAGE_NOT_FOUND',
+            message: 'Message not found',
+          },
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      // Check authorization
+      const isSender = message.sender_id === userId;
+      const isReceiver = message.receiver_id === userId;
+
+      if (!isSender && !isReceiver) {
+        res.status(403).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'You are not authorized to delete this message',
+          },
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      if (type === 'both') {
+        // Must be the sender to delete for both (unsend)
+        if (!isSender) {
+          res.status(403).json({
+            success: false,
+            error: {
+              code: 'UNAUTHORIZED',
+              message: 'Only the sender can delete this message for everyone',
+            },
+            timestamp: new Date().toISOString(),
+          });
+          return;
+        }
+
+        // Delete from DB completely
+        await sequelize.query(`
+          DELETE FROM messages WHERE message_id = ?
+        `, {
+          replacements: [parseInt(id)]
+        });
+      } else {
+        // Delete for myself
+        if (isSender) {
+          await sequelize.query(`
+            UPDATE messages SET deleted_by_sender = true WHERE message_id = ?
+          `, {
+            replacements: [parseInt(id)]
+          });
+        } else if (isReceiver) {
+          await sequelize.query(`
+            UPDATE messages SET deleted_by_receiver = true WHERE message_id = ?
+          `, {
+            replacements: [parseInt(id)]
+          });
+        }
+
+        // If it's now deleted by both parties, we can delete the row from DB completely
+        const [updatedMessages] = await sequelize.query(`
+          SELECT deleted_by_sender, deleted_by_receiver FROM messages WHERE message_id = ?
+        `, {
+          replacements: [parseInt(id)]
+        });
+
+        const updated = (updatedMessages as any[])[0];
+        if (updated && updated.deleted_by_sender && updated.deleted_by_receiver) {
+          await sequelize.query(`
+            DELETE FROM messages WHERE message_id = ?
+          `, {
+            replacements: [parseInt(id)]
+          });
+        }
+      }
+
+      res.status(200).json({
+        success: true,
+        message: type === 'both' ? 'Message deleted for everyone' : 'Message deleted for yourself',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Delete message error:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'DELETE_MESSAGE_FAILED',
+          message: 'Failed to delete message',
         },
         timestamp: new Date().toISOString(),
       });

@@ -86,6 +86,8 @@ export interface Message {
   isRead: boolean;
   readAt?: Date;
   messageType: 'homework' | 'general' | 'report_card' | 'pickup';
+  deletedBySender?: boolean;
+  deletedByReceiver?: boolean;
 }
 
 export interface Notification {

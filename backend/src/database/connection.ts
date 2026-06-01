@@ -52,6 +52,19 @@ export const connectDatabase = async (): Promise<void> => {
       await sequelize.sync();
       console.log('Database synchronized successfully.');
     }
+
+    // Alter messages table to add deletion tracking columns if they don't exist
+    try {
+      await sequelize.query(`
+        ALTER TABLE messages ADD COLUMN IF NOT EXISTS deleted_by_sender BOOLEAN DEFAULT FALSE;
+      `);
+      await sequelize.query(`
+        ALTER TABLE messages ADD COLUMN IF NOT EXISTS deleted_by_receiver BOOLEAN DEFAULT FALSE;
+      `);
+      console.log('Database columns for message deletion synchronized.');
+    } catch (alterError) {
+      console.error('Failed to alter messages table:', alterError);
+    }
   } catch (error) {
     console.error('Unable to connect to the database:', error);
     throw error;
