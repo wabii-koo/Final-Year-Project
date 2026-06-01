@@ -172,6 +172,13 @@ export default function EventsPage() {
           })
         }
 
+        // Broadcast to all other open tabs immediately
+        try {
+          const bc = new BroadcastChannel('school-updates')
+          bc.postMessage({ type: 'event', action: 'created', title: newEvent.title })
+          bc.close()
+        } catch (_) {}
+
         setShowCreateModal(false)
         setNewEvent({
           title: '',
@@ -250,6 +257,13 @@ export default function EventsPage() {
           console.error('Failed to send event update notification:', notifErr)
         }
 
+        // Broadcast to all other open tabs immediately
+        try {
+          const bc = new BroadcastChannel('school-updates')
+          bc.postMessage({ type: 'event', action: 'updated', title: editFormData.title })
+          bc.close()
+        } catch (_) {}
+
         setEditingEvent(null)
         setSuccessMessage('Event updated successfully!')
         fetchEvents()
@@ -297,6 +311,13 @@ export default function EventsPage() {
           } catch (notifErr) {
             console.error('Failed to send event cancellation notification:', notifErr)
           }
+
+          // Broadcast to all other open tabs immediately
+          try {
+            const bc = new BroadcastChannel('school-updates')
+            bc.postMessage({ type: 'event', action: 'deleted', title: eventToDelete.title })
+            bc.close()
+          } catch (_) {}
         }
         fetchEvents()
       } else {

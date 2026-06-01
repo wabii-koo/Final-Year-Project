@@ -44,6 +44,8 @@ export default function DashboardLayout({
   const sidebarRef = useRef<HTMLElement>(null)
   const prevNotifsRef = useRef<any[] | null>(null)
   const prevEventsRef = useRef<any[] | null>(null)
+  const skipNextNotifDiff = useRef(false)
+  const skipNextEventDiff = useRef(false)
 
   useEffect(() => {
     if (!sidebarOpen) return
@@ -72,6 +74,39 @@ export default function DashboardLayout({
     setUser(JSON.parse(userData))
   }, [])
 
+  // BroadcastChannel: receive real-time changes from other tabs in the same browser
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const bc = new BroadcastChannel('school-updates')
+    bc.onmessage = (e) => {
+      const { type, action, title } = e.data || {}
+      if (type === 'notification') {
+        const msg =
+          action === 'created' ? `New announcement: "${title}"` :
+          action === 'updated' ? `"${title}" has been updated.` :
+          action === 'deleted' ? `"${title}" has been removed.` : title
+        const alertTitle =
+          action === 'created' ? 'New Announcement' :
+          action === 'updated' ? 'Announcement Updated' : 'Announcement Deleted'
+        setLiveAlert({ title: alertTitle, message: msg })
+        skipNextNotifDiff.current = true
+        window.dispatchEvent(new CustomEvent('school-notifications-updated'))
+      } else if (type === 'event') {
+        const msg =
+          action === 'created' ? `New event scheduled: "${title}"` :
+          action === 'updated' ? `"${title}" has been rescheduled or updated.` :
+          action === 'deleted' ? `"${title}" has been cancelled.` : title
+        const alertTitle =
+          action === 'created' ? 'New Event Scheduled' :
+          action === 'updated' ? 'Event Updated' : 'Event Cancelled'
+        setLiveAlert({ title: alertTitle, message: msg })
+        skipNextEventDiff.current = true
+        window.dispatchEvent(new CustomEvent('school-events-updated'))
+      }
+    }
+    return () => bc.close()
+  }, [])
+
   useEffect(() => {
     if (!user) return
     let active = true
@@ -95,6 +130,10 @@ export default function DashboardLayout({
           const prevNotifs = prevNotifsRef.current
 
           if (prevNotifs === null) {
+            prevNotifsRef.current = currentNotifs
+          } else if (skipNextNotifDiff.current) {
+            // BroadcastChannel already handled this change — just update the ref silently
+            skipNextNotifDiff.current = false
             prevNotifsRef.current = currentNotifs
           } else {
             // 1. Detect new
@@ -175,6 +214,10 @@ export default function DashboardLayout({
           const prevEvents = prevEventsRef.current
 
           if (prevEvents === null) {
+            prevEventsRef.current = currentEvents
+          } else if (skipNextEventDiff.current) {
+            // BroadcastChannel already handled this change — just update the ref silently
+            skipNextEventDiff.current = false
             prevEventsRef.current = currentEvents
           } else {
             // 1. Detect new

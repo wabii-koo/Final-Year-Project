@@ -118,6 +118,13 @@ export default function CreateNotificationPage() {
       console.log('Response data:', data)
 
       if (response.ok && data.success) {
+        // Broadcast to all other open tabs immediately
+        try {
+          const bc = new BroadcastChannel('school-updates')
+          bc.postMessage({ type: 'notification', action: 'created', title: notification.title })
+          bc.close()
+        } catch (_) {}
+
         setSuccess('Notification created successfully!')
         setNotification({
           title: '',

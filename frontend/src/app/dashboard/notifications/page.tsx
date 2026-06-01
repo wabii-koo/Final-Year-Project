@@ -115,7 +115,14 @@ export default function NotificationsPage() {
       })
 
       if (response.ok) {
+        const deleted = notifications.find(n => n.id === id)
         setNotifications(notifications.filter(n => n.id !== id))
+        // Broadcast to all other open tabs immediately
+        try {
+          const bc = new BroadcastChannel('school-updates')
+          bc.postMessage({ type: 'notification', action: 'deleted', title: deleted?.title || 'Announcement' })
+          bc.close()
+        } catch (_) {}
       } else {
         alert('Failed to delete notification')
       }
@@ -155,6 +162,12 @@ export default function NotificationsPage() {
       })
 
       if (response.ok) {
+        // Broadcast to all other open tabs immediately
+        try {
+          const bc = new BroadcastChannel('school-updates')
+          bc.postMessage({ type: 'notification', action: 'updated', title: editFormData.title })
+          bc.close()
+        } catch (_) {}
         await fetchNotifications()
         setEditingNotif(null)
         setSuccessMessage('Notification updated successfully!')

@@ -73,6 +73,13 @@ export default function CreateEventPage() {
           console.error('Failed to send event creation notification:', notifErr)
         }
 
+        // Broadcast to all other open tabs immediately
+        try {
+          const bc = new BroadcastChannel('school-updates')
+          bc.postMessage({ type: 'event', action: 'created', title: event.title })
+          bc.close()
+        } catch (_) {}
+
         setSuccess('Event scheduled successfully!')
         setTimeout(() => router.push('/dashboard/events'), 1500)
       } else {
