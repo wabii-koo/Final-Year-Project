@@ -38,7 +38,7 @@ async function runTests() {
   console.log('\n🔐 Authenticating as Mr. Robert Miller (Mathematics)...');
   const loginMiller = await apiRequest('POST', '/api/auth/login', {
     email: 'robert.miller@school.com',
-    password: 'MillerMath@2024',
+    password: 'MillerMath@2026',
     role: 'teacher'
   });
   
@@ -76,7 +76,7 @@ async function runTests() {
   console.log('\n🔐 Authenticating as Dr. Lisa Green (Science)...');
   const loginGreen = await apiRequest('POST', '/api/auth/login', {
     email: 'lisa.green@school.com',
-    password: 'GreenScience@2024',
+    password: 'GreenScience@2026',
     role: 'teacher'
   });
   
@@ -114,7 +114,7 @@ async function runTests() {
   console.log('\n🔐 Authenticating as Ms. Sarah Smith (Homeroom Grade 1-A)...');
   const loginSmith = await apiRequest('POST', '/api/auth/login', {
     email: 'sarah.smith@school.com',
-    password: 'Smith1A@2024',
+    password: 'Smith1A@2026',
     role: 'homeroom'
   });
   

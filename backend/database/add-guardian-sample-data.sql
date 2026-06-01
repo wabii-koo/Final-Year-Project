@@ -44,8 +44,8 @@ request_date = CURDATE();
 
 -- Update the classroom assignments to ensure they exist
 INSERT INTO Classrooms (class_id, class_level, homeroom_teacher_id, academic_year) VALUES
-(1, 'KG1-A', 3, '2024'),
-(2, 'KG2-B', 3, '2024')
+(1, 'KG1-A', 3, '2026'),
+(2, 'KG2-B', 3, '2026')
 ON DUPLICATE KEY UPDATE
 homeroom_teacher_id = 3;
 

@@ -30,14 +30,14 @@ const sequelize = new Sequelize(dbUrl, {
         classLevel: 'Grade 1-A',
         teacherId: 16, // Dr. Lisa Green
         homeroomTeacherId: 3, // Ms. Sarah Smith
-        academicYear: '2024',
+        academicYear: '2026',
         subject: 'Science'
       },
       {
         classLevel: 'Grade 1-A',
         teacherId: 17, // Ms. Karen White
         homeroomTeacherId: 3, // Ms. Sarah Smith
-        academicYear: '2024',
+        academicYear: '2026',
         subject: 'English Language'
       },
       // Grade 2-B mappings:
@@ -45,14 +45,14 @@ const sequelize = new Sequelize(dbUrl, {
         classLevel: 'Grade 2-B',
         teacherId: 15, // Mr. Robert Miller
         homeroomTeacherId: 4, // Mr. James Johnson
-        academicYear: '2024',
+        academicYear: '2026',
         subject: 'Mathematics'
       },
       {
         classLevel: 'Grade 2-B',
         teacherId: 17, // Ms. Karen White
         homeroomTeacherId: 4, // Mr. James Johnson
-        academicYear: '2024',
+        academicYear: '2026',
         subject: 'English Language'
       },
       // Grade 3-B mappings:

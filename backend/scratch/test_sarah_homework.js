@@ -61,7 +61,7 @@ async function runTests() {
   console.log('--- FETCHING HOMEWORK FOR SARAH SMITH ---');
   const loginRes = await apiRequest(port, 'POST', '/api/auth/login', {
     email: 'sarah.smith@school.com',
-    password: 'Smith1A@2024',
+    password: 'Smith1A@2026',
     role: 'homeroom_teacher'
   });
   
@@ -101,7 +101,7 @@ async function runTests() {
   console.log('\n--- FETCHING HOMEWORK FOR EMILY DAVIS ---');
   const loginResEmily = await apiRequest(port, 'POST', '/api/auth/login', {
     email: 'emily.davis@school.com',
-    password: 'Davis3B@2024',
+    password: 'Davis3B@2026',
     role: 'homeroom_teacher'
   });
   

@@ -107,15 +107,15 @@ export class AuthController {
         'registrar@school.com':     { password: 'registrar456',   role: 'registrar',        fullName: 'School Registrar',    userId: 2  },
         'teacher@school.com':       { password: 'teacher789',     role: 'teacher',          fullName: 'Mr. Alex Brown',      userId: 5  },
         // Homeroom Teacher 1 – Grade 1A
-        'sarah.smith@school.com':   { password: 'Smith1A@2024',   role: 'homeroom_teacher', fullName: 'Ms. Sarah Smith',     userId: 3  },
+        'sarah.smith@school.com':   { password: 'Smith1A@2026',   role: 'homeroom_teacher', fullName: 'Ms. Sarah Smith',     userId: 3  },
         // Homeroom Teacher 2 – Grade 2B
-        'james.johnson@school.com': { password: 'Johnson2B@2024', role: 'homeroom_teacher', fullName: 'Mr. James Johnson',   userId: 4  },
+        'james.johnson@school.com': { password: 'Johnson2B@2026', role: 'homeroom_teacher', fullName: 'Mr. James Johnson',   userId: 4  },
         // Homeroom Teacher 3 – Grade 3B
-        'emily.davis@school.com':   { password: 'Davis3B@2024',   role: 'homeroom_teacher', fullName: 'Mrs. Emily Davis',    userId: 13 },
+        'emily.davis@school.com':   { password: 'Davis3B@2026',   role: 'homeroom_teacher', fullName: 'Mrs. Emily Davis',    userId: 13 },
         // New Subject Teachers
-        'robert.miller@school.com': { password: 'MillerMath@2024',   role: 'teacher',          fullName: 'Mr. Robert Miller',   userId: 15 },
-        'lisa.green@school.com':    { password: 'GreenScience@2024', role: 'teacher',          fullName: 'Dr. Lisa Green',       userId: 16 },
-        'karen.white@school.com':   { password: 'WhiteEnglish@2024', role: 'teacher',          fullName: 'Ms. Karen White',     userId: 17 },
+        'robert.miller@school.com': { password: 'MillerMath@2026',   role: 'teacher',          fullName: 'Mr. Robert Miller',   userId: 15 },
+        'lisa.green@school.com':    { password: 'GreenScience@2026', role: 'teacher',          fullName: 'Dr. Lisa Green',       userId: 16 },
+        'karen.white@school.com':   { password: 'WhiteEnglish@2026', role: 'teacher',          fullName: 'Ms. Karen White',     userId: 17 },
         // Legacy aliases kept for backward-compat
         'homeroom@school.com':      { password: 'homeroom012',    role: 'homeroom_teacher', fullName: 'Mr. James Johnson',   userId: 4  },
         'homeroom3b@school.com':    { password: 'homeroom3b',     role: 'homeroom_teacher', fullName: 'Mrs. Emily Davis',    userId: 13 },

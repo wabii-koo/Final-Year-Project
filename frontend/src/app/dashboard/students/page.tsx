@@ -69,7 +69,7 @@ export default function StudentsPage() {
             guardianEmail: 'sarah.johnson@email.com',
             guardianPhone: '+1-234-567-8901',
             attendance: '95%',
-            studentCode: 'KG2024001'
+            studentCode: 'KG2026001'
           },
           {
             id: 2,
@@ -80,7 +80,7 @@ export default function StudentsPage() {
             guardianEmail: 'mike.smith@email.com',
             guardianPhone: '+1-234-567-8902',
             attendance: '92%',
-            studentCode: 'KG2024002'
+            studentCode: 'KG2026002'
           }
         ])
       }
@@ -97,7 +97,7 @@ export default function StudentsPage() {
           guardianEmail: 'sarah.johnson@email.com',
           guardianPhone: '+1-234-567-8901',
           attendance: '95%',
-          studentCode: 'KG2024001'
+          studentCode: 'KG2026001'
         }
       ])
     } finally {

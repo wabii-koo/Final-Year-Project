@@ -40,7 +40,7 @@ async function run() {
       console.log('🏫 No classrooms found. Creating a default classroom (Grade 1-A)...');
       const [insertResult] = await sequelize.query(
         `INSERT INTO "Classrooms" (class_level, teacher_id, homeroom_teacher_id, academic_year, created_at) 
-         VALUES ('Grade 1-A', 3, 3, '2024', NOW()) RETURNING class_id`
+         VALUES ('Grade 1-A', 3, 3, '2026', NOW()) RETURNING class_id`
       );
       classId = insertResult[0].class_id;
       console.log(`🏫 Created default Classroom ID: ${classId}`);

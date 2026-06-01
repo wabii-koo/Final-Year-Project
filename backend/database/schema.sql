@@ -260,7 +260,7 @@ INSERT INTO Users (email, password_hash, role, full_name, phone_no, address) VAL
 
 -- Insert sample classroom
 INSERT INTO Classrooms (teacher_id, class_level, homeroom_teacher_id, academic_year) VALUES
-(3, 'KG1-A', 3, '2024');
+(3, 'KG1-A', 3, '2026');
 
 -- Insert sample student
 INSERT INTO Students (guardian_id, class_id, full_name, dob, emergency_contact) VALUES

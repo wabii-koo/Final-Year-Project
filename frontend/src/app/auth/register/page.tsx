@@ -687,7 +687,7 @@ export default function RegisterPage() {
 
           <div className="mt-8 text-center">
             <p className="text-gray-400 text-xs font-medium">
-              &copy; 2024 GuardianGate Portal. All rights reserved.
+              &copy; 2026 GuardianGate Portal. All rights reserved.
             </p>
           </div>
         </div>

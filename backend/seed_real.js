@@ -8,8 +8,8 @@ async function run() {
     // 1. Classrooms
     await sequelize.query('DELETE FROM \"Classrooms\"');
     await sequelize.query('INSERT INTO \"Classrooms\" (class_id, class_level, teacher_id, homeroom_teacher_id, academic_year, created_at) VALUES ' + 
-      '(1, \'Grade 1-A\', 3, 3, \'2024\', NOW()), ' +
-      '(2, \'Grade 2-B\', 4, 3, \'2024\', NOW())');
+      '(1, \'Grade 1-A\', 3, 3, \'2026\', NOW()), ' +
+      '(2, \'Grade 2-B\', 4, 3, \'2026\', NOW())');
     
     // 2. Students
     await sequelize.query('DELETE FROM \"Students\"');

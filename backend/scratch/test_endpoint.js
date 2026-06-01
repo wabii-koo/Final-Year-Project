@@ -8,7 +8,7 @@ async function test() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: 'sarah.smith@school.com',
-        password: 'Smith1A@2024',
+        password: 'Smith1A@2026',
         role: 'homeroom_teacher'
       })
     });

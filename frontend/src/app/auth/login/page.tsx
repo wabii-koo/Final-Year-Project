@@ -22,12 +22,12 @@ const ROLE_HINTS: Record<Role, { label: string; email: string; password: string;
   Parent: [],
   Teacher: [
     { label: "Mr. Alex Brown (Subject Teacher)", email: "teacher@school.com", password: "teacher789" },
-    { label: "Ms. Sarah Smith (English / Soc. Studies)", email: "sarah.smith@school.com", password: "Smith1A@2024", badge: "Grade 1-A & 2-B" },
-    { label: "Mr. James Johnson (Math / Soc. Studies)", email: "james.johnson@school.com", password: "Johnson2B@2024", badge: "Grade 2-B & 3-B" },
-    { label: "Mrs. Emily Davis (Science / Soc. Studies)", email: "emily.davis@school.com", password: "Davis3B@2024", badge: "Grade 1-A & 3-B" },
-    { label: "Mr. Robert Miller (Mathematics)", email: "robert.miller@school.com", password: "MillerMath@2024", badge: "Grade 1-A & 3-B" },
-    { label: "Dr. Lisa Green (Science)", email: "lisa.green@school.com", password: "GreenScience@2024", badge: "Grade 1-A & 2-B" },
-    { label: "Ms. Karen White (English)", email: "karen.white@school.com", password: "WhiteEnglish@2024", badge: "Grade 2-B & 3-B" },
+    { label: "Ms. Sarah Smith (English / Soc. Studies)", email: "sarah.smith@school.com", password: "Smith1A@2026", badge: "Grade 1-A & 2-B" },
+    { label: "Mr. James Johnson (Math / Soc. Studies)", email: "james.johnson@school.com", password: "Johnson2B@2026", badge: "Grade 2-B & 3-B" },
+    { label: "Mrs. Emily Davis (Science / Soc. Studies)", email: "emily.davis@school.com", password: "Davis3B@2026", badge: "Grade 1-A & 3-B" },
+    { label: "Mr. Robert Miller (Mathematics)", email: "robert.miller@school.com", password: "MillerMath@2026", badge: "Grade 1-A & 3-B" },
+    { label: "Dr. Lisa Green (Science)", email: "lisa.green@school.com", password: "GreenScience@2026", badge: "Grade 1-A & 2-B" },
+    { label: "Ms. Karen White (English)", email: "karen.white@school.com", password: "WhiteEnglish@2026", badge: "Grade 2-B & 3-B" },
   ],
   Registrar: [
     { label: "School Registrar", email: "registrar@school.com", password: "registrar456" },

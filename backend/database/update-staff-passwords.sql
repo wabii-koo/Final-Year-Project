@@ -18,7 +18,7 @@ password_hash = EXCLUDED.password_hash;
 
 -- Update classroom assignments (assuming teacher_id is the serial ID, be careful with manual IDs)
 -- INSERT INTO "Classrooms" (teacher_id, class_level, homeroom_teacher_id, academic_year) VALUES
--- (3, 'KG1-A', 4, '2024')
+-- (3, 'KG1-A', 4, '2026')
 -- ON CONFLICT (class_id) DO NOTHING;
 
 

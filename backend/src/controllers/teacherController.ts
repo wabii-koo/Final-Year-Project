@@ -199,7 +199,7 @@ export class TeacherController {
           lastName: nameParts.slice(1).join(' ') || '',
           grade: row.grade || 'N/A',
           attendance: '95%',
-          studentCode: 'KG2024' + row.studentId.toString().padStart(3, '0'),
+          studentCode: 'KG2026' + row.studentId.toString().padStart(3, '0'),
           guardianId: row.guardian_id || null,
           guardianName: row.guardianName || 'Not assigned',
           guardianEmail: row.guardianEmail || 'Not provided',

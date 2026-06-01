@@ -21,14 +21,14 @@ const sequelize = new Sequelize(process.env.DB_URL || '', {
 
 // ── Teacher definitions ──────────────────────────────────────────────────────
 //  user_id | email                    | password          | full_name           | class
-//  3       | sarah.smith@school.com   | Smith1A@2024      | Ms. Sarah Smith     | Grade 1A
-//  4       | james.johnson@school.com | Johnson2B@2024    | Mr. James Johnson   | Grade 2B
-//  13      | emily.davis@school.com   | Davis3B@2024      | Mrs. Emily Davis    | Grade 3B
+//  3       | sarah.smith@school.com   | Smith1A@2026      | Ms. Sarah Smith     | Grade 1A
+//  4       | james.johnson@school.com | Johnson2B@2026    | Mr. James Johnson   | Grade 2B
+//  13      | emily.davis@school.com   | Davis3B@2026      | Mrs. Emily Davis    | Grade 3B
 
 const teachers = [
-  { userId: 3,  email: 'sarah.smith@school.com',   password: 'Smith1A@2024',   name: 'Ms. Sarah Smith',   class: 'Grade 1A' },
-  { userId: 4,  email: 'james.johnson@school.com', password: 'Johnson2B@2024', name: 'Mr. James Johnson', class: 'Grade 2B' },
-  { userId: 13, email: 'emily.davis@school.com',   password: 'Davis3B@2024',   name: 'Mrs. Emily Davis',  class: 'Grade 3B' },
+  { userId: 3,  email: 'sarah.smith@school.com',   password: 'Smith1A@2026',   name: 'Ms. Sarah Smith',   class: 'Grade 1A' },
+  { userId: 4,  email: 'james.johnson@school.com', password: 'Johnson2B@2026', name: 'Mr. James Johnson', class: 'Grade 2B' },
+  { userId: 13, email: 'emily.davis@school.com',   password: 'Davis3B@2026',   name: 'Mrs. Emily Davis',  class: 'Grade 3B' },
 ];
 
 async function run() {
@@ -120,9 +120,9 @@ async function run() {
 
     console.log('\n🎉 Seed complete!');
     console.log('\n─── Login credentials ─────────────────────────────────');
-    console.log('  Grade 1A │ sarah.smith@school.com   │ Smith1A@2024');
-    console.log('  Grade 2B │ james.johnson@school.com │ Johnson2B@2024');
-    console.log('  Grade 3B │ emily.davis@school.com   │ Davis3B@2024');
+    console.log('  Grade 1A │ sarah.smith@school.com   │ Smith1A@2026');
+    console.log('  Grade 2B │ james.johnson@school.com │ Johnson2B@2026');
+    console.log('  Grade 3B │ emily.davis@school.com   │ Davis3B@2026');
     console.log('────────────────────────────────────────────────────────');
 
   } catch (err) {

@@ -36,7 +36,7 @@ async function apiRequest(method, path, body = null, token = null) {
   try {
     const loginRes = await apiRequest('POST', '/api/auth/login', {
       email: 'sarah.smith@school.com',
-      password: 'Smith1A@2024',
+      password: 'Smith1A@2026',
       role: 'homeroom'
     });
     const token = loginRes.data?.data?.token;
