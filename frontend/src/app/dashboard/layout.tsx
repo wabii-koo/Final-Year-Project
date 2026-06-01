@@ -134,7 +134,15 @@ export default function DashboardLayout({
             prevNotifsRef.current = currentNotifs
             // On first load: show popup for any notifications not yet acknowledged by this user
             const lastAckId = parseInt(localStorage.getItem(`lastAcknowledgedNotifId_${uid}`) || '0')
-            const unacked = currentNotifs.filter((n: any) => (n.notificationId || n.notification_id || n.id || 0) > lastAckId)
+            const lastAckTs = parseInt(localStorage.getItem(`lastAcknowledgedNotifTs_${uid}`) || '0')
+            const unacked = currentNotifs.filter((n: any) => {
+              const nid = n.notificationId || n.notification_id || n.id || 0
+              const ts = new Date(n.sentAt || n.createdAt || 0).getTime()
+              if (lastAckTs > 0) {
+                return ts > lastAckTs
+              }
+              return nid > lastAckId
+            })
             if (unacked.length > 0) {
               const newest = unacked[0] // API returns DESC order
               setLiveAlert({
@@ -159,7 +167,12 @@ export default function DashboardLayout({
             const updatedNotif = currentNotifs.find((n: any) => {
               const nid = n.notificationId || n.notification_id || n.id || 0
               const match = prevNotifs.find((pn: any) => (pn.notificationId || pn.notification_id || pn.id || 0) === nid)
-              return match && (match.title !== n.title || (match.content || match.message) !== (n.content || n.message) || match.priority !== n.priority)
+              return match && (
+                match.title !== n.title || 
+                (match.content || match.message) !== (n.content || n.message) || 
+                match.priority !== n.priority ||
+                (match.sentAt || match.createdAt) !== (n.sentAt || n.createdAt)
+              )
             })
 
             // 3. Detect deleted
@@ -202,6 +215,11 @@ export default function DashboardLayout({
             const isViewingNotifications = pathname.startsWith('/dashboard/notifications')
             if (isViewingNotifications) {
               localStorage.setItem(`lastReadNotifId_${uid}`, maxId.toString())
+              localStorage.setItem(`lastAcknowledgedNotifId_${uid}`, maxId.toString())
+              const maxTs = Math.max(...notifs.map((n: any) => new Date(n.sentAt || n.createdAt || 0).getTime()))
+              if (maxTs > 0) {
+                localStorage.setItem(`lastAcknowledgedNotifTs_${uid}`, maxTs.toString())
+              }
               setUnreadNotifCount(0)
             } else {
               const lastIdStr = localStorage.getItem(`lastReadNotifId_${uid}`)
@@ -519,7 +537,11 @@ export default function DashboardLayout({
                     const maxId = currentNotifsRef.current.length > 0
                       ? Math.max(...currentNotifsRef.current.map((n: any) => n.notificationId || n.notification_id || n.id || 0))
                       : 0
+                    const maxTs = currentNotifsRef.current.length > 0
+                      ? Math.max(...currentNotifsRef.current.map((n: any) => new Date(n.sentAt || n.createdAt || 0).getTime()))
+                      : 0
                     if (maxId > 0) localStorage.setItem(`lastAcknowledgedNotifId_${uid}`, maxId.toString())
+                    if (maxTs > 0) localStorage.setItem(`lastAcknowledgedNotifTs_${uid}`, maxTs.toString())
                     router.push('/dashboard/notifications')
                     setLiveAlert(null)
                   }}
@@ -535,7 +557,11 @@ export default function DashboardLayout({
                   const maxId = currentNotifsRef.current.length > 0
                     ? Math.max(...currentNotifsRef.current.map((n: any) => n.notificationId || n.notification_id || n.id || 0))
                     : 0
+                  const maxTs = currentNotifsRef.current.length > 0
+                    ? Math.max(...currentNotifsRef.current.map((n: any) => new Date(n.sentAt || n.createdAt || 0).getTime()))
+                    : 0
                   if (maxId > 0) localStorage.setItem(`lastAcknowledgedNotifId_${uid}`, maxId.toString())
+                  if (maxTs > 0) localStorage.setItem(`lastAcknowledgedNotifTs_${uid}`, maxTs.toString())
                   setLiveAlert(null)
                 }} 
                 className="text-brand-text/40 hover:text-brand-heading"
