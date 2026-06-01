@@ -80,7 +80,7 @@ export default function CreateEventPage() {
           bc.close()
         } catch (_) {}
 
-        setSuccess('Event scheduled successfully!')
+        setSuccess('Event created successfully!')
         setTimeout(() => router.push('/dashboard/events'), 1500)
       } else {
         // Handle Conflict specifically

@@ -77,9 +77,21 @@ export default function DashboardLayout({
 
   // BroadcastChannel: receive real-time changes from other tabs in the same browser
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined' || !user) return
     const bc = new BroadcastChannel('school-updates')
     bc.onmessage = (e) => {
+      // The Director does not need real-time popup alert banners
+      if (user.role === 'director') {
+        if (e.data?.type === 'notification') {
+          skipNextNotifDiff.current = true
+          window.dispatchEvent(new CustomEvent('school-notifications-updated'))
+        } else if (e.data?.type === 'event') {
+          skipNextEventDiff.current = true
+          window.dispatchEvent(new CustomEvent('school-events-updated'))
+        }
+        return
+      }
+
       const { type, action, title } = e.data || {}
       if (type === 'notification') {
         const msg =
@@ -106,7 +118,7 @@ export default function DashboardLayout({
       }
     }
     return () => bc.close()
-  }, [])
+  }, [user])
 
   useEffect(() => {
     if (!user) return
@@ -155,7 +167,7 @@ export default function DashboardLayout({
               }
               return nid > lastAckId
             })
-            if (unacked.length > 0) {
+            if (unacked.length > 0 && user?.role !== 'director') {
               const newest = unacked[0] // API returns DESC order
               setLiveAlert({
                 title: unacked.length > 1 ? `${unacked.length} Unread Alerts` : 'Unread Announcement',
@@ -194,23 +206,31 @@ export default function DashboardLayout({
             })
 
             let notifChanged = false
+            const isUserDirector = user?.role === 'director'
+
             if (newNotif) {
-              setLiveAlert({
-                title: 'New Announcement',
-                message: newNotif.title || 'You have a new announcement!'
-              })
+              if (!isUserDirector && String(newNotif.senderId) !== String(uid)) {
+                setLiveAlert({
+                  title: 'New Announcement',
+                  message: newNotif.title || 'You have a new announcement!'
+                })
+              }
               notifChanged = true
             } else if (updatedNotif) {
-              setLiveAlert({
-                title: 'Announcement Updated',
-                message: `"${updatedNotif.title}" has been updated.`
-              })
+              if (!isUserDirector && String(updatedNotif.senderId) !== String(uid)) {
+                setLiveAlert({
+                  title: 'Announcement Updated',
+                  message: `"${updatedNotif.title}" has been updated.`
+                })
+              }
               notifChanged = true
             } else if (deletedNotif) {
-              setLiveAlert({
-                title: 'Announcement Deleted',
-                message: `"${deletedNotif.title}" has been removed.`
-              })
+              if (!isUserDirector && String(deletedNotif.senderId) !== String(uid)) {
+                setLiveAlert({
+                  title: 'Announcement Deleted',
+                  message: `"${deletedNotif.title}" has been removed.`
+                })
+              }
               notifChanged = true
             }
 
@@ -285,23 +305,31 @@ export default function DashboardLayout({
             })
 
             let eventChanged = false
+            const isUserDirector = user?.role === 'director'
+
             if (newEvent) {
-              setLiveAlert({
-                title: 'New Event Scheduled',
-                message: newEvent.title || 'A new event was just added to the calendar!'
-              })
+              if (!isUserDirector && String(newEvent.createdBy || newEvent.created_by) !== String(uid)) {
+                setLiveAlert({
+                  title: 'New Event Scheduled',
+                  message: newEvent.title || 'A new event was just added to the calendar!'
+                })
+              }
               eventChanged = true
             } else if (updatedEvent) {
-              setLiveAlert({
-                title: 'Event Updated',
-                message: `"${updatedEvent.title}" has been rescheduled or updated.`
-              })
+              if (!isUserDirector && String(updatedEvent.createdBy || updatedEvent.created_by) !== String(uid)) {
+                setLiveAlert({
+                  title: 'Event Updated',
+                  message: `"${updatedEvent.title}" has been rescheduled or updated.`
+                })
+              }
               eventChanged = true
             } else if (deletedEvent) {
-              setLiveAlert({
-                title: 'Event Cancelled',
-                message: `"${deletedEvent.title}" has been cancelled.`
-              })
+              if (!isUserDirector && String(deletedEvent.createdBy || deletedEvent.created_by) !== String(uid)) {
+                setLiveAlert({
+                  title: 'Event Cancelled',
+                  message: `"${deletedEvent.title}" has been cancelled.`
+                })
+              }
               eventChanged = true
             }
 

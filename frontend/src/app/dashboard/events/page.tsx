@@ -319,6 +319,7 @@ export default function EventsPage() {
             bc.close()
           } catch (_) {}
         }
+        setSuccessMessage('Event deleted successfully!')
         fetchEvents()
       } else {
         const error = await response.json()

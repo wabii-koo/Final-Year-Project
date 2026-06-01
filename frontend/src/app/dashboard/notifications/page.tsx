@@ -123,6 +123,7 @@ export default function NotificationsPage() {
           bc.postMessage({ type: 'notification', action: 'deleted', title: deleted?.title || 'Announcement' })
           bc.close()
         } catch (_) {}
+        setSuccessMessage('Notification deleted successfully!')
       } else {
         alert('Failed to delete notification')
       }
