@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Calendar, Clock, MapPin, Plus, AlertTriangle, X, ChevronLeft, ChevronRight, Users, Bell, Edit, Trash2 } from 'lucide-react'
+import { Calendar, Clock, MapPin, Plus, AlertTriangle, X, ChevronLeft, ChevronRight, Users, Bell, Edit, Trash2, CheckCircle } from 'lucide-react'
 
 interface Event {
   eventId: number
@@ -37,7 +37,15 @@ export default function EventsPage() {
     location: '',
     targetAudience: 'all' as Event['targetAudience']
   })
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const router = useRouter()
+
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => setSuccessMessage(null), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [successMessage])
 
   const [newEvent, setNewEvent] = useState({
     title: '',
@@ -212,6 +220,7 @@ export default function EventsPage() {
 
       if (response.ok) {
         setEditingEvent(null)
+        setSuccessMessage('Event updated successfully!')
         fetchEvents()
       } else {
         const error = await response.json()
@@ -293,6 +302,12 @@ export default function EventsPage() {
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {successMessage && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 text-brand-success rounded-2xl flex items-center gap-2 font-bold animate-fadeIn">
+            <CheckCircle className="h-5 w-5 text-brand-success shrink-0" />
+            <span>{successMessage}</span>
+          </div>
+        )}
         {/* Header with Create Button */}
         <div className="flex items-center justify-between mb-8">
           <div>

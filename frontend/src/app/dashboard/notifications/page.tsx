@@ -29,7 +29,15 @@ export default function NotificationsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [actionError, setActionError] = useState('')
 
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const router = useRouter()
+
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => setSuccessMessage(null), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [successMessage])
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
@@ -137,6 +145,7 @@ export default function NotificationsPage() {
       if (response.ok) {
         await fetchNotifications()
         setEditingNotif(null)
+        setSuccessMessage('Notification updated successfully!')
       } else {
         const data = await response.json()
         setActionError(data?.error?.message || 'Failed to update notification')
@@ -161,6 +170,12 @@ export default function NotificationsPage() {
   return (
     <div className="min-h-screen relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {successMessage && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 text-brand-success rounded-2xl flex items-center gap-2 font-bold animate-fadeIn">
+            <CheckCircle className="h-5 w-5 text-brand-success shrink-0" />
+            <span>{successMessage}</span>
+          </div>
+        )}
         <div className="mb-8 flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-black text-black flex items-center tracking-tight">
