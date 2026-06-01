@@ -54,6 +54,25 @@ export default function CreateEventPage() {
       const data = await response.json()
 
       if (data.success) {
+        // Send a system notification alerting all users of the new event
+        try {
+          await fetch(`${apiUrl}/api/notifications`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              title: `New Event: ${event.title}`,
+              content: `A new school event "${event.title}" has been scheduled.\n\nDetails:\nDate: ${new Date(event.eventDate).toLocaleDateString()}\nLocation: ${event.location || 'TBD'}\nDescription: ${event.description}`,
+              priority: 'normal',
+              recipientGroup: 'all'
+            })
+          })
+        } catch (notifErr) {
+          console.error('Failed to send event creation notification:', notifErr)
+        }
+
         setSuccess('Event scheduled successfully!')
         setTimeout(() => router.push('/dashboard/events'), 1500)
       } else {

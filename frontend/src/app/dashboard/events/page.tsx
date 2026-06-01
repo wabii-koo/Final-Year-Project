@@ -231,9 +231,7 @@ export default function EventsPage() {
               title: `Updated Event: ${editFormData.title}`,
               content: `The event "${editFormData.title}" has been updated.\n\nNew Details:\nDate: ${new Date(editFormData.eventDate).toLocaleDateString()}\nLocation: ${editFormData.location || 'TBD'}\nDescription: ${editFormData.description}`,
               priority: 'normal',
-              recipientGroup: editFormData.targetAudience === 'all' ? 'all' : 
-                            editFormData.targetAudience === 'guardians_only' ? 'all_guardians' : 
-                            editFormData.targetAudience === 'teachers_only' ? 'all_teachers' : 'all'
+              recipientGroup: 'all'
             })
           })
         } catch (notifErr) {
@@ -281,9 +279,7 @@ export default function EventsPage() {
                 title: `Cancelled Event: ${eventToDelete.title}`,
                 content: `The event "${eventToDelete.title}" scheduled for ${new Date(eventToDelete.eventDate).toLocaleDateString()} has been cancelled.`,
                 priority: 'emergency', // Cancellation is high priority
-                recipientGroup: eventToDelete.targetAudience === 'all' ? 'all' : 
-                              eventToDelete.targetAudience === 'guardians_only' ? 'all_guardians' : 
-                              eventToDelete.targetAudience === 'teachers_only' ? 'all_teachers' : 'all'
+                recipientGroup: 'all'
               })
             })
           } catch (notifErr) {
