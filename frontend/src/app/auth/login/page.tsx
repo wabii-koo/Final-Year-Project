@@ -438,32 +438,57 @@ function LoginContent() {
                   </div>
                 )}
 
-                <div className="flex flex-col items-center text-center py-6">
-                  <div className="relative mb-6 flex items-center justify-center">
-                    {/* Glowing pulse ring behind circle */}
-                    <div className="absolute w-24 h-24 rounded-full bg-brand-primary/20 blur-xl animate-pulse-glow" />
-                    
-                    {/* Floating animated role emoji circle */}
-                    <div className="relative w-28 h-28 rounded-full bg-[#FEF9C3] flex items-center justify-center text-5xl shadow-lg border border-yellow-200/50 animate-float hover:scale-110 transition-transform duration-300 cursor-default">
-                      {activeRole === "Teacher" && "🧑‍🏫"}
-                      {activeRole === "Registrar" && "🏢"}
-                      {activeRole === "Director" && "💼"}
+                <div className="flex flex-col items-center text-center py-4 space-y-6">
+                  {/* Pill Badge */}
+                  <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-brand-primary/10 border border-brand-primary/20 text-brand-primary font-black text-xs uppercase tracking-widest animate-pulse">
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>Secure Portal Pathway</span>
+                  </div>
+
+                  {/* Title and Description */}
+                  <div className="space-y-3">
+                    <h2 className="text-3xl md:text-4xl font-black text-brand-heading tracking-tight">
+                      {activeRole} Login
+                    </h2>
+                    <p className="text-brand-text font-semibold text-sm max-w-sm mx-auto leading-relaxed">
+                      To protect administrative records and student data, {activeRole.toLowerCase()} authentication is handled via a dedicated, secure channel.
+                    </p>
+                  </div>
+
+                  {/* Fancy Tech Info Block */}
+                  <div className="w-full max-w-sm bg-brand-bg/50 border border-brand-100 rounded-3xl p-5 text-left space-y-3 shadow-inner relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover:scale-110 transition-transform duration-500">
+                      <Lock size={120} />
+                    </div>
+                    <div className="flex items-center justify-between border-b border-brand-100 pb-2">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Portal Target</span>
+                      <span className="text-xs font-black text-brand-primary">{activeRole} System</span>
+                    </div>
+                    <div className="flex items-center justify-between border-b border-brand-100 pb-2">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Encryption Standard</span>
+                      <span className="text-xs font-black text-brand-heading flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-ping"></span>
+                        AES-256 SSL
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Connection Status</span>
+                      <span className="text-[10px] font-black bg-brand-success/10 text-brand-success border border-brand-success/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        Authorized Route
+                      </span>
                     </div>
                   </div>
 
-                  <h2 className="text-3xl font-black text-brand-heading mt-2 tracking-tight">
-                    {activeRole} Login
-                  </h2>
-                  <p className="text-brand-text font-medium text-base mt-2 mb-8 max-w-xs leading-relaxed">
-                    Please use the dedicated {activeRole.toLowerCase()} login page
-                  </p>
+                  {/* Premium Redirect Button */}
                   <button
                     type="button"
                     onClick={handleRedirectToDedicatedPage}
-                    className="w-full max-w-[280px] py-4 bg-linear-to-r from-brand-primary to-brand-accent hover:opacity-95 active:translate-y-0.5 hover:scale-[1.02] active:scale-[0.98] text-white font-black text-base rounded-full shadow-xl shadow-brand-primary/20 hover:shadow-brand-primary/30 transition-all duration-200 cursor-pointer inline-flex items-center justify-center gap-2 group"
+                    className="w-full max-w-[320px] py-4 bg-linear-to-r from-brand-primary to-brand-accent hover:opacity-95 hover:scale-[1.03] active:scale-[0.98] text-white font-black text-lg rounded-full shadow-2xl shadow-brand-primary/30 hover:shadow-brand-primary/45 transition-all duration-300 cursor-pointer inline-flex items-center justify-center gap-2.5 group relative overflow-hidden"
                   >
-                    <span>Go to {activeRole} Login</span>
-                    <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                    <span className="relative z-10">Proceed to {activeRole} Login</span>
+                    <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1 relative z-10" />
+                    {/* Gloss sheen effect */}
+                    <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                   </button>
                 </div>
               </div>
