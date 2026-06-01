@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
+import { useState, useEffect } from "react";
+import Link from "next/link";
 import {
   User,
   GraduationCap,
@@ -15,79 +15,100 @@ import {
   Users,
   Target,
   Rocket,
-  ArrowRight
-} from 'lucide-react'
-import { Button } from '../components/ui/Button'
+  ArrowRight,
+} from "lucide-react";
+import { Button } from "../components/ui/Button";
 
 const marqueeItems = [
-  { text: 'Hawi Dandi Boru', icon: <GraduationCap className="w-5 h-5 text-brand-primary" /> },
-  { text: 'Digital Communication', icon: <Users className="w-5 h-5 text-brand-primary" /> },
-  { text: 'Secure Portal', icon: <Shield className="w-5 h-5 text-brand-primary" /> },
-  { text: 'Real-time Alerts', icon: <Bell className="w-5 h-5 text-brand-primary" /> },
-  { text: 'Academic Progress', icon: <BarChart3 className="w-5 h-5 text-brand-primary" /> },
-  { text: 'Direct Messaging', icon: <MessageSquare className="w-5 h-5 text-brand-primary" /> },
-]
+  {
+    text: "Hawi Dandi Boru",
+    icon: <GraduationCap className="w-5 h-5 text-brand-primary" />,
+  },
+  {
+    text: "Digital Communication",
+    icon: <Users className="w-5 h-5 text-brand-primary" />,
+  },
+  {
+    text: "Secure Portal",
+    icon: <Shield className="w-5 h-5 text-brand-primary" />,
+  },
+  {
+    text: "Real-time Alerts",
+    icon: <Bell className="w-5 h-5 text-brand-primary" />,
+  },
+  {
+    text: "Academic Progress",
+    icon: <BarChart3 className="w-5 h-5 text-brand-primary" />,
+  },
+  {
+    text: "Direct Messaging",
+    icon: <MessageSquare className="w-5 h-5 text-brand-primary" />,
+  },
+];
 
 export default function HomePage() {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [activeSection, setActiveSection] = useState('home')
-  const [isScrolled, setIsScrolled] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("home");
+  const [isScrolled, setIsScrolled] = useState(false);
 
   // Handle scroll effect for header and active section (ScrollSpy)
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50)
+      setIsScrolled(window.scrollY > 50);
 
       // Check if we reached the bottom of the page
-      const isAtBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 50
+      const isAtBottom =
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 50;
       if (isAtBottom) {
-        setActiveSection('contact')
-        return
+        setActiveSection("contact");
+        return;
       }
 
-      const sections = ['home', 'about-us', 'features', 'workflow', 'contact']
+      const sections = ["home", "about-us", "features", "workflow", "contact"];
 
       for (const sectionId of sections) {
-        const element = document.getElementById(sectionId)
+        const element = document.getElementById(sectionId);
         if (element) {
-          const rect = element.getBoundingClientRect()
+          const rect = element.getBoundingClientRect();
           // If the top of the section is above 150px and the bottom is below 150px, it's active
           if (rect.top <= 150 && rect.bottom >= 150) {
-            setActiveSection(sectionId)
-            break
+            setActiveSection(sectionId);
+            break;
           }
         }
       }
-    }
-    window.addEventListener('scroll', handleScroll)
+    };
+    window.addEventListener("scroll", handleScroll);
     // Run once on mount
-    handleScroll()
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const scrollToSection = (id: string) => {
-    const element = document.getElementById(id)
+    const element = document.getElementById(id);
     if (element) {
-      const headerOffset = 80
-      const elementPosition = element.getBoundingClientRect().top
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset
+      const headerOffset = 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition =
+        elementPosition + window.pageYOffset - headerOffset;
 
       window.scrollTo({
         top: offsetPosition,
-        behavior: 'smooth'
-      })
+        behavior: "smooth",
+      });
     }
-    setMenuOpen(false)
-    setActiveSection(id)
-  }
+    setMenuOpen(false);
+    setActiveSection(id);
+  };
 
   const navItems = [
-    { id: 'home', label: 'Home' },
-    { id: 'about-us', label: 'About Us' },
-    { id: 'features', label: 'Features' },
-    { id: 'workflow', label: 'Workflow' },
-    { id: 'contact', label: 'Contact' },
-  ]
+    { id: "home", label: "Home" },
+    { id: "about-us", label: "About Us" },
+    { id: "features", label: "Features" },
+    { id: "workflow", label: "Workflow" },
+    { id: "contact", label: "Contact" },
+  ];
 
   return (
     <div className="min-h-screen bg-brand-bg font-sans selection:bg-brand-primary/10">
@@ -96,7 +117,11 @@ export default function HomePage() {
         <div className="container mx-auto px-4 flex justify-between items-center h-10">
           <div className="flex items-center space-x-2">
             <div className="bg-white p-1 rounded-full border border-white/20 w-10 h-10 flex items-center justify-center overflow-hidden">
-              <img src="/logo.png" alt="GuardianGate Logo" className="object-contain w-full h-full" />
+              <img
+                src="/logo.png"
+                alt="GuardianGate Logo"
+                className="object-contain w-full h-full"
+              />
             </div>
             <span className="font-black text-xl tracking-tighter uppercase text-white">
               GuardianGate
@@ -109,8 +134,11 @@ export default function HomePage() {
               <button
                 key={item.id}
                 onClick={() => scrollToSection(item.id)}
-                className={`text-xs font-bold uppercase tracking-widest transition-colors hover:text-brand-accent ${activeSection === item.id ? 'text-brand-accent' : 'text-white/80'
-                  }`}
+                className={`text-xs font-bold uppercase tracking-widest transition-colors hover:text-brand-accent ${
+                  activeSection === item.id
+                    ? "text-brand-accent"
+                    : "text-white/80"
+                }`}
               >
                 {item.label}
               </button>
@@ -129,7 +157,11 @@ export default function HomePage() {
             className="md:hidden text-white p-2"
             onClick={() => setMenuOpen(!menuOpen)}
           >
-            {menuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
+            {menuOpen ? (
+              <X className="w-8 h-8" />
+            ) : (
+              <Menu className="w-8 h-8" />
+            )}
           </button>
         </div>
 
@@ -153,7 +185,10 @@ export default function HomePage() {
             </Link>
             <div className="pt-4 text-center">
               <span className="text-brand-text/60">New user? </span>
-              <Link href="/auth/register" className="font-bold text-brand-primary">
+              <Link
+                href="/auth/register"
+                className="font-bold text-brand-primary"
+              >
                 Register here
               </Link>
             </div>
@@ -162,7 +197,10 @@ export default function HomePage() {
       </header>
 
       {/* HERO SECTION */}
-      <section id="home" className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden">
+      <section
+        id="home"
+        className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden"
+      >
         {/* Background Accents */}
         <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-brand-accent/15 blur-[120px] rounded-full -mr-20 -mt-20" />
         <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-brand-primary/8 blur-[100px] rounded-full -ml-20 -mb-20" />
@@ -196,13 +234,14 @@ export default function HomePage() {
               </h2>
 
               <p className="text-lg md:text-xl text-brand-text mb-8 max-w-xl font-medium leading-relaxed">
-                A secure, role-controlled, and structured platform enabling seamless interaction between
-                guardians, teachers, and school administrators.
+                A secure, role-controlled, and structured platform enabling
+                seamless interaction between guardians, teachers, and school
+                administrators.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
                 <button
-                  onClick={() => scrollToSection('about-us')}
+                  onClick={() => scrollToSection("about-us")}
                   className="w-full sm:w-auto px-10 py-4 text-lg bg-linear-to-r from-brand-primary to-brand-accent hover:opacity-95 text-white font-black rounded-2xl transition-all shadow-xl shadow-brand-primary/20 transform hover:scale-[1.02] cursor-pointer"
                 >
                   Learn More
@@ -226,7 +265,7 @@ export default function HomePage() {
                   alt="Parent-Teacher Meeting"
                   className="w-full h-auto object-cover max-h-[420px] md:max-h-[480px]"
                 />
-                
+
                 {/* Soft gradient overlay on image */}
                 <div className="absolute inset-0 bg-linear-to-t from-brand-heading/20 to-transparent pointer-events-none" />
               </div>
@@ -237,18 +276,29 @@ export default function HomePage() {
                   <Shield className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-xs font-black text-brand-heading uppercase tracking-wider">100% Secure</p>
-                  <p className="text-[10px] text-brand-text font-bold leading-none mt-1">Role-controlled portal</p>
+                  <p className="text-xs font-black text-brand-heading uppercase tracking-wider">
+                    100% Secure
+                  </p>
+                  <p className="text-[10px] text-brand-text font-bold leading-none mt-1">
+                    Role-controlled portal
+                  </p>
                 </div>
               </div>
 
-              <div className="absolute -top-6 -right-6 bg-white/95 backdrop-blur-md border border-brand-100 p-4 rounded-2xl shadow-xl flex items-center gap-3 animate-float max-w-[200px]" style={{ animationDelay: '1.5s' }}>
+              <div
+                className="absolute -top-6 -right-6 bg-white/95 backdrop-blur-md border border-brand-100 p-4 rounded-2xl shadow-xl flex items-center gap-3 animate-float max-w-[200px]"
+                style={{ animationDelay: "1.5s" }}
+              >
                 <div className="bg-brand-accent/10 p-2.5 rounded-xl text-brand-accent">
                   <Bell className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-xs font-black text-brand-heading uppercase tracking-wider">Instant Alerts</p>
-                  <p className="text-[10px] text-brand-text font-bold leading-none mt-1">SMS & email updates</p>
+                  <p className="text-xs font-black text-brand-heading uppercase tracking-wider">
+                    Instant Alerts
+                  </p>
+                  <p className="text-[10px] text-brand-text font-bold leading-none mt-1">
+                    SMS & email updates
+                  </p>
                 </div>
               </div>
             </div>
@@ -256,17 +306,21 @@ export default function HomePage() {
         </div>
       </section>
 
-
       {/* ABOUT US SECTION */}
       <section id="about-us" className="py-24 bg-white relative">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-brand-primary text-sm font-black uppercase tracking-[0.3em] mb-4">About Our System</h2>
-            <h3 className="text-4xl md:text-5xl font-black text-brand-heading tracking-tighter mb-6">Our Vision & Mission</h3>
+            <h2 className="text-brand-primary text-sm font-black uppercase tracking-[0.3em] mb-4">
+              About Our System
+            </h2>
+            <h3 className="text-4xl md:text-5xl font-black text-brand-heading tracking-tighter mb-6">
+              Our Vision & Mission
+            </h3>
             <p className="text-lg text-brand-text max-w-3xl mx-auto font-medium">
-              The Hawi Dandi Boru School Communication System is a secure, web-based platform designed
-              to strengthen the connection between parents and the school while ensuring
-              accountability and transparency.
+              The Hawi Dandi Boru School Communication System is a secure,
+              web-based platform designed to strengthen the connection between
+              parents and the school while ensuring accountability and
+              transparency.
             </p>
           </div>
 
@@ -287,7 +341,7 @@ export default function HomePage() {
                   alt="Teacher collaborating with parent and student"
                   className="w-full h-[320px] sm:h-[380px] md:h-[420px] object-cover"
                 />
-                
+
                 {/* Visual overlay gradient */}
                 <div className="absolute inset-0 bg-linear-to-t from-brand-primary/10 to-transparent pointer-events-none" />
               </div>
@@ -298,8 +352,12 @@ export default function HomePage() {
                   <Users className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-[11px] font-black text-brand-heading uppercase tracking-wider">Active Engagement</p>
-                  <p className="text-[9px] text-brand-text font-bold leading-none mt-1">Strengthened partnerships</p>
+                  <p className="text-[11px] font-black text-brand-heading uppercase tracking-wider">
+                    Active Engagement
+                  </p>
+                  <p className="text-[9px] text-brand-text font-bold leading-none mt-1">
+                    Strengthened partnerships
+                  </p>
                 </div>
               </div>
             </div>
@@ -316,10 +374,13 @@ export default function HomePage() {
                     <Target className="text-brand-primary w-6 h-6" />
                   </div>
                   <div>
-                    <h4 className="text-xl font-black text-brand-heading mb-2">Our Vision</h4>
+                    <h4 className="text-xl font-black text-brand-heading mb-2">
+                      Our Vision
+                    </h4>
                     <p className="text-brand-text text-base leading-relaxed font-medium">
-                      To enhance parental involvement and streamline school communications,
-                      ensuring every child’s educational progress is effectively monitored and supported.
+                      To enhance parental involvement and streamline school
+                      communications, ensuring every child’s educational
+                      progress is effectively monitored and supported.
                     </p>
                   </div>
                 </div>
@@ -335,19 +396,30 @@ export default function HomePage() {
                     <Rocket className="text-white w-6 h-6" />
                   </div>
                   <div>
-                    <h4 className="text-xl font-black text-brand-heading mb-3">Our Mission</h4>
+                    <h4 className="text-xl font-black text-brand-heading mb-3">
+                      Our Mission
+                    </h4>
                     <ul className="space-y-2 text-brand-text text-base font-medium">
                       <li className="flex items-start">
-                        <span className="text-brand-primary mr-2 font-bold">1.</span>
-                        Provide a secure and user-friendly system for guardians to access academic updates.
+                        <span className="text-brand-primary mr-2 font-bold">
+                          1.
+                        </span>
+                        Provide a secure and user-friendly system for guardians
+                        to access academic updates.
                       </li>
                       <li className="flex items-start">
-                        <span className="text-brand-primary mr-2 font-bold">2.</span>
-                        Empower teachers to communicate efficiently and manage classroom interactions.
+                        <span className="text-brand-primary mr-2 font-bold">
+                          2.
+                        </span>
+                        Empower teachers to communicate efficiently and manage
+                        classroom interactions.
                       </li>
                       <li className="flex items-start">
-                        <span className="text-brand-primary mr-2 font-bold">3.</span>
-                        Enable administrators to oversee school-wide operations and announcements.
+                        <span className="text-brand-primary mr-2 font-bold">
+                          3.
+                        </span>
+                        Enable administrators to oversee school-wide operations
+                        and announcements.
                       </li>
                     </ul>
                   </div>
@@ -359,15 +431,22 @@ export default function HomePage() {
       </section>
 
       {/* FEATURES SECTION */}
-      <section id="features" className="py-24 bg-brand-bg relative overflow-hidden">
+      <section
+        id="features"
+        className="py-24 bg-brand-bg relative overflow-hidden"
+      >
         {/* Background Accents */}
         <div className="absolute top-0 left-0 w-1/4 h-1/4 bg-brand-primary/5 blur-[120px] rounded-full -ml-20 -mt-20 pointer-events-none" />
         <div className="absolute bottom-0 right-0 w-1/4 h-1/4 bg-brand-accent/5 blur-[120px] rounded-full -mr-20 -mb-20 pointer-events-none" />
 
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-20">
-            <h2 className="text-brand-primary text-sm font-black uppercase tracking-[0.3em] mb-4">System Features</h2>
-            <h3 className="text-4xl md:text-5xl font-black text-brand-heading tracking-tighter">Everything You Need</h3>
+            <h2 className="text-brand-primary text-sm font-black uppercase tracking-[0.3em] mb-4">
+              System Features
+            </h2>
+            <h3 className="text-4xl md:text-5xl font-black text-brand-heading tracking-tighter">
+              Everything You Need
+            </h3>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-20">
@@ -376,9 +455,12 @@ export default function HomePage() {
               <div className="bg-brand-primary/10 w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
                 <Users className="text-brand-primary w-7 h-7" />
               </div>
-              <h4 className="text-xl font-black text-brand-heading mb-3">Guardian Access</h4>
+              <h4 className="text-xl font-black text-brand-heading mb-3">
+                Guardian Access
+              </h4>
               <p className="text-brand-text font-medium">
-                View student homework, report cards, messages, and approve pickup requests with one click.
+                View student homework, report cards, messages, and approve
+                pickup requests with one click.
               </p>
             </div>
 
@@ -387,9 +469,12 @@ export default function HomePage() {
               <div className="bg-brand-accent/10 w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
                 <MessageSquare className="text-brand-accent w-7 h-7" />
               </div>
-              <h4 className="text-xl font-black text-brand-heading mb-3">Teacher Tools</h4>
+              <h4 className="text-xl font-black text-brand-heading mb-3">
+                Teacher Tools
+              </h4>
               <p className="text-brand-text font-medium">
-                Post assignments, send instant messages to guardians, and manage classroom data securely.
+                Post assignments, send instant messages to guardians, and manage
+                classroom data securely.
               </p>
             </div>
 
@@ -398,9 +483,12 @@ export default function HomePage() {
               <div className="bg-brand-heading/5 w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
                 <Shield className="text-brand-heading w-7 h-7" />
               </div>
-              <h4 className="text-xl font-black text-brand-heading mb-3">Admin Control</h4>
+              <h4 className="text-xl font-black text-brand-heading mb-3">
+                Admin Control
+              </h4>
               <p className="text-brand-text font-medium">
-                Approve accounts, publish announcements, and manage school events with full accountability.
+                Approve accounts, publish announcements, and manage school
+                events with full accountability.
               </p>
             </div>
           </div>
@@ -411,22 +499,34 @@ export default function HomePage() {
               <div className="bg-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
                 <MessageSquare className="text-brand-primary w-5 h-5" />
               </div>
-              <h5 className="font-black text-brand-heading mb-2 uppercase text-sm tracking-widest">Secure Messaging</h5>
-              <p className="text-sm text-brand-text font-medium">Direct communication with teachers and staff.</p>
+              <h5 className="font-black text-brand-heading mb-2 uppercase text-sm tracking-widest">
+                Secure Messaging
+              </h5>
+              <p className="text-sm text-brand-text font-medium">
+                Direct communication with teachers and staff.
+              </p>
             </div>
             <div className="text-center">
               <div className="bg-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
                 <Bell className="text-brand-accent w-5 h-5" />
               </div>
-              <h5 className="font-black text-brand-heading mb-2 uppercase text-sm tracking-widest">Real-time Updates</h5>
-              <p className="text-sm text-brand-text font-medium">Instant notifications for homework and events.</p>
+              <h5 className="font-black text-brand-heading mb-2 uppercase text-sm tracking-widest">
+                Real-time Updates
+              </h5>
+              <p className="text-sm text-brand-text font-medium">
+                Instant notifications for homework and events.
+              </p>
             </div>
             <div className="text-center">
               <div className="bg-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
                 <BarChart3 className="text-brand-heading w-5 h-5" />
               </div>
-              <h5 className="font-black text-brand-heading mb-2 uppercase text-sm tracking-widest">Academic Progress</h5>
-              <p className="text-sm text-brand-text font-medium">Digital report cards and progress tracking.</p>
+              <h5 className="font-black text-brand-heading mb-2 uppercase text-sm tracking-widest">
+                Academic Progress
+              </h5>
+              <p className="text-sm text-brand-text font-medium">
+                Digital report cards and progress tracking.
+              </p>
             </div>
           </div>
         </div>
@@ -439,7 +539,9 @@ export default function HomePage() {
             {/* Left Column: Text Copy */}
             <div className="lg:col-span-6 space-y-8">
               <div>
-                <h2 className="text-brand-primary text-sm font-black uppercase tracking-[0.3em] mb-4">Unified Access</h2>
+                <h2 className="text-brand-primary text-sm font-black uppercase tracking-[0.3em] mb-4">
+                  Unified Access
+                </h2>
                 <h3 className="text-4xl md:text-5xl font-black text-brand-heading tracking-tighter leading-none mb-6">
                   One Platform, <br />
                   <span className="text-transparent bg-clip-text bg-linear-to-r from-brand-primary to-brand-accent">
@@ -447,7 +549,10 @@ export default function HomePage() {
                   </span>
                 </h3>
                 <p className="text-lg text-brand-text font-medium leading-relaxed">
-                  Whether you are a parent tracking progress on a phone, a teacher posting assignments on a tablet, or an administrator managing classrooms on a desktop, our ecosystem provides seamless synchronization.
+                  Whether you are a parent tracking progress on a phone, a
+                  teacher posting assignments on a tablet, or an administrator
+                  managing classrooms on a desktop, our ecosystem provides
+                  seamless synchronization.
                 </p>
               </div>
 
@@ -457,8 +562,13 @@ export default function HomePage() {
                     <Rocket className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-brand-heading text-lg">Instant Synchronization</h4>
-                    <p className="text-brand-text text-sm font-medium mt-1">Updates propagate immediately, keeping everyone on the same page.</p>
+                    <h4 className="font-bold text-brand-heading text-lg">
+                      Instant Synchronization
+                    </h4>
+                    <p className="text-brand-text text-sm font-medium mt-1">
+                      Updates propagate immediately, keeping everyone on the
+                      same page.
+                    </p>
                   </div>
                 </div>
 
@@ -467,8 +577,13 @@ export default function HomePage() {
                     <Users className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-brand-heading text-lg">Connected Stakeholders</h4>
-                    <p className="text-brand-text text-sm font-medium mt-1">Direct channels linking guardians, instructors, and registrars securely.</p>
+                    <h4 className="font-bold text-brand-heading text-lg">
+                      Connected Stakeholders
+                    </h4>
+                    <p className="text-brand-text text-sm font-medium mt-1">
+                      Direct channels linking guardians, instructors, and
+                      registrars securely.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -490,7 +605,7 @@ export default function HomePage() {
                   alt="Multi-device connected school system network"
                   className="w-full h-[320px] sm:h-[380px] md:h-[420px] object-cover"
                 />
-                
+
                 {/* Visual overlay gradient */}
                 <div className="absolute inset-0 bg-linear-to-t from-brand-heading/20 to-transparent pointer-events-none" />
               </div>
@@ -501,8 +616,12 @@ export default function HomePage() {
                   <Shield className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-[11px] font-black text-brand-heading uppercase tracking-wider">Sync Active</p>
-                  <p className="text-[9px] text-brand-text font-bold leading-none mt-1">Multi-device connection</p>
+                  <p className="text-[11px] font-black text-brand-heading uppercase tracking-wider">
+                    Sync Active
+                  </p>
+                  <p className="text-[9px] text-brand-text font-bold leading-none mt-1">
+                    Multi-device connection
+                  </p>
                 </div>
               </div>
             </div>
@@ -514,22 +633,48 @@ export default function HomePage() {
       <section id="workflow" className="py-24 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-brand-primary text-sm font-black uppercase tracking-[0.3em] mb-4">How It Works</h2>
-            <h3 className="text-4xl font-black text-brand-heading tracking-tighter">Your Journey in 5 Steps</h3>
+            <h2 className="text-brand-primary text-sm font-black uppercase tracking-[0.3em] mb-4">
+              How It Works
+            </h2>
+            <h3 className="text-4xl font-black text-brand-heading tracking-tighter">
+              Your Journey in 5 Steps
+            </h3>
           </div>
 
           <div className="flex flex-col lg:flex-row items-stretch justify-center gap-4 lg:gap-2">
             {[
-              { step: '01', text: 'Users select their role (Admin, Teacher, or Guardian) on the login page.' },
-              { step: '02', text: 'Admins and teachers with valid accounts log in directly.' },
-              { step: '03', text: 'Guardians submit a registration request for verification.' },
-              { step: '04', text: 'The registrar reviews and approves legitimate guardian requests.' },
-              { step: '05', text: 'Approved guardians log in and access their personal dashboard.' }
+              {
+                step: "01",
+                text: "Users select their role (Admin, Teacher, or Guardian) on the login page.",
+              },
+              {
+                step: "02",
+                text: "Admins and teachers with valid accounts log in directly.",
+              },
+              {
+                step: "03",
+                text: "Guardians submit a registration request for verification.",
+              },
+              {
+                step: "04",
+                text: "The registrar reviews and approves legitimate guardian requests.",
+              },
+              {
+                step: "05",
+                text: "Approved guardians log in and access their personal dashboard.",
+              },
             ].map((item, index, array) => (
-              <div key={index} className="flex flex-col lg:flex-row items-center flex-1">
+              <div
+                key={index}
+                className="flex flex-col lg:flex-row items-center flex-1"
+              >
                 <div className="flex-1 w-full p-6 bg-brand-bg rounded-[2rem] border border-brand-100 hover:border-brand-primary transition-all group text-center flex flex-col items-center justify-center min-h-[180px]">
-                  <span className="text-2xl font-black text-brand-primary/20 group-hover:text-brand-primary transition-colors mb-2">{item.step}</span>
-                  <p className="text-xs text-brand-heading font-bold leading-tight">{item.text}</p>
+                  <span className="text-2xl font-black text-brand-primary/20 group-hover:text-brand-primary transition-colors mb-2">
+                    {item.step}
+                  </span>
+                  <p className="text-xs text-brand-heading font-bold leading-tight">
+                    {item.text}
+                  </p>
                 </div>
                 {index < array.length - 1 && (
                   <div className="py-2 lg:py-0 lg:px-2 flex items-center justify-center">
@@ -543,50 +688,72 @@ export default function HomePage() {
       </section>
 
       {/* CONTACT SECTION */}
-      <section id="contact" className="py-24 bg-white relative overflow-hidden border-t border-brand-100">
+      <section
+        id="contact"
+        className="py-24 bg-white relative overflow-hidden border-t border-brand-100"
+      >
         <div className="absolute top-0 right-0 p-20 opacity-[0.03] text-brand-primary">
           <GraduationCap size={300} />
         </div>
 
         <div className="container mx-auto px-4 text-center relative z-10">
-          <h3 className="text-4xl md:text-5xl font-black mb-4 tracking-tighter text-brand-heading">Contact & Support</h3>
-          <p className="text-brand-primary font-black uppercase tracking-[0.2em] mb-12">Get In Touch With Us</p>
+          <h3 className="text-4xl md:text-5xl font-black mb-4 tracking-tighter text-brand-heading">
+            Contact & Support
+          </h3>
+          <p className="text-brand-primary font-black uppercase tracking-[0.2em] mb-12">
+            Get In Touch With Us
+          </p>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <div className="p-8 bg-brand-bg rounded-3xl border border-brand-100">
-              <h5 className="text-brand-primary font-black uppercase tracking-widest mb-3">Location</h5>
-              <p className="text-lg font-bold text-brand-heading">Hawi Dandi Boru School</p>
+              <h5 className="text-brand-primary font-black uppercase tracking-widest mb-3">
+                Location
+              </h5>
+              <p className="text-lg font-bold text-brand-heading">
+                Hawi Dandi Boru School
+              </p>
             </div>
             <div className="p-8 bg-brand-bg rounded-3xl border border-brand-100">
-              <h5 className="text-brand-primary font-black uppercase tracking-widest mb-3">Phone</h5>
-              <p className="text-lg font-bold text-brand-heading">+251 XXX XXX XXX</p>
+              <h5 className="text-brand-primary font-black uppercase tracking-widest mb-3">
+                Phone
+              </h5>
+              <p className="text-lg font-bold text-brand-heading">
+                +251 919785587
+              </p>
             </div>
             <div className="p-8 bg-brand-bg rounded-3xl border border-brand-100">
-              <h5 className="text-brand-primary font-black uppercase tracking-widest mb-3">Email</h5>
-              <p className="text-lg font-bold text-brand-heading">info@school.edu</p>
+              <h5 className="text-brand-primary font-black uppercase tracking-widest mb-3">
+                Email
+              </h5>
+              <p className="text-lg font-bold text-brand-heading">
+                hawischool@gmail.com
+              </p>
             </div>
           </div>
-
-
         </div>
       </section>
 
       {/* FOOTER */}
       <footer className="bg-brand-bg py-16 border-t border-brand-100">
         <div className="container mx-auto px-4">
-          <div className="flex items-center space-x-3 mb-6 justify-center md:justify-start">
-            <div className="bg-white p-1 rounded-full shadow-md border border-brand-100 w-12 h-12 flex items-center justify-center overflow-hidden">
-              <img src="/logo.png" alt="GuardianGate Logo" className="object-contain w-full h-full" />
+          <div className="flex flex-col items-center text-center">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="bg-white p-1 rounded-full shadow-md border border-brand-100 w-12 h-12 flex items-center justify-center overflow-hidden">
+                <img
+                  src="/logo.png"
+                  alt="GuardianGate Logo"
+                  className="object-contain w-full h-full"
+                />
+              </div>
+              <span className="font-black text-xl tracking-tighter uppercase text-brand-heading">
+                GuardianGate
+              </span>
             </div>
-            <span className="font-black text-xl tracking-tighter uppercase text-brand-heading">
-              GuardianGate
-            </span>
-          </div>
 
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
-            <p className="text-brand-text/60 text-sm font-medium">
+            <p className="text-brand-text/60 text-sm font-medium mb-2">
               Strengthening the bond between parents and education.
             </p>
+
             <p className="text-brand-heading/40 text-[10px] font-black uppercase tracking-[0.3em]">
               © {new Date().getFullYear()} All rights reserved.
             </p>
@@ -594,5 +761,5 @@ export default function HomePage() {
         </div>
       </footer>
     </div>
-  )
+  );
 }
