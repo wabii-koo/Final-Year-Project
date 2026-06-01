@@ -59,6 +59,16 @@ export const validateRegistration = async (req: Request, res: Response): Promise
       return;
     }
 
+    // Validate National ID format (Fayda Identification Number: exactly 12 digits, numbers only)
+    const finRegex = /^[0-9]{12}$/;
+    if (!finRegex.test(nationalId)) {
+      res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_NATIONAL_ID', message: 'Fayda Identification Number must be exactly 12 digits (numbers only, no spaces or symbols).' }
+      });
+      return;
+    }
+
     // Verify that the child's name exists in the Students database table
     const student = await StudentModel.findOne({
       where: {

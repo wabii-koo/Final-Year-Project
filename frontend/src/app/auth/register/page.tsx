@@ -98,6 +98,13 @@ export default function RegisterPage() {
       return;
     }
 
+    const finRegex = /^[0-9]{12}$/;
+    if (!finRegex.test(formData.nationalId)) {
+      setError("National ID must be a valid Ethiopia Fayda Identification Number (exactly 12 digits, numbers only, no spaces or symbols).");
+      setLoading(false);
+      return;
+    }
+
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
       const response = await fetch(`${apiUrl}/api/registration/validate`, {
@@ -275,15 +282,23 @@ export default function RegisterPage() {
         />
       </div>
 
-      <Input
-        label="National ID / Kebele ID *"
-        icon={CreditCard}
-        name="nationalId"
-        value={formData.nationalId}
-        onChange={handleInputChange}
-        placeholder="Enter your National ID number"
-        required
-      />
+      <div>
+        <Input
+          label="National ID / Kebele ID *"
+          icon={CreditCard}
+          name="nationalId"
+          value={formData.nationalId}
+          onChange={handleInputChange}
+          placeholder="Enter your 12-digit Fayda Number"
+          pattern="^[0-9]{12}$"
+          title="Please enter exactly 12 digits (numbers only)"
+          maxLength={12}
+          required
+        />
+        <p className="text-xs text-brand-text mt-1 font-medium italic">
+          Must be exactly 12 digits (Fayda Identification Number)
+        </p>
+      </div>
 
       <div>
         <Input

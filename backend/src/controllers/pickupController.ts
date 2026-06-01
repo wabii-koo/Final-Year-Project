@@ -104,6 +104,16 @@ export class PickupController {
         return;
       }
 
+      // Validate Authorized Person's National ID format (Fayda Identification Number: exactly 12 digits, numbers only)
+      const finRegex = /^[0-9]{12}$/;
+      if (!finRegex.test(authorizedPersonNationalId)) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid Authorized Person National ID. It must be a valid Fayda Identification Number (exactly 12 digits, numbers only).'
+        });
+        return;
+      }
+
       // Get student info
       const student = await StudentModel.findByPk(studentId);
       if (!student) {

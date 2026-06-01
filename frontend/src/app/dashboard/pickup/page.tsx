@@ -58,6 +58,7 @@ export default function PickupPage() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all')
+  const [modalError, setModalError] = useState('')
   const router = useRouter()
 
   const [newRequest, setNewRequest] = useState({
@@ -90,6 +91,12 @@ export default function PickupPage() {
       }
     }
   }, [user])
+
+  useEffect(() => {
+    if (!showCreateModal) {
+      setModalError('')
+    }
+  }, [showCreateModal])
 
   const fetchPickupRequests = async () => {
     try {
@@ -129,6 +136,14 @@ export default function PickupPage() {
 
   const handleCreateRequest = async (e: React.FormEvent) => {
     e.preventDefault()
+    setModalError('')
+
+    const finRegex = /^[0-9]{12}$/;
+    if (!finRegex.test(newRequest.authorizedPersonNationalId)) {
+      setModalError("Authorized Person's National ID must be a valid Fayda Identification Number (exactly 12 digits, numbers only).")
+      return
+    }
+
     try {
       const token = localStorage.getItem('token')
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
@@ -408,6 +423,14 @@ export default function PickupPage() {
             </div>
             
             <form onSubmit={handleCreateRequest} className="p-10 space-y-6 overflow-y-auto max-h-[70vh] custom-scrollbar">
+              {modalError && (
+                <div className="bg-red-50 border border-red-100 rounded-2xl p-4 flex items-center gap-3 animate-shake">
+                  <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0" />
+                  <span className="text-red-800 text-sm font-medium">
+                    {modalError}
+                  </span>
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
                   <label className="text-[10px] font-black text-brand-text uppercase tracking-widest block mb-2 px-2">Target Student</label>
@@ -466,10 +489,16 @@ export default function PickupPage() {
                     type="text"
                     value={newRequest.authorizedPersonNationalId}
                     onChange={(e) => setNewRequest({...newRequest, authorizedPersonNationalId: e.target.value})}
-                    className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none"
-                    placeholder="Document Number"
+                    className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-primary/10"
+                    placeholder="12-digit Fayda Number"
+                    pattern="^[0-9]{12}$"
+                    title="Please enter exactly 12 digits (numbers only)"
+                    maxLength={12}
                     required
                   />
+                  <p className="text-[10px] text-brand-text mt-1 font-medium italic px-2">
+                    Must be exactly 12 digits (Fayda Identification Number)
+                  </p>
                 </div>
 
                 <div>
