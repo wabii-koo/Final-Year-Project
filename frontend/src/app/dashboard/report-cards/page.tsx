@@ -1040,12 +1040,24 @@ export default function ReportCardsPage() {
             <div className="p-6 bg-brand-bg/50 border-b border-brand-100 flex justify-between items-center">
               <div>
                 <h3 className="text-xl font-black text-brand-heading">
-                  {isDirector 
+                  {user?.role === 'guardian'
+                    ? 'Grade Report Card'
+                    : isDirector 
                     ? (editingReportCard?.status === 'pending' ? 'Review Report Card' : 'View Report Card')
                     : (editingReportCard ? 'Edit Report Card' : 'Fill Report Card')
                   }
                 </h3>
                 <p className="text-xs text-brand-text font-bold uppercase mt-1">Student: {selectedStudent.fullName}</p>
+                {user?.role === 'guardian' && editingReportCard && (
+                  <span className={`inline-flex items-center gap-1 mt-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+                    editingReportCard.status === 'approved'
+                      ? 'bg-brand-success/10 text-brand-success border-brand-success/20'
+                      : 'bg-amber-50 text-amber-700 border-amber-200'
+                  }`}>
+                    {editingReportCard.status === 'approved' ? <CheckCircle size={10} /> : <Clock size={10} />}
+                    {editingReportCard.status === 'approved' ? 'Approved & Certified' : 'Pending Endorsement'}
+                  </span>
+                )}
               </div>
               <button 
                 onClick={() => setShowModal(false)}
@@ -1283,7 +1295,12 @@ export default function ReportCardsPage() {
             ) : (
               <form onSubmit={handleFormSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
                 {/* Read Only State warning */}
-                {isDirector && editingReportCard?.status === 'pending' ? (
+                {user?.role === 'guardian' ? (
+                  <div className="bg-brand-primary/5 border border-brand-primary/10 text-brand-primary p-4 rounded-xl flex items-center gap-3 animate-fadeIn">
+                    <BookOpen size={18} className="text-brand-primary" />
+                    <p className="text-xs font-bold">You are viewing your child's grade report. Scores are read-only.</p>
+                  </div>
+                ) : isDirector && editingReportCard?.status === 'pending' ? (
                   <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-center gap-3 animate-fadeIn">
                     <Clock size={18} className="text-amber-600" />
                     <p className="text-xs font-bold">This report card is Pending. Please inspect the grades below and choose to Approve or Request Revision.</p>
@@ -1293,7 +1310,7 @@ export default function ReportCardsPage() {
                     <CheckCircle size={18} />
                     <p className="text-xs font-bold">This report card is Approved and cannot be modified (Read-Only).</p>
                   </div>
-                ) : !isHomeroomTeacherOfSelectedClass ? (
+                ) : !isHomeroomTeacherOfSelectedClass && isTeacher ? (
                   <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-center gap-3">
                     <AlertCircle size={18} className="text-amber-600" />
                     <p className="text-xs font-bold">You are viewing this class as a Subject Teacher. Only the homeroom teacher can fill or modify report cards.</p>
@@ -1324,7 +1341,7 @@ export default function ReportCardsPage() {
                         const sId = selectedStudent.studentId || selectedStudent.id;
                         loadTermData(sId, newTerm);
                       }}
-                      disabled={submitting}
+                      disabled={submitting || user?.role === 'guardian'}
                       className="w-full bg-brand-bg border border-brand-100 rounded-xl px-4 py-3 text-xs font-bold text-brand-heading outline-none focus:border-brand-primary"
                     >
                       <option value="Semester 1">Semester 1</option>
@@ -1339,7 +1356,7 @@ export default function ReportCardsPage() {
                       type="text"
                       value={formAcademicYear}
                       onChange={(e) => setFormAcademicYear(e.target.value)}
-                      disabled={submitting || editingReportCard?.status === 'approved' || !isHomeroomTeacherOfSelectedClass}
+                      disabled={submitting || editingReportCard?.status === 'approved' || !isHomeroomTeacherOfSelectedClass || user?.role === 'guardian'}
                       required
                       className="w-full bg-brand-bg border border-brand-100 rounded-xl px-4 py-3 text-xs font-bold text-brand-heading outline-none focus:border-brand-primary"
                     />
@@ -1363,7 +1380,7 @@ export default function ReportCardsPage() {
                               required
                               value={formSubjectData[subject]?.score || ''}
                               onChange={(e) => handleSubjectScoreChange(subject, e.target.value)}
-                              disabled={submitting || editingReportCard?.status === 'approved' || !isHomeroomTeacherOfSelectedClass}
+                              disabled={submitting || editingReportCard?.status === 'approved' || !isHomeroomTeacherOfSelectedClass || user?.role === 'guardian'}
                               placeholder="0-100"
                               className="bg-white border border-brand-100 rounded-lg px-2.5 py-1.5 text-xs font-bold text-brand-heading outline-none focus:border-brand-primary w-20 text-center"
                             />
@@ -1393,7 +1410,7 @@ export default function ReportCardsPage() {
                     <select
                       value={formConduct}
                       onChange={(e) => setFormConduct(e.target.value)}
-                      disabled={submitting || editingReportCard?.status === 'approved' || !isHomeroomTeacherOfSelectedClass}
+                      disabled={submitting || editingReportCard?.status === 'approved' || !isHomeroomTeacherOfSelectedClass || user?.role === 'guardian'}
                       className="w-full bg-brand-bg border border-brand-100 rounded-xl px-4 py-3 text-xs font-bold text-brand-heading outline-none focus:border-brand-primary"
                     >
                       <option value="Excellent">Excellent</option>
@@ -1424,7 +1441,7 @@ export default function ReportCardsPage() {
                       rows={4}
                       value={formComments}
                       onChange={(e) => setFormComments(e.target.value)}
-                      disabled={submitting || editingReportCard?.status === 'approved' || !isHomeroomTeacherOfSelectedClass}
+                      disabled={submitting || editingReportCard?.status === 'approved' || !isHomeroomTeacherOfSelectedClass || user?.role === 'guardian'}
                       placeholder="Provide comments about the student's cognitive, physical and social development during this term..."
                       className="w-full bg-brand-bg border border-brand-100 rounded-[1.25rem] p-4 text-xs font-medium text-brand-heading outline-none focus:border-brand-primary resize-none"
                     ></textarea>
@@ -1524,7 +1541,7 @@ export default function ReportCardsPage() {
                     disabled={submitting}
                     className="px-6 py-3 border border-slate-200 text-slate-500 rounded-2xl text-xs font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors"
                   >
-                    {editingReportCard?.status === 'approved' || !isHomeroomTeacherOfSelectedClass ? 'Close' : 'Cancel'}
+                    {user?.role === 'guardian' || editingReportCard?.status === 'approved' || (!isHomeroomTeacherOfSelectedClass && isTeacher) ? 'Close' : 'Cancel'}
                   </button>
                   
                   {isDirector && editingReportCard?.status === 'pending' && (
@@ -1554,7 +1571,7 @@ export default function ReportCardsPage() {
                     </>
                   )}
 
-                  {editingReportCard?.status !== 'approved' && isHomeroomTeacherOfSelectedClass && (
+                  {editingReportCard?.status !== 'approved' && isHomeroomTeacherOfSelectedClass && user?.role !== 'guardian' && (
                     <button
                       type="submit"
                       disabled={submitting}

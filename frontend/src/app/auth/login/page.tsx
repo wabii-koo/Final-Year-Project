@@ -12,6 +12,8 @@ import {
   ChevronDown,
   BookOpen,
   ArrowLeft,
+  Shield,
+  KeyRound,
 } from "lucide-react";
 import { Button } from "../../../components/ui/Button";
 
@@ -454,79 +456,27 @@ function LoginContent() {
                       To protect administrative records and student data, {activeRole.toLowerCase()} authentication is handled via a dedicated, secure channel.
                     </p>
                   </div>
-
-                  {/* Fancy Staff Access smart card */}
-                  <div className="w-full max-w-[340px] aspect-[1.586/1] bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 text-left relative overflow-hidden shadow-2xl border border-white/10 group cursor-default select-none transition-transform hover:-translate-y-1 hover:rotate-1 duration-300">
-                    
-                    {/* Glowing corner reflections */}
-                    <div className="absolute -top-16 -right-16 w-32 h-32 bg-brand-primary/20 rounded-full blur-2xl group-hover:bg-brand-primary/30 transition-colors" />
-                    <div className="absolute -bottom-16 -left-16 w-32 h-32 bg-brand-accent/20 rounded-full blur-2xl group-hover:bg-brand-accent/30 transition-colors" />
-                    
-                    {/* Cybernetic grid overlay */}
-                    <div className="absolute inset-0 bg-[radial-gradient(#ffffff08_1px,transparent_1px)] [background-size:12px_12px] opacity-60" />
-
-                    {/* Card Header */}
-                    <div className="flex justify-between items-start relative z-10">
-                      <div>
-                        <span className="text-[9px] font-black text-white/50 uppercase tracking-widest block">Authorized Staff Only</span>
-                        <h3 className="text-lg font-black text-white uppercase tracking-tight mt-0.5">
-                          {activeRole} Pass
-                        </h3>
-                      </div>
-                      {/* Pulsing Status Light */}
-                      <span className="flex h-3 w-3 relative">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                      </span>
-                    </div>
-
-                    {/* Smart Card Chip */}
-                    <div className="mt-6 mb-6 relative z-10 flex items-center justify-between">
-                      <div className="w-12 h-9 rounded-md bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-500 p-[1.5px] shadow-md border border-amber-600/20 relative overflow-hidden">
-                        <div className="absolute inset-0 grid grid-cols-3 gap-[1px]">
-                          <div className="border-r border-b border-amber-800/20"></div>
-                          <div className="border-r border-b border-amber-800/20"></div>
-                          <div className="border-b border-amber-800/20"></div>
-                          <div className="border-r border-b border-amber-800/20"></div>
-                          <div className="border-r border-b border-amber-800/20"></div>
-                          <div className="border-b border-amber-800/20"></div>
-                          <div className="border-r border-amber-800/20"></div>
-                          <div className="border-r border-amber-800/20"></div>
-                          <div></div>
+                  {/* Secure access visual panel */}
+                  <div className="w-full max-w-sm bg-gradient-to-br from-brand-primary/5 via-white to-brand-accent/5 border border-brand-100 rounded-3xl p-6 relative overflow-hidden shadow-sm">
+                    <div className="absolute inset-0 bg-[radial-gradient(#2E5A3315_1px,transparent_1px)] [background-size:16px_16px] opacity-60 pointer-events-none" />
+                    <div className="relative z-10 flex justify-center gap-8">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="w-12 h-12 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center">
+                          <Shield className="w-6 h-6 text-brand-primary" />
                         </div>
+                        <span className="text-[10px] font-black text-brand-text/60 uppercase tracking-widest">Protected</span>
                       </div>
-                      {/* Logo watermark */}
-                      <span className="text-[10px] font-black text-white/10 uppercase tracking-widest">GuardianGate</span>
-                    </div>
-
-                    {/* Card Footer with Mock Barcode */}
-                    <div className="mt-auto relative z-10 flex items-end justify-between gap-4 pt-1">
-                      <div className="space-y-0.5">
-                        <span className="text-[8px] font-bold text-white/40 uppercase tracking-wider block">Access Protocol</span>
-                        <span className="text-[10px] font-mono font-bold text-emerald-400 tracking-wider">SECURE-CHANNEL-301</span>
-                      </div>
-                      
-                      {/* Barcode lines */}
-                      <div className="h-8 w-28 bg-white/5 rounded-sm p-1 flex items-center justify-center border border-white/5 backdrop-blur-xs">
-                        <div className="w-full h-full flex gap-[1.5px] items-stretch opacity-60">
-                          <div className="w-[1px] bg-white"></div>
-                          <div className="w-[3px] bg-white"></div>
-                          <div className="w-[1px] bg-white"></div>
-                          <div className="w-[2px] bg-white"></div>
-                          <div className="w-[1px] bg-white"></div>
-                          <div className="w-[4px] bg-white"></div>
-                          <div className="w-[1px] bg-white"></div>
-                          <div className="w-[1px] bg-white"></div>
-                          <div className="w-[3px] bg-white"></div>
-                          <div className="w-[1px] bg-white"></div>
-                          <div className="w-[2px] bg-white"></div>
-                          <div className="w-[1px] bg-white"></div>
-                          <div className="w-[4px] bg-white"></div>
-                          <div className="w-[1px] bg-white"></div>
-                          <div className="w-[2px] bg-white"></div>
-                          <div className="w-[3px] bg-white"></div>
-                          <div className="w-[1px] bg-white"></div>
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="w-12 h-12 rounded-2xl bg-brand-accent/10 border border-brand-accent/20 flex items-center justify-center">
+                          <Lock className="w-6 h-6 text-brand-primary" />
                         </div>
+                        <span className="text-[10px] font-black text-brand-text/60 uppercase tracking-widest">Encrypted</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center">
+                          <KeyRound className="w-6 h-6 text-emerald-600" />
+                        </div>
+                        <span className="text-[10px] font-black text-brand-text/60 uppercase tracking-widest">Role-Based</span>
                       </div>
                     </div>
                   </div>
