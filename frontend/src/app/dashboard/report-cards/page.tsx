@@ -749,32 +749,32 @@ export default function ReportCardsPage() {
                                 {student.studentCode || `KG${student.id || student.studentId}`}
                               </td>
                               <td className="px-8 py-6">
-                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border flex items-center gap-1.5 w-fit ${
-                                  rc1?.status === 'approved' 
-                                    ? 'bg-brand-success/10 text-brand-success border-brand-success/20'
-                                    : rc1?.status === 'unlocked'
-                                    ? 'bg-red-50 text-red-600 border-red-100'
-                                    : rc1?.status === 'pending'
-                                    ? 'bg-brand-accent/10 text-brand-primary border-brand-accent/20'
-                                    : 'bg-slate-100 text-slate-500 border-slate-200'
-                                }`}>
-                                  {rc1?.status === 'approved' && <Lock size={12} />}
-                                  {rc1 ? (rc1.status === 'unlocked' ? 'Revision' : rc1.status) : 'Not Filled'}
-                                </span>
+                                {rc1 && (
+                                  <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border flex items-center gap-1.5 w-fit ${
+                                    rc1.status === 'approved' 
+                                      ? 'bg-brand-success/10 text-brand-success border-brand-success/20'
+                                      : rc1.status === 'unlocked'
+                                      ? 'bg-red-50 text-red-600 border-red-100'
+                                      : 'bg-brand-accent/10 text-brand-primary border-brand-accent/20'
+                                  }`}>
+                                    {rc1.status === 'approved' && <Lock size={12} />}
+                                    {rc1.status === 'unlocked' ? 'Revision' : rc1.status}
+                                  </span>
+                                )}
                               </td>
                               <td className="px-8 py-6">
-                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border flex items-center gap-1.5 w-fit ${
-                                  rc2?.status === 'approved' 
-                                    ? 'bg-brand-success/10 text-brand-success border-brand-success/20'
-                                    : rc2?.status === 'unlocked'
-                                    ? 'bg-red-50 text-red-600 border-red-100'
-                                    : rc2?.status === 'pending'
-                                    ? 'bg-brand-accent/10 text-brand-primary border-brand-accent/20'
-                                    : 'bg-slate-100 text-slate-500 border-slate-200'
-                                }`}>
-                                  {rc2?.status === 'approved' && <Lock size={12} />}
-                                  {rc2 ? (rc2.status === 'unlocked' ? 'Revision' : rc2.status) : 'Not Filled'}
-                                </span>
+                                {rc2 && (
+                                  <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border flex items-center gap-1.5 w-fit ${
+                                    rc2.status === 'approved' 
+                                      ? 'bg-brand-success/10 text-brand-success border-brand-success/20'
+                                      : rc2.status === 'unlocked'
+                                      ? 'bg-red-50 text-red-600 border-red-100'
+                                      : 'bg-brand-accent/10 text-brand-primary border-brand-accent/20'
+                                  }`}>
+                                    {rc2.status === 'approved' && <Lock size={12} />}
+                                    {rc2.status === 'unlocked' ? 'Revision' : rc2.status}
+                                  </span>
+                                )}
                               </td>
                               <td className="px-8 py-6 text-right">
                                 {isHomeroomTeacherOfSelectedClass ? (
@@ -949,34 +949,34 @@ export default function ReportCardsPage() {
 
                           {/* Semester 1 Status */}
                           <td className="px-8 py-6">
-                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border flex items-center gap-1.5 w-fit ${
-                              entry.rc1?.status === 'approved'
-                                ? 'bg-brand-success/10 text-brand-success border-brand-success/20'
-                                : entry.rc1?.status === 'unlocked'
-                                ? 'bg-red-50 text-red-600 border-red-100'
-                                : entry.rc1?.status === 'pending'
-                                ? 'bg-brand-accent/10 text-brand-primary border-brand-accent/20'
-                                : 'bg-slate-100 text-slate-500 border-slate-200'
-                            }`}>
-                              {entry.rc1?.status === 'approved' && <Lock size={12} />}
-                              {entry.rc1 ? (entry.rc1.status === 'unlocked' ? 'Revision' : entry.rc1.status) : 'Not Filled'}
-                            </span>
+                            {entry.rc1 && (
+                              <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border flex items-center gap-1.5 w-fit ${
+                                entry.rc1.status === 'approved'
+                                  ? 'bg-brand-success/10 text-brand-success border-brand-success/20'
+                                  : entry.rc1.status === 'unlocked'
+                                  ? 'bg-red-50 text-red-600 border-red-100'
+                                  : 'bg-brand-accent/10 text-brand-primary border-brand-accent/20'
+                              }`}>
+                                {entry.rc1.status === 'approved' && <Lock size={12} />}
+                                {entry.rc1.status === 'unlocked' ? 'Revision' : entry.rc1.status}
+                              </span>
+                            )}
                           </td>
 
                           {/* Semester 2 Status */}
                           <td className="px-8 py-6">
-                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border flex items-center gap-1.5 w-fit ${
-                              entry.rc2?.status === 'approved'
-                                ? 'bg-brand-success/10 text-brand-success border-brand-success/20'
-                                : entry.rc2?.status === 'unlocked'
-                                ? 'bg-red-50 text-red-600 border-red-100'
-                                : entry.rc2?.status === 'pending'
-                                ? 'bg-brand-accent/10 text-brand-primary border-brand-accent/20'
-                                : 'bg-slate-100 text-slate-500 border-slate-200'
-                            }`}>
-                              {entry.rc2?.status === 'approved' && <Lock size={12} />}
-                              {entry.rc2 ? (entry.rc2.status === 'unlocked' ? 'Revision' : entry.rc2.status) : 'Not Filled'}
-                            </span>
+                            {entry.rc2 && (
+                              <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border flex items-center gap-1.5 w-fit ${
+                                entry.rc2.status === 'approved'
+                                  ? 'bg-brand-success/10 text-brand-success border-brand-success/20'
+                                  : entry.rc2.status === 'unlocked'
+                                  ? 'bg-red-50 text-red-600 border-red-100'
+                                  : 'bg-brand-accent/10 text-brand-primary border-brand-accent/20'
+                              }`}>
+                                {entry.rc2.status === 'approved' && <Lock size={12} />}
+                                {entry.rc2.status === 'unlocked' ? 'Revision' : entry.rc2.status}
+                              </span>
+                            )}
                           </td>
 
                           {/* Actions — review pending first; otherwise view the most recent card */}
