@@ -111,6 +111,15 @@ export class EventController {
 
   async deleteEvent(req: any, res: Response): Promise<void> {
     try {
+      // Validate role - Only Director can delete events
+      if (req.user.role !== UserRole.DIRECTOR) {
+        res.status(403).json({
+          success: false,
+          message: 'Only Director can cancel school-wide events'
+        });
+        return;
+      }
+
       const { id } = req.params;
       const event = await EventModel.findByPk(id);
 
@@ -130,6 +139,75 @@ export class EventController {
       res.status(500).json({
         success: false,
         message: 'Failed to cancel event'
+      });
+    }
+  }
+
+  async updateEvent(req: any, res: Response): Promise<void> {
+    try {
+      // Validate role - Only Director can update events
+      if (req.user.role !== UserRole.DIRECTOR) {
+        res.status(403).json({
+          success: false,
+          message: 'Only Director can update school-wide events'
+        });
+        return;
+      }
+
+      const { id } = req.params;
+      const { title, description, eventDate, eventType, location, targetAudience } = req.body;
+
+      const event = await EventModel.findByPk(id);
+      if (!event || !event.isActive) {
+        res.status(404).json({ success: false, message: 'Event not found' });
+        return;
+      }
+
+      // Conflict Detection: Same time and location (excluding this event)
+      if (eventDate || location) {
+        const checkDate = eventDate ? new Date(eventDate) : event.eventDate;
+        const checkLocation = location !== undefined ? location : event.location;
+
+        const existingEvent = await EventModel.findOne({
+          where: {
+            eventDate: checkDate,
+            location: checkLocation,
+            isActive: true,
+            eventId: { [Op.ne]: id }
+          }
+        });
+
+        if (existingEvent) {
+          res.status(409).json({
+            success: false,
+            error: {
+              code: 'EVENT_CONFLICT',
+              message: `A conflict was detected: "${existingEvent.title}" is already scheduled at this time and location.`
+            }
+          });
+          return;
+        }
+      }
+
+      await event.update({
+        title: title !== undefined ? title : event.title,
+        description: description !== undefined ? description : event.description,
+        eventDate: eventDate !== undefined ? new Date(eventDate) : event.eventDate,
+        eventType: eventType !== undefined ? eventType : event.eventType,
+        location: location !== undefined ? location : event.location,
+        targetAudience: targetAudience !== undefined ? targetAudience : event.targetAudience,
+      });
+
+      res.json({
+        success: true,
+        message: 'Event updated successfully',
+        data: event
+      });
+    } catch (error) {
+      logger.error('Update event error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update event'
       });
     }
   }

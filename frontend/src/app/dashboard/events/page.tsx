@@ -28,6 +28,15 @@ export default function EventsPage() {
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
   const [conflictWarning, setConflictWarning] = useState<string | null>(null)
   const [viewingEvent, setViewingEvent] = useState<Event | null>(null)
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null)
+  const [editFormData, setEditFormData] = useState({
+    title: '',
+    description: '',
+    eventDate: '',
+    eventType: 'activity' as Event['eventType'],
+    location: '',
+    targetAudience: 'all' as Event['targetAudience']
+  })
   const router = useRouter()
 
   const [newEvent, setNewEvent] = useState({
@@ -165,6 +174,80 @@ export default function EventsPage() {
     }
   }
 
+  const formatDateTime = (dateStr: string) => {
+    if (!dateStr) return ''
+    const date = new Date(dateStr)
+    const tzoffset = date.getTimezoneOffset() * 60000
+    const localISOTime = (new Date(date.getTime() - tzoffset)).toISOString().slice(0, 16)
+    return localISOTime
+  }
+
+  const handleStartEdit = (event: Event) => {
+    setEditingEvent(event)
+    setEditFormData({
+      title: event.title,
+      description: event.description,
+      eventDate: formatDateTime(event.eventDate),
+      eventType: event.eventType,
+      location: event.location || '',
+      targetAudience: event.targetAudience
+    })
+  }
+
+  const handleUpdateEvent = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingEvent) return
+
+    try {
+      const token = localStorage.getItem('token')
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${apiUrl}/api/events/${editingEvent.eventId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(editFormData)
+      })
+
+      if (response.ok) {
+        setEditingEvent(null)
+        fetchEvents()
+      } else {
+        const error = await response.json()
+        alert(error.error?.message || error.message || 'Failed to update event')
+      }
+    } catch (error) {
+      console.error('Error updating event:', error)
+      alert('Network error')
+    }
+  }
+
+  const handleDeleteEvent = async (eventId: number) => {
+    if (!confirm('Are you sure you want to cancel this event?')) return
+
+    try {
+      const token = localStorage.getItem('token')
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${apiUrl}/api/events/${eventId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        fetchEvents()
+      } else {
+        const error = await response.json()
+        alert(error.message || 'Failed to delete event')
+      }
+    } catch (error) {
+      console.error('Error deleting event:', error)
+      alert('Network error')
+    }
+  }
+
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear()
     const month = date.getMonth()
@@ -261,12 +344,30 @@ export default function EventsPage() {
                       <p className="text-black text-sm mb-4 line-clamp-2 leading-relaxed">
                         {event.description}
                       </p>
-                      <button 
-                        onClick={() => setViewingEvent(event)}
-                        className="text-red-600 font-bold hover:underline text-sm focus:outline-none"
-                      >
-                        See Detail
-                      </button>
+                      <div className="flex gap-4 items-center">
+                        <button 
+                          onClick={() => setViewingEvent(event)}
+                          className="text-red-600 font-bold hover:underline text-sm focus:outline-none"
+                        >
+                          See Detail
+                        </button>
+                        {canCreateEvent && (
+                          <>
+                            <button 
+                              onClick={() => handleStartEdit(event)}
+                              className="text-blue-600 font-bold hover:underline text-sm focus:outline-none"
+                            >
+                              Edit
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteEvent(event.eventId)}
+                              className="text-red-500 font-bold hover:underline text-sm focus:outline-none"
+                            >
+                              Delete
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -319,15 +420,145 @@ export default function EventsPage() {
                 {viewingEvent.description}
               </div>
               
-              <div className="mt-8 pt-4 border-t border-gray-100 flex justify-end">
+              <div className="mt-8 pt-4 border-t border-gray-100 flex justify-between items-center">
+                {canCreateEvent && (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setViewingEvent(null)
+                        handleStartEdit(viewingEvent)
+                      }}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors text-sm"
+                    >
+                      Edit Event
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm('Are you sure you want to cancel this event?')) {
+                          handleDeleteEvent(viewingEvent.eventId)
+                          setViewingEvent(null)
+                        }
+                      }}
+                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors text-sm"
+                    >
+                      Cancel Event
+                    </button>
+                  </div>
+                )}
                 <button
                   onClick={() => setViewingEvent(null)}
-                  className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition-colors"
+                  className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition-colors text-sm ml-auto"
                 >
                   Close
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal overlay */}
+      {editingEvent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b flex items-center justify-between" style={{ backgroundColor: '#f2f9e8', borderColor: '#c8e6a0' }}>
+              <h2 className="text-xl font-bold flex items-center gap-2" style={{ color: '#3d6b0f' }}>
+                <Calendar className="w-5 h-5" style={{ color: '#7ab32e' }} />
+                Edit Event
+              </h2>
+              <button 
+                onClick={() => setEditingEvent(null)}
+                className="text-gray-500 hover:text-gray-800 transition-colors p-1"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <form onSubmit={handleUpdateEvent} className="p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Event Title *</label>
+                  <input
+                    type="text"
+                    value={editFormData.title}
+                    onChange={e => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black"
+                    required
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Description</label>
+                  <textarea
+                    value={editFormData.description}
+                    onChange={e => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
+                    rows={3}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Date & Start Time *</label>
+                  <input
+                    type="datetime-local"
+                    value={editFormData.eventDate}
+                    onChange={e => setEditFormData(prev => ({ ...prev, eventDate: e.target.value }))}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Location *</label>
+                  <input
+                    type="text"
+                    value={editFormData.location}
+                    onChange={e => setEditFormData(prev => ({ ...prev, location: e.target.value }))}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Event Type</label>
+                  <select
+                    value={editFormData.eventType}
+                    onChange={e => setEditFormData(prev => ({ ...prev, eventType: e.target.value as Event['eventType'] }))}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black"
+                  >
+                    <option value="activity">Activity</option>
+                    <option value="exam">Exam</option>
+                    <option value="meeting">Meeting</option>
+                    <option value="holiday">Holiday</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Target Audience</label>
+                  <select
+                    value={editFormData.targetAudience}
+                    onChange={e => setEditFormData(prev => ({ ...prev, targetAudience: e.target.value as Event['targetAudience'] }))}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black"
+                  >
+                    <option value="all">Everyone (School-Wide)</option>
+                    <option value="guardians_only">Guardians Only</option>
+                    <option value="teachers_only">Teachers Only</option>
+                  </select>
+                </div>
+              </div>
+              <div className="pt-4 border-t flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEditingEvent(null)}
+                  className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 text-white font-medium rounded-lg transition-colors"
+                  style={{ backgroundColor: '#7ab32e' }}
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
