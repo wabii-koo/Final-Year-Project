@@ -46,6 +46,7 @@ export default function DashboardLayout({
   const prevEventsRef = useRef<any[] | null>(null)
   const skipNextNotifDiff = useRef(false)
   const skipNextEventDiff = useRef(false)
+  const currentNotifsRef = useRef<any[]>([])
 
   useEffect(() => {
     if (!sidebarOpen) return
@@ -131,6 +132,18 @@ export default function DashboardLayout({
 
           if (prevNotifs === null) {
             prevNotifsRef.current = currentNotifs
+            // On first load: show popup for any notifications not yet acknowledged by this user
+            const lastAckId = parseInt(localStorage.getItem(`lastAcknowledgedNotifId_${uid}`) || '0')
+            const unacked = currentNotifs.filter((n: any) => (n.notificationId || n.notification_id || n.id || 0) > lastAckId)
+            if (unacked.length > 0) {
+              const newest = unacked[0] // API returns DESC order
+              setLiveAlert({
+                title: unacked.length > 1 ? `${unacked.length} Unread Alerts` : 'Unread Announcement',
+                message: unacked.length > 1
+                  ? `You have ${unacked.length} unread announcements. Latest: "${newest.title}"`
+                  : `"${newest.title}"`
+              })
+            }
           } else if (skipNextNotifDiff.current) {
             // BroadcastChannel already handled this change — just update the ref silently
             skipNextNotifDiff.current = false
@@ -181,6 +194,8 @@ export default function DashboardLayout({
             }
             prevNotifsRef.current = currentNotifs
           }
+
+          currentNotifsRef.current = currentNotifs
 
           if (notifs.length > 0) {
             const maxId = Math.max(...notifs.map((n: any) => n.notificationId || n.notification_id || n.id || 0))
@@ -487,7 +502,7 @@ export default function DashboardLayout({
         <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-brand-accent/5 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-brand-primary/5 rounded-full blur-[100px] pointer-events-none" />
 
-        {/* Global Alert Overlay */}
+        {/* Global Alert Overlay - stays visible until user explicitly dismisses */}
         {liveAlert && (
           <div className="fixed top-8 right-8 z-[60] max-w-sm animate-in fade-in slide-in-from-top-4 duration-500">
             <div className="bg-white rounded-3xl shadow-2xl border-2 border-brand-primary p-6 flex items-start gap-5">
@@ -498,13 +513,33 @@ export default function DashboardLayout({
                 <h4 className="font-black text-brand-heading text-base leading-tight">{liveAlert.title}</h4>
                 <p className="text-brand-text text-sm mt-1 leading-relaxed">{liveAlert.message}</p>
                 <button 
-                  onClick={() => router.push('/dashboard/notifications')}
+                  onClick={() => {
+                    // Acknowledge so this popup won't reappear on next login
+                    const uid = user?.userId || (user as any)?.user_id || (user as any)?.id || 'default'
+                    const maxId = currentNotifsRef.current.length > 0
+                      ? Math.max(...currentNotifsRef.current.map((n: any) => n.notificationId || n.notification_id || n.id || 0))
+                      : 0
+                    if (maxId > 0) localStorage.setItem(`lastAcknowledgedNotifId_${uid}`, maxId.toString())
+                    router.push('/dashboard/notifications')
+                    setLiveAlert(null)
+                  }}
                   className="mt-3 text-xs font-bold text-brand-primary hover:underline uppercase tracking-tighter"
                 >
-                  View details
+                  View &amp; Dismiss
                 </button>
               </div>
-              <button onClick={() => setLiveAlert(null)} className="text-brand-text/40 hover:text-brand-heading">
+              <button 
+                onClick={() => {
+                  // Acknowledge so this popup won't reappear on next login
+                  const uid = user?.userId || (user as any)?.user_id || (user as any)?.id || 'default'
+                  const maxId = currentNotifsRef.current.length > 0
+                    ? Math.max(...currentNotifsRef.current.map((n: any) => n.notificationId || n.notification_id || n.id || 0))
+                    : 0
+                  if (maxId > 0) localStorage.setItem(`lastAcknowledgedNotifId_${uid}`, maxId.toString())
+                  setLiveAlert(null)
+                }} 
+                className="text-brand-text/40 hover:text-brand-heading"
+              >
                 <X size={20} />
               </button>
             </div>
