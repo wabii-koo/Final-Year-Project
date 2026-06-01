@@ -219,7 +219,7 @@ export default function EventsPage() {
           {canCreateEvent && (
             <button
               onClick={() => router.push('/dashboard/events/create')}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 active:scale-95 transition-all"
+              className="flex items-center gap-2 px-6 py-3 text-white rounded-lg font-semibold active:scale-95 transition-all" style={{ backgroundColor: '#7ab32e' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor='#6a9e28')} onMouseLeave={e => (e.currentTarget.style.backgroundColor='#7ab32e')}
             >
               <Plus className="h-5 w-5" />
               Create Event
@@ -235,7 +235,7 @@ export default function EventsPage() {
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200 bg-blue-50">
+            <div className="px-6 py-4 border-b border-gray-200" style={{ backgroundColor: '#f2f9e8' }}>
                <h2 className="text-lg font-bold text-gray-800">Upcoming Events</h2>
             </div>
             <div className="divide-y divide-gray-200">
@@ -246,7 +246,7 @@ export default function EventsPage() {
                       <h3 className="text-[18px] font-black text-black mb-2 flex items-center gap-2">
                         {event.title}
                         <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                          event.eventType === 'meeting' ? 'bg-blue-100 text-blue-800' :
+                          event.eventType === 'meeting' ? 'bg-green-100 text-green-800' :
                           event.eventType === 'activity' ? 'bg-green-100 text-green-800' :
                           event.eventType === 'exam' ? 'bg-red-100 text-red-800' :
                           event.eventType === 'holiday' ? 'bg-purple-100 text-purple-800' :
@@ -280,9 +280,9 @@ export default function EventsPage() {
       {viewingEvent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b flex items-center justify-between bg-blue-50 border-blue-100">
-              <h2 className="text-xl font-bold text-blue-900 flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-blue-600" />
+            <div className="px-6 py-4 border-b flex items-center justify-between" style={{ backgroundColor: '#f2f9e8', borderColor: '#c8e6a0' }}>
+              <h2 className="text-xl font-bold flex items-center gap-2" style={{ color: '#3d6b0f' }}>
+                <Calendar className="w-5 h-5" style={{ color: '#7ab32e' }} />
                 Event Details
               </h2>
               <button 
@@ -295,7 +295,7 @@ export default function EventsPage() {
             <div className="p-6">
               <div className="flex items-center gap-3 mb-3">
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  viewingEvent.eventType === 'meeting' ? 'bg-blue-100 text-blue-800' :
+                  viewingEvent.eventType === 'meeting' ? 'bg-green-100 text-green-800' :
                   viewingEvent.eventType === 'activity' ? 'bg-green-100 text-green-800' :
                   viewingEvent.eventType === 'exam' ? 'bg-red-100 text-red-800' :
                   viewingEvent.eventType === 'holiday' ? 'bg-purple-100 text-purple-800' :
