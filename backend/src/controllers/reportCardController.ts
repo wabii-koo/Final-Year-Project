@@ -158,6 +158,39 @@ export class ReportCardController {
         return;
       }
 
+      // Validate subjectsGrades scores are between 0 and 100 and not negative
+      if (typeof subjectsGrades === 'object' && subjectsGrades !== null) {
+        for (const [subject, value] of Object.entries(subjectsGrades)) {
+          let scoreStr = '';
+          if (typeof value === 'string') {
+            scoreStr = value;
+          } else if (typeof value === 'number') {
+            scoreStr = String(value);
+          } else {
+            continue;
+          }
+
+          if (scoreStr.includes('-')) {
+            res.status(400).json({
+              success: false,
+              message: `Invalid score for ${subject}: Negative scores are not allowed`
+            });
+            return;
+          }
+
+          const parsedScore = parseInt(scoreStr, 10);
+          if (!isNaN(parsedScore)) {
+            if (parsedScore < 0 || parsedScore > 100) {
+              res.status(400).json({
+                success: false,
+                message: `Invalid score for ${subject}: Grades must be between 0 and 100`
+              });
+              return;
+            }
+          }
+        }
+      }
+
       const student = await StudentModel.findByPk(studentId);
       if (!student) {
         res.status(404).json({
@@ -407,6 +440,39 @@ export class ReportCardController {
         conductGrade,
         overallGrade
       } = req.body;
+
+      // Validate subjectsGrades scores are between 0 and 100 and not negative
+      if (subjectsGrades && typeof subjectsGrades === 'object') {
+        for (const [subject, value] of Object.entries(subjectsGrades)) {
+          let scoreStr = '';
+          if (typeof value === 'string') {
+            scoreStr = value;
+          } else if (typeof value === 'number') {
+            scoreStr = String(value);
+          } else {
+            continue;
+          }
+
+          if (scoreStr.includes('-')) {
+            res.status(400).json({
+              success: false,
+              message: `Invalid score for ${subject}: Negative scores are not allowed`
+            });
+            return;
+          }
+
+          const parsedScore = parseInt(scoreStr, 10);
+          if (!isNaN(parsedScore)) {
+            if (parsedScore < 0 || parsedScore > 100) {
+              res.status(400).json({
+                success: false,
+                message: `Invalid score for ${subject}: Grades must be between 0 and 100`
+              });
+              return;
+            }
+          }
+        }
+      }
 
       await reportCard.update({
         term: term || reportCard.term,

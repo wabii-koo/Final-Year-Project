@@ -526,7 +526,13 @@ export default function ReportCardsPage() {
   }
 
   const handleSubjectScoreChange = (subject: string, score: string) => {
-    let grade = formSubjectData[subject]?.grade || 'A'
+    if (score !== '') {
+      if (score.includes('-')) return;
+      const parsedScore = parseInt(score, 10);
+      if (isNaN(parsedScore) || parsedScore < 0 || parsedScore > 100) return;
+    }
+
+    let grade = '—'
     if (score !== '') {
       const parsedScore = parseInt(score, 10)
       if (!isNaN(parsedScore)) {
