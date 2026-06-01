@@ -134,7 +134,19 @@ export default function DashboardLayout({
             prevNotifsRef.current = currentNotifs
             // On first load: show popup for any notifications not yet acknowledged by this user
             const lastAckId = parseInt(localStorage.getItem(`lastAcknowledgedNotifId_${uid}`) || '0')
-            const lastAckTs = parseInt(localStorage.getItem(`lastAcknowledgedNotifTs_${uid}`) || '0')
+            let lastAckTs = parseInt(localStorage.getItem(`lastAcknowledgedNotifTs_${uid}`) || '0')
+            
+            if (lastAckTs === 0 && lastAckId > 0) {
+              // Migration fallback: initialize lastAckTs to the creation time of the last acknowledged ID
+              const lastAckNotif = currentNotifs.find((n: any) => (n.notificationId || n.notification_id || n.id || 0) === lastAckId)
+              if (lastAckNotif) {
+                lastAckTs = new Date(lastAckNotif.createdAt || lastAckNotif.sentAt || 0).getTime()
+                if (lastAckTs > 0) {
+                  localStorage.setItem(`lastAcknowledgedNotifTs_${uid}`, lastAckTs.toString())
+                }
+              }
+            }
+
             const unacked = currentNotifs.filter((n: any) => {
               const nid = n.notificationId || n.notification_id || n.id || 0
               const ts = new Date(n.sentAt || n.createdAt || 0).getTime()
