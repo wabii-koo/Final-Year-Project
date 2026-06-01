@@ -59,9 +59,22 @@ export const validateRegistration = async (req: Request, res: Response): Promise
       return;
     }
 
-    // Note: We no longer check for student existence here. 
-    // The Registrar will link the guardian to the student during the approval phase 
-    // based on the manually entered studentName and uploaded documents.
+    // Verify that the child's name exists in the Students database table
+    const student = await StudentModel.findOne({
+      where: {
+        fullName: {
+          [Op.iLike]: studentName.trim()
+        }
+      }
+    });
+
+    if (!student) {
+      res.status(400).json({
+        success: false,
+        error: { code: 'STUDENT_NOT_FOUND', message: 'No such child found in school records. Please check the name spelling.' }
+      });
+      return;
+    }
 
     // Check for duplicates (only block approved registrations)
     const existingByEmail = await GuardianRegistrationModel.findOne({ where: { email } });

@@ -324,11 +324,17 @@ export const searchStudents = async (req: Request, res: Response): Promise<void>
 
     const students = await StudentModel.findAll({
       where: {
-        guardianId: null,
         fullName: {
           [Op.iLike]: `%${query}%`
         }
       },
+      include: [
+        {
+          model: UserModel,
+          as: 'guardian',
+          attributes: ['fullName', 'email', 'phoneNo', 'nationalId', 'address']
+        }
+      ],
       limit: 20
     });
 

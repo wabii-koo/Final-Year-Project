@@ -54,6 +54,13 @@ interface Student {
   studentId: number;
   fullName: string;
   classLevel?: string;
+  guardian?: {
+    fullName: string;
+    email: string;
+    phoneNo?: string;
+    nationalId?: string;
+    address?: string;
+  } | null;
 }
 
 interface RegistrationStats {
@@ -189,6 +196,13 @@ export default function RegistrationsPage() {
       const data = await response.json();
       if (data.success) {
         setSearchResults(data.data);
+        // Auto-select exact case-insensitive match (trimmed)
+        const exactMatch = data.data.find(
+          (s: Student) => s.fullName.toLowerCase().trim() === query.toLowerCase().trim()
+        );
+        if (exactMatch) {
+          setSelectedStudent(exactMatch);
+        }
       }
     } catch (err) {
       console.error("Search failed");
@@ -449,6 +463,14 @@ export default function RegistrationsPage() {
                           setError("");
                           setSuccess("");
                           setShowDetailModal(true);
+                          
+                          // Pre-fill and trigger search automatically
+                          const cleanName = req.studentName ? req.studentName.trim() : "";
+                          setStudentSearch(cleanName);
+                          setSearchResults([]);
+                          if (cleanName) {
+                            handleStudentSearch(cleanName);
+                          }
                         }}
                         className="p-2 bg-brand-bg text-brand-primary rounded-xl border border-brand-100 hover:bg-brand-primary hover:text-white transition-all group-hover:scale-105 shadow-sm"
                       >
@@ -523,6 +545,22 @@ export default function RegistrationsPage() {
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-xs font-bold text-brand-text">
+                          Email Address
+                        </span>
+                        <span className="text-sm font-black text-brand-heading lowercase">
+                          {selectedRequest.email}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-brand-text">
+                          Contact Number
+                        </span>
+                        <span className="text-sm font-black text-brand-heading">
+                          {selectedRequest.phoneNo}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-brand-text">
                           National ID
                         </span>
                         <span className="text-sm font-black text-brand-heading">
@@ -531,10 +569,10 @@ export default function RegistrationsPage() {
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-xs font-bold text-brand-text">
-                          Contact
+                          Relationship to Student
                         </span>
-                        <span className="text-sm font-black text-brand-heading">
-                          {selectedRequest.phoneNo}
+                        <span className="text-sm font-black text-brand-heading capitalize">
+                          {selectedRequest.relationshipType.replace("_", " ")}
                         </span>
                       </div>
                     </div>
@@ -568,14 +606,21 @@ export default function RegistrationsPage() {
                           </div>
 
                           {searchResults.length > 0 && !selectedStudent && (
-                            <div className="bg-white border border-brand-100 rounded-2xl shadow-xl overflow-hidden max-h-40 overflow-y-auto">
+                            <div className="bg-white border border-brand-100 rounded-2xl shadow-xl overflow-hidden max-h-48 overflow-y-auto">
                               {searchResults.map((s) => (
                                 <button
                                   key={s.studentId}
                                   onClick={() => setSelectedStudent(s)}
-                                  className="w-full text-left px-5 py-3 text-sm text-brand-text hover:bg-brand-bg hover:text-brand-primary transition-colors flex justify-between font-bold"
+                                  className="w-full text-left px-5 py-3 text-sm text-brand-text hover:bg-brand-bg hover:text-brand-primary transition-colors flex justify-between items-center font-bold"
                                 >
-                                  <span>{s.fullName}</span>
+                                  <div className="flex flex-col">
+                                    <span>{s.fullName}</span>
+                                    {s.guardian && (
+                                      <span className="text-[10px] text-red-500 font-medium">
+                                        Already linked: {s.guardian.fullName}
+                                      </span>
+                                    )}
+                                  </div>
                                   <span className="text-brand-accent italic">
                                     #{s.studentId}
                                   </span>
@@ -585,22 +630,65 @@ export default function RegistrationsPage() {
                           )}
 
                           {selectedStudent && (
-                            <div className="flex items-center justify-between bg-brand-success/10 border border-brand-success/20 p-4 rounded-2xl animate-fadeIn">
-                              <div className="flex items-center gap-3">
-                                <CheckCircle
-                                  className="text-brand-success"
-                                  size={18}
-                                />
-                                <span className="text-sm font-black text-brand-heading">
-                                  Link: {selectedStudent.fullName}
-                                </span>
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between bg-brand-success/10 border border-brand-success/20 p-4 rounded-2xl animate-fadeIn">
+                                <div className="flex items-center gap-3">
+                                  <CheckCircle
+                                    className="text-brand-success"
+                                    size={18}
+                                  />
+                                  <span className="text-sm font-black text-brand-heading">
+                                    Link: {selectedStudent.fullName}
+                                  </span>
+                                </div>
+                                <button
+                                  onClick={() => setSelectedStudent(null)}
+                                  className="text-xs font-black text-brand-primary hover:underline"
+                                >
+                                  RESET
+                                </button>
                               </div>
-                              <button
-                                onClick={() => setSelectedStudent(null)}
-                                className="text-xs font-black text-brand-primary hover:underline"
-                              >
-                                RESET
-                              </button>
+                              {selectedStudent.guardian && (
+                                <div className="p-5 bg-amber-50 border border-amber-200 rounded-[2rem] text-brand-heading text-xs font-bold leading-relaxed space-y-4 animate-fadeIn">
+                                  <div className="flex items-start gap-2.5">
+                                    <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                                    <div>
+                                      <p className="font-extrabold text-[12px] uppercase tracking-wider text-amber-900 mb-1">
+                                        Already Linked to Another Family
+                                      </p>
+                                      <p className="text-amber-800 font-medium">
+                                        This student is already registered under the guardian profile below. Approving this review will reassign this student.
+                                      </p>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="bg-white/80 backdrop-blur-xs rounded-2xl p-4 border border-amber-200/50 space-y-3">
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-amber-900/60">Current Guardian Profile</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                      <div>
+                                        <span className="block text-[9px] text-gray-400 font-extrabold uppercase tracking-wider mb-0.5">Full Name</span>
+                                        <span className="font-extrabold text-brand-heading">{selectedStudent.guardian.fullName}</span>
+                                      </div>
+                                      <div>
+                                        <span className="block text-[9px] text-gray-400 font-extrabold uppercase tracking-wider mb-0.5">Email</span>
+                                        <span className="font-extrabold text-brand-heading">{selectedStudent.guardian.email}</span>
+                                      </div>
+                                      <div>
+                                        <span className="block text-[9px] text-gray-400 font-extrabold uppercase tracking-wider mb-0.5">Phone Number</span>
+                                        <span className="font-extrabold text-brand-heading">{selectedStudent.guardian.phoneNo || "N/A"}</span>
+                                      </div>
+                                      <div>
+                                        <span className="block text-[9px] text-gray-400 font-extrabold uppercase tracking-wider mb-0.5">National ID</span>
+                                        <span className="font-extrabold text-brand-heading">{selectedStudent.guardian.nationalId || "N/A"}</span>
+                                      </div>
+                                      <div className="sm:col-span-2">
+                                        <span className="block text-[9px] text-gray-400 font-extrabold uppercase tracking-wider mb-0.5">Address</span>
+                                        <span className="font-extrabold text-brand-heading">{selectedStudent.guardian.address || "N/A"}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>

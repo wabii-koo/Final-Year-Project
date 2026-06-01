@@ -71,6 +71,8 @@ StudentModel.init(
 export const initStudentAssociations = () => {
   const { ReportCardModel } = require('./ReportCard');
   const { ClassroomModel } = require('./Classroom');
+  const { UserModel } = require('./User');
+  
   StudentModel.hasMany(ReportCardModel, {
     foreignKey: 'studentId',
     as: 'reportCards'
@@ -78,6 +80,10 @@ export const initStudentAssociations = () => {
   StudentModel.belongsTo(ClassroomModel, {
     foreignKey: 'classId',
     as: 'classroom'
+  });
+  StudentModel.belongsTo(UserModel, {
+    foreignKey: 'guardianId',
+    as: 'guardian'
   });
 };
 
