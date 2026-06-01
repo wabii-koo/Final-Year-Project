@@ -107,7 +107,7 @@ export default function DashboardLayout({
       } else if (type === 'event') {
         const msg =
           action === 'created' ? `New event scheduled: "${title}"` :
-          action === 'updated' ? `"${title}" has been rescheduled or updated.` :
+          action === 'updated' ? `"${title}" has been updated.` :
           action === 'deleted' ? `"${title}" has been cancelled.` : title
         const alertTitle =
           action === 'created' ? 'New Event Scheduled' :
@@ -319,7 +319,7 @@ export default function DashboardLayout({
               if (!isUserDirector && String(updatedEvent.createdBy || updatedEvent.created_by) !== String(uid)) {
                 setLiveAlert({
                   title: 'Event Updated',
-                  message: `"${updatedEvent.title}" has been rescheduled or updated.`
+                  message: `"${updatedEvent.title}" has been updated.`
                 })
               }
               eventChanged = true
