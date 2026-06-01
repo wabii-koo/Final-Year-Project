@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   Car, 
@@ -59,6 +59,7 @@ export default function PickupPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all')
   const [modalError, setModalError] = useState('')
+  const formRef = useRef<HTMLFormElement>(null)
   const router = useRouter()
 
   const [newRequest, setNewRequest] = useState({
@@ -138,9 +139,42 @@ export default function PickupPage() {
     e.preventDefault()
     setModalError('')
 
+    const showError = (msg: string) => {
+      setModalError(msg)
+      if (formRef.current) {
+        formRef.current.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+    }
+
+    if (!newRequest.studentId) {
+      showError("Please select a target student.")
+      return
+    }
+    if (!newRequest.authorizedPersonName.trim()) {
+      showError("Please enter the authorized designee's full legal name.")
+      return
+    }
+    if (!newRequest.authorizedPersonRelationship.trim()) {
+      showError("Please enter the relationship to the student.")
+      return
+    }
+    if (!newRequest.authorizedPersonPhone.trim()) {
+      showError("Please enter a contact phone number.")
+      return
+    }
+    if (!newRequest.authorizedPersonNationalId.trim()) {
+      showError("Please enter the National ID.")
+      return
+    }
+
     const finRegex = /^[0-9]{12}$/;
     if (!finRegex.test(newRequest.authorizedPersonNationalId)) {
-      setModalError("Authorized Person's National ID must be a valid Fayda Identification Number (exactly 12 digits, numbers only).")
+      showError("Authorized Person's National ID must be a valid Fayda Identification Number (exactly 12 digits, numbers only).")
+      return
+    }
+
+    if (!newRequest.pickupDate) {
+      showError("Please select a start date.")
       return
     }
 
@@ -174,11 +208,11 @@ export default function PickupPage() {
         })
         fetchPickupRequests()
       } else {
-        setModalError(data.message || data.error?.message || 'Failed to submit pickup request.')
+        showError(data.message || data.error?.message || 'Failed to submit pickup request.')
       }
     } catch (error) {
       console.error('Submit error', error)
-      setModalError('Failed to connect to the server. Please check your network connection.')
+      showError('Failed to connect to the server. Please check your network connection.')
     }
   }
 
@@ -427,7 +461,7 @@ export default function PickupPage() {
               </button>
             </div>
             
-            <form onSubmit={handleCreateRequest} className="p-10 space-y-6 overflow-y-auto max-h-[70vh] custom-scrollbar">
+            <form ref={formRef} onSubmit={handleCreateRequest} noValidate className="p-10 space-y-6 overflow-y-auto max-h-[70vh] custom-scrollbar">
               {modalError && (
                 <div className="bg-red-50 border border-red-100 rounded-2xl p-4 flex items-center gap-3 animate-shake">
                   <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0" />
