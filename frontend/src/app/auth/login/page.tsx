@@ -455,27 +455,79 @@ function LoginContent() {
                     </p>
                   </div>
 
-                  {/* Fancy Tech Info Block */}
-                  <div className="w-full max-w-sm bg-brand-bg/50 border border-brand-100 rounded-3xl p-5 text-left space-y-3 shadow-inner relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover:scale-110 transition-transform duration-500">
-                      <Lock size={120} />
-                    </div>
-                    <div className="flex items-center justify-between border-b border-brand-100 pb-2">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Portal Target</span>
-                      <span className="text-xs font-black text-brand-primary">{activeRole} System</span>
-                    </div>
-                    <div className="flex items-center justify-between border-b border-brand-100 pb-2">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Encryption Standard</span>
-                      <span className="text-xs font-black text-brand-heading flex items-center gap-1">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-ping"></span>
-                        AES-256 SSL
+                  {/* Fancy Staff Access smart card */}
+                  <div className="w-full max-w-[340px] aspect-[1.586/1] bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 text-left relative overflow-hidden shadow-2xl border border-white/10 group cursor-default select-none transition-transform hover:-translate-y-1 hover:rotate-1 duration-300">
+                    
+                    {/* Glowing corner reflections */}
+                    <div className="absolute -top-16 -right-16 w-32 h-32 bg-brand-primary/20 rounded-full blur-2xl group-hover:bg-brand-primary/30 transition-colors" />
+                    <div className="absolute -bottom-16 -left-16 w-32 h-32 bg-brand-accent/20 rounded-full blur-2xl group-hover:bg-brand-accent/30 transition-colors" />
+                    
+                    {/* Cybernetic grid overlay */}
+                    <div className="absolute inset-0 bg-[radial-gradient(#ffffff08_1px,transparent_1px)] [background-size:12px_12px] opacity-60" />
+
+                    {/* Card Header */}
+                    <div className="flex justify-between items-start relative z-10">
+                      <div>
+                        <span className="text-[9px] font-black text-white/50 uppercase tracking-widest block">Authorized Staff Only</span>
+                        <h3 className="text-lg font-black text-white uppercase tracking-tight mt-0.5">
+                          {activeRole} Pass
+                        </h3>
+                      </div>
+                      {/* Pulsing Status Light */}
+                      <span className="flex h-3 w-3 relative">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Connection Status</span>
-                      <span className="text-[10px] font-black bg-brand-success/10 text-brand-success border border-brand-success/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                        Authorized Route
-                      </span>
+
+                    {/* Smart Card Chip */}
+                    <div className="mt-6 mb-6 relative z-10 flex items-center justify-between">
+                      <div className="w-12 h-9 rounded-md bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-500 p-[1.5px] shadow-md border border-amber-600/20 relative overflow-hidden">
+                        <div className="absolute inset-0 grid grid-cols-3 gap-[1px]">
+                          <div className="border-r border-b border-amber-800/20"></div>
+                          <div className="border-r border-b border-amber-800/20"></div>
+                          <div className="border-b border-amber-800/20"></div>
+                          <div className="border-r border-b border-amber-800/20"></div>
+                          <div className="border-r border-b border-amber-800/20"></div>
+                          <div className="border-b border-amber-800/20"></div>
+                          <div className="border-r border-amber-800/20"></div>
+                          <div className="border-r border-amber-800/20"></div>
+                          <div></div>
+                        </div>
+                      </div>
+                      {/* Logo watermark */}
+                      <span className="text-[10px] font-black text-white/10 uppercase tracking-widest">GuardianGate</span>
+                    </div>
+
+                    {/* Card Footer with Mock Barcode */}
+                    <div className="mt-auto relative z-10 flex items-end justify-between gap-4 pt-1">
+                      <div className="space-y-0.5">
+                        <span className="text-[8px] font-bold text-white/40 uppercase tracking-wider block">Access Protocol</span>
+                        <span className="text-[10px] font-mono font-bold text-emerald-400 tracking-wider">SECURE-CHANNEL-301</span>
+                      </div>
+                      
+                      {/* Barcode lines */}
+                      <div className="h-8 w-28 bg-white/5 rounded-sm p-1 flex items-center justify-center border border-white/5 backdrop-blur-xs">
+                        <div className="w-full h-full flex gap-[1.5px] items-stretch opacity-60">
+                          <div className="w-[1px] bg-white"></div>
+                          <div className="w-[3px] bg-white"></div>
+                          <div className="w-[1px] bg-white"></div>
+                          <div className="w-[2px] bg-white"></div>
+                          <div className="w-[1px] bg-white"></div>
+                          <div className="w-[4px] bg-white"></div>
+                          <div className="w-[1px] bg-white"></div>
+                          <div className="w-[1px] bg-white"></div>
+                          <div className="w-[3px] bg-white"></div>
+                          <div className="w-[1px] bg-white"></div>
+                          <div className="w-[2px] bg-white"></div>
+                          <div className="w-[1px] bg-white"></div>
+                          <div className="w-[4px] bg-white"></div>
+                          <div className="w-[1px] bg-white"></div>
+                          <div className="w-[2px] bg-white"></div>
+                          <div className="w-[3px] bg-white"></div>
+                          <div className="w-[1px] bg-white"></div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
