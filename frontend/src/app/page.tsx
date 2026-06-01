@@ -134,11 +134,10 @@ export default function HomePage() {
               <button
                 key={item.id}
                 onClick={() => scrollToSection(item.id)}
-                className={`text-xs font-bold uppercase tracking-widest transition-colors hover:text-brand-accent ${
-                  activeSection === item.id
+                className={`text-xs font-bold uppercase tracking-widest transition-colors hover:text-brand-accent ${activeSection === item.id
                     ? "text-brand-accent"
                     : "text-white/80"
-                }`}
+                  }`}
               >
                 {item.label}
               </button>
@@ -758,7 +757,7 @@ export default function HomePage() {
             </p>
 
             <p className="text-brand-heading/40 text-[10px] font-black uppercase tracking-[0.3em]">
-              © {new Date().getFullYear()} All rights reserved.
+              © {new Date().getFullYear()} Hawi Dandi Boru School. All rights reserved.
             </p>
           </div>
         </div>
