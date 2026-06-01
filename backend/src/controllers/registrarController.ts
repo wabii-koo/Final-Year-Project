@@ -8,6 +8,7 @@ import { SystemLogModel } from '../models/SystemLog';
 import { logger } from '../utils/logger';
 import { UserRole } from '../types';
 import { Op } from 'sequelize';
+import { EmailService } from '../services/emailService';
 
 /**
  * Get all pending registrations for registrar review
@@ -169,6 +170,11 @@ export const approveRegistration = async (req: Request, res: Response): Promise<
       newValues: { userId: user.userId, email: registration.email }
     });
 
+    // Send email notification to guardian asynchronously
+    EmailService.sendApprovalEmail(registration.email, registration.fullName, student.fullName).catch(err => {
+      logger.error('Failed to send approval email notification:', err);
+    });
+
     res.status(200).json({
       success: true,
       message: 'Registration approved successfully. Guardian account activated.',
@@ -232,6 +238,17 @@ export const rejectRegistration = async (req: Request, res: Response): Promise<v
       tableName: 'GuardianRegistrations',
       recordId: registration.registrationId,
       newValues: { status: newStatus, reason }
+    });
+
+    // Send email notification to guardian asynchronously
+    EmailService.sendRejectionEmail(
+      registration.email,
+      registration.fullName,
+      reason,
+      requestCorrection,
+      registration.registrationId
+    ).catch(err => {
+      logger.error('Failed to send rejection/correction email notification:', err);
     });
 
     res.status(200).json({
