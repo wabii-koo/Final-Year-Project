@@ -54,6 +54,9 @@ interface Student {
   studentId: number;
   fullName: string;
   classLevel?: string;
+  classroom?: {
+    classLevel: string;
+  } | null;
   guardian?: {
     fullName: string;
     email: string;
@@ -615,6 +618,11 @@ export default function RegistrationsPage() {
                                 >
                                   <div className="flex flex-col">
                                     <span>{s.fullName}</span>
+                                    {s.classroom?.classLevel && (
+                                      <span className="text-[10px] text-brand-primary font-black uppercase tracking-wider">
+                                        {s.classroom.classLevel}
+                                      </span>
+                                    )}
                                     {s.guardian && (
                                       <span className="text-[10px] text-red-500 font-medium">
                                         Already linked: {s.guardian.fullName}
@@ -637,9 +645,16 @@ export default function RegistrationsPage() {
                                     className="text-brand-success"
                                     size={18}
                                   />
-                                  <span className="text-sm font-black text-brand-heading">
-                                    Link: {selectedStudent.fullName}
-                                  </span>
+                                  <div className="flex flex-col">
+                                    <span className="text-sm font-black text-brand-heading">
+                                      Link: {selectedStudent.fullName}
+                                    </span>
+                                    {selectedStudent.classroom?.classLevel && (
+                                      <span className="text-[10px] font-black text-brand-primary uppercase tracking-wider">
+                                        {selectedStudent.classroom.classLevel}
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                                 <button
                                   onClick={() => setSelectedStudent(null)}

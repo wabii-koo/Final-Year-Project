@@ -350,6 +350,11 @@ export const searchStudents = async (req: Request, res: Response): Promise<void>
           model: UserModel,
           as: 'guardian',
           attributes: ['fullName', 'email', 'phoneNo', 'nationalId', 'address']
+        },
+        {
+          model: ClassroomModel,
+          as: 'classroom',
+          attributes: ['classLevel']
         }
       ],
       limit: 20
