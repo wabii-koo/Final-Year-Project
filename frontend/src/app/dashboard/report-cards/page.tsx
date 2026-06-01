@@ -924,7 +924,7 @@ export default function ReportCardsPage() {
                         <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Class</th>
                         <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Semester 1</th>
                         <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Semester 2</th>
-                        {isDirector && <th className="px-8 py-5 text-right text-[10px] font-black uppercase tracking-widest text-brand-text">Actions</th>}
+                        {(!isTeacher) && <th className="px-8 py-5 text-right text-[10px] font-black uppercase tracking-widest text-brand-text">Actions</th>}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-brand-bg/30">
@@ -980,31 +980,31 @@ export default function ReportCardsPage() {
                           </td>
 
                           {/* Actions — review pending first; otherwise view the most recent card */}
-                          {isDirector && (
+                          {(!isTeacher) && (
                             <td className="px-8 py-6 text-right">
                               <div className="flex gap-2 justify-end">
                                 {entry.rc1 && (
                                   <button
                                     onClick={() => openViewModal(entry.rc1!)}
                                     className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all active:scale-95 ${
-                                      entry.rc1.status === 'pending'
+                                      isDirector && entry.rc1.status === 'pending'
                                         ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg'
                                         : 'border border-brand-primary/30 text-brand-primary hover:bg-brand-primary/10'
                                     }`}
                                   >
-                                    {entry.rc1.status === 'pending' ? 'Review S1' : 'View S1'}
+                                    {isDirector && entry.rc1.status === 'pending' ? 'Review S1' : 'View S1'}
                                   </button>
                                 )}
                                 {entry.rc2 && (
                                   <button
                                     onClick={() => openViewModal(entry.rc2!)}
                                     className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all active:scale-95 ${
-                                      entry.rc2.status === 'pending'
+                                      isDirector && entry.rc2.status === 'pending'
                                         ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg'
                                         : 'border border-brand-primary/30 text-brand-primary hover:bg-brand-primary/10'
                                     }`}
                                   >
-                                    {entry.rc2.status === 'pending' ? 'Review S2' : 'View S2'}
+                                    {isDirector && entry.rc2.status === 'pending' ? 'Review S2' : 'View S2'}
                                   </button>
                                 )}
                                 {!entry.rc1 && !entry.rc2 && (
