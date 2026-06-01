@@ -59,6 +59,7 @@ export default function PickupPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all')
   const [modalError, setModalError] = useState('')
+  const [isSuccess, setIsSuccess] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
   const router = useRouter()
 
@@ -96,6 +97,7 @@ export default function PickupPage() {
   useEffect(() => {
     if (!showCreateModal) {
       setModalError('')
+      setIsSuccess(false)
     }
   }, [showCreateModal])
 
@@ -194,7 +196,7 @@ export default function PickupPage() {
       const data = await response.json()
 
       if (response.ok) {
-        setShowCreateModal(false)
+        setIsSuccess(true)
         setNewRequest({
           studentId: '',
           authorizedPersonName: '',
@@ -206,7 +208,6 @@ export default function PickupPage() {
           pickupTimeEnd: '',
           notes: ''
         })
-        alert('Pickup request submitted successfully!')
         fetchPickupRequests()
       } else {
         showError(data.message || data.error?.message || 'Failed to submit pickup request.')
@@ -467,131 +468,159 @@ export default function PickupPage() {
               </button>
             </div>
             
-            <form ref={formRef} onSubmit={handleCreateRequest} noValidate className="p-10 space-y-6 overflow-y-auto max-h-[70vh] custom-scrollbar">
-              {modalError && (
-                <div className="bg-red-50 border border-red-100 rounded-2xl p-4 flex items-center gap-3 animate-shake">
-                  <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0" />
-                  <span className="text-red-800 text-sm font-medium">
-                    {modalError}
-                  </span>
-                </div>
-              )}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="md:col-span-2">
-                  <label className="text-[10px] font-black text-brand-text uppercase tracking-widest block mb-2 px-2">Target Student</label>
-                  <select
-                    value={newRequest.studentId}
-                    onChange={(e) => setNewRequest({...newRequest, studentId: e.target.value})}
-                    className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-primary/10"
-                    required
-                  >
-                    <option value="">Select dependent...</option>
-                    {students.map(student => (
-                      <option key={student.studentId} value={student.studentId}>{student.fullName}</option>
-                    ))}
-                  </select>
+            {modalError && (
+              <div className="mx-10 mt-6 bg-red-50 border border-red-100 rounded-2xl p-4 flex items-center gap-3 animate-shake">
+                <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0" />
+                <span className="text-red-800 text-sm font-medium">
+                  {modalError}
+                </span>
+              </div>
+            )}
+            
+            {isSuccess ? (
+              <div className="p-10 text-center space-y-6 py-16 animate-fadeIn">
+                <div className="bg-brand-success/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto shadow-sm border border-brand-success/20 animate-bounce">
+                  <CheckCircle className="h-10 w-10 text-brand-success" />
                 </div>
 
-                <div className="md:col-span-2">
-                  <label className="text-[10px] font-black text-brand-text uppercase tracking-widest block mb-2 px-2">Authorized Designee</label>
-                  <input
-                    type="text"
-                    value={newRequest.authorizedPersonName}
-                    onChange={(e) => setNewRequest({...newRequest, authorizedPersonName: e.target.value})}
-                    className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none"
-                    placeholder="Full legal name"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-black text-brand-text uppercase tracking-widest block mb-2 px-2">Relationship</label>
-                  <input
-                    type="text"
-                    value={newRequest.authorizedPersonRelationship}
-                    onChange={(e) => setNewRequest({...newRequest, authorizedPersonRelationship: e.target.value})}
-                    className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none"
-                    placeholder="e.g. Grandparent"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-black text-brand-text uppercase tracking-widest block mb-2 px-2">Contact Phone</label>
-                  <input
-                    type="tel"
-                    value={newRequest.authorizedPersonPhone}
-                    onChange={(e) => setNewRequest({...newRequest, authorizedPersonPhone: e.target.value})}
-                    className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none"
-                    placeholder="+251..."
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-black text-brand-text uppercase tracking-widest block mb-2 px-2">National ID</label>
-                  <input
-                    type="text"
-                    value={newRequest.authorizedPersonNationalId}
-                    onChange={(e) => setNewRequest({...newRequest, authorizedPersonNationalId: e.target.value})}
-                    className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-primary/10"
-                    placeholder="12-digit Fayda Number"
-                    pattern="^[0-9]{12}$"
-                    title="Please enter exactly 12 digits (numbers only)"
-                    maxLength={12}
-                    required
-                  />
-                  <p className="text-[10px] text-brand-text mt-1 font-medium italic px-2">
-                    Must be exactly 12 digits (Fayda Identification Number)
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-black text-brand-heading uppercase tracking-tight">
+                    Successfully Submitted
+                  </h3>
+                  <p className="text-brand-text font-bold text-sm">
+                    Your release authorization has been logged and queued for teacher approval.
                   </p>
                 </div>
 
-                <div>
-                  <label className="text-[10px] font-black text-brand-text uppercase tracking-widest block mb-2 px-2">Start Date (From)</label>
-                  <input
-                    type="date"
-                    value={newRequest.pickupDate}
-                    onChange={(e) => setNewRequest({...newRequest, pickupDate: e.target.value})}
-                    className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-primary/10"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-black text-brand-text uppercase tracking-widest block mb-2 px-2">End Date (Upto)</label>
-                  <input
-                    type="date"
-                    value={newRequest.pickupTimeEnd}
-                    onChange={(e) => setNewRequest({...newRequest, pickupTimeEnd: e.target.value})}
-                    className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-primary/10"
-                    placeholder="Optional date limit"
-                  />
-                </div>
-              </div>
-
-              <div className="bg-brand-primary/5 p-6 rounded-[2rem] border border-brand-primary/10 flex items-start gap-4">
-                 <ShieldCheck className="text-brand-primary mt-1" size={20} />
-                 <p className="text-xs font-bold text-brand-heading leading-relaxed">
-                   Authorized personnel must present original identification matching these credentials. Release will not be granted without verification.
-                 </p>
-              </div>
-
-              <div className="flex justify-end gap-4 pt-6 border-t border-brand-100">
                 <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className="px-8 py-4 text-brand-text font-black text-xs uppercase hover:underline"
+                  onClick={() => {
+                    setShowCreateModal(false)
+                    setIsSuccess(false)
+                  }}
+                  className="w-full bg-brand-primary text-white py-4 rounded-2xl font-black text-xs uppercase shadow-xl shadow-brand-primary/20 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
                 >
-                  Discard
-                </button>
-                <button
-                  type="submit"
-                  className="bg-brand-primary text-white px-10 py-4 rounded-2xl font-black text-xs uppercase shadow-xl shadow-brand-primary/20"
-                >
-                  Submit Request
+                  Acknowledge & Close
                 </button>
               </div>
-            </form>
+            ) : (
+              <form ref={formRef} onSubmit={handleCreateRequest} noValidate className="p-10 space-y-6 overflow-y-auto max-h-[70vh] custom-scrollbar">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="md:col-span-2">
+                    <label className="text-[10px] font-black text-brand-text uppercase tracking-widest block mb-2 px-2">Target Student</label>
+                    <select
+                      value={newRequest.studentId}
+                      onChange={(e) => setNewRequest({...newRequest, studentId: e.target.value})}
+                      className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-primary/10"
+                      required
+                    >
+                      <option value="">Select dependent...</option>
+                      {students.map(student => (
+                        <option key={student.studentId} value={student.studentId}>{student.fullName}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="text-[10px] font-black text-brand-text uppercase tracking-widest block mb-2 px-2">Authorized Designee</label>
+                    <input
+                      type="text"
+                      value={newRequest.authorizedPersonName}
+                      onChange={(e) => setNewRequest({...newRequest, authorizedPersonName: e.target.value})}
+                      className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none"
+                      placeholder="Full legal name"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-black text-brand-text uppercase tracking-widest block mb-2 px-2">Relationship</label>
+                    <input
+                      type="text"
+                      value={newRequest.authorizedPersonRelationship}
+                      onChange={(e) => setNewRequest({...newRequest, authorizedPersonRelationship: e.target.value})}
+                      className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none"
+                      placeholder="e.g. Grandparent"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-black text-brand-text uppercase tracking-widest block mb-2 px-2">Contact Phone</label>
+                    <input
+                      type="tel"
+                      value={newRequest.authorizedPersonPhone}
+                      onChange={(e) => setNewRequest({...newRequest, authorizedPersonPhone: e.target.value})}
+                      className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none"
+                      placeholder="+251..."
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-black text-brand-text uppercase tracking-widest block mb-2 px-2">National ID</label>
+                    <input
+                      type="text"
+                      value={newRequest.authorizedPersonNationalId}
+                      onChange={(e) => setNewRequest({...newRequest, authorizedPersonNationalId: e.target.value})}
+                      className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-primary/10"
+                      placeholder="12-digit Fayda Number"
+                      pattern="^[0-9]{12}$"
+                      title="Please enter exactly 12 digits (numbers only)"
+                      maxLength={12}
+                      required
+                    />
+                    <p className="text-[10px] text-brand-text mt-1 font-medium italic px-2">
+                      Must be exactly 12 digits (Fayda Identification Number)
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-black text-brand-text uppercase tracking-widest block mb-2 px-2">Start Date (From)</label>
+                    <input
+                      type="date"
+                      value={newRequest.pickupDate}
+                      onChange={(e) => setNewRequest({...newRequest, pickupDate: e.target.value})}
+                      className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-primary/10"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-black text-brand-text uppercase tracking-widest block mb-2 px-2">End Date (Upto)</label>
+                    <input
+                      type="date"
+                      value={newRequest.pickupTimeEnd}
+                      onChange={(e) => setNewRequest({...newRequest, pickupTimeEnd: e.target.value})}
+                      className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-primary/10"
+                      placeholder="Optional date limit"
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-brand-primary/5 p-6 rounded-[2rem] border border-brand-primary/10 flex items-start gap-4">
+                   <ShieldCheck className="text-brand-primary mt-1" size={20} />
+                   <p className="text-xs font-bold text-brand-heading leading-relaxed">
+                     Authorized personnel must present original identification matching these credentials. Release will not be granted without verification.
+                   </p>
+                </div>
+
+                <div className="flex justify-end gap-4 pt-6 border-t border-brand-100">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateModal(false)}
+                    className="px-8 py-4 text-brand-text font-black text-xs uppercase hover:underline"
+                  >
+                    Discard
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-brand-primary text-white px-10 py-4 rounded-2xl font-black text-xs uppercase shadow-xl shadow-brand-primary/20"
+                  >
+                    Submit Request
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
