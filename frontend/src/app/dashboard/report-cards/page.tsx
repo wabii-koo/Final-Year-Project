@@ -598,6 +598,7 @@ export default function ReportCardsPage() {
 
   // Filter records based on search query and optional student query param
   const filteredReportCards = reportCards.filter(card => {
+    if (card.studentName === 'Unknown Student') return false;
     const matchesSearch = card.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           card.grade.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesStudentParam = studentFilterParam ? card.studentId.toString() === studentFilterParam : true
@@ -1341,7 +1342,7 @@ export default function ReportCardsPage() {
                         const sId = selectedStudent.studentId || selectedStudent.id;
                         loadTermData(sId, newTerm);
                       }}
-                      disabled={submitting || user?.role === 'guardian'}
+                      disabled={submitting}
                       className="w-full bg-brand-bg border border-brand-100 rounded-xl px-4 py-3 text-xs font-bold text-brand-heading outline-none focus:border-brand-primary"
                     >
                       <option value="Semester 1">Semester 1</option>

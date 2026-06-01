@@ -253,7 +253,8 @@ export const getPendingReportCards = async (req: Request, res: Response, next: N
         {
           model: StudentModel,
           as: 'student',
-          attributes: ['studentId', 'fullName']
+          attributes: ['studentId', 'fullName'],
+          required: true
         },
         {
           model: UserModel,

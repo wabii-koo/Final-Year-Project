@@ -48,7 +48,7 @@ export const getPendingReportCards = async (req: Request, res: Response, next: N
     const reportCards = await ReportCardModel.findAll({
       where: { status: 'pending' },
       include: [
-        { model: StudentModel, as: 'student', attributes: ['fullName'] },
+        { model: StudentModel, as: 'student', attributes: ['fullName'], required: true },
         { model: UserModel, as: 'teacher', attributes: ['fullName'] }
       ]
     });

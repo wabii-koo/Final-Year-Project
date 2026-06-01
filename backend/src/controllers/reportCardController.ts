@@ -60,7 +60,7 @@ export class ReportCardController {
       const reportCards = await ReportCardModel.findAll({
         where: whereClause,
         include: [
-          { model: StudentModel, as: 'student', attributes: ['fullName', 'classId', 'guardianId'] },
+          { model: StudentModel, as: 'student', attributes: ['fullName', 'classId', 'guardianId'], required: true },
           { model: UserModel, as: 'teacher', attributes: ['fullName'] }
         ],
         order: [['filledAt', 'DESC']]
