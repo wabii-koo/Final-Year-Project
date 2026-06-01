@@ -48,10 +48,10 @@ export const schemas = {
       'any.required': 'Full name is required',
     }),
     phoneNo: Joi.string()
-      .pattern(/^(\+?[1-9]\d{1,14}|[1-9]\d{1,14})$/) // Accept with or without country code
+      .pattern(/^(?:\+251|251|0)[97]\d{8}$/) // Ethiopian carrier format (Ethio Telecom and Safaricom)
       .optional()
       .messages({
-        'string.pattern.base': 'Please provide a valid phone number (e.g., +251911234567 or 251911234567)',
+        'string.pattern.base': 'Please provide a valid Ethiopian phone number (e.g., 0911234567, 0711234567, or +251911234567)',
       }),
     address: Joi.string().min(5).max(255).required().messages({
       'string.min': 'Address must be at least 5 characters long',
@@ -79,10 +79,10 @@ export const schemas = {
       'any.required': 'Student class is required',
     }),
     emergencyContact: Joi.string()
-      .pattern(/^(\+?[1-9]\d{1,14}|[1-9]\d{1,14})$/) // Accept with or without country code
+      .pattern(/^(?:\+251|251|0)[97]\d{8}$/) // Ethiopian carrier format (Ethio Telecom and Safaricom)
       .optional()
       .messages({
-        'string.pattern.base': 'Please provide a valid emergency contact number (e.g., +251911234568 or 251911234568)',
+        'string.pattern.base': 'Please provide a valid Ethiopian emergency contact number (e.g., 0911234567, 0711234567, or +251911234567)',
       }),
     hasIdDocument: Joi.boolean().required().messages({
       'any.required': 'ID document status is required',

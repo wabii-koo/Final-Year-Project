@@ -105,6 +105,13 @@ export default function RegisterPage() {
       return;
     }
 
+    const phoneRegex = /^(?:\+251|251|0)[97]\d{8}$/;
+    if (!phoneRegex.test(formData.phoneNo)) {
+      setError("Please enter a valid Ethiopian phone number (e.g., 0912345678, 0712345678, or +251912345678).");
+      setLoading(false);
+      return;
+    }
+
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
       const response = await fetch(`${apiUrl}/api/registration/validate`, {
@@ -247,9 +254,9 @@ export default function RegisterPage() {
         name="phoneNo"
         value={formData.phoneNo}
         onChange={handleInputChange}
-        placeholder="+251 911 234 567"
-        pattern="^\+?[0-9\s\-]{9,15}$"
-        title="Please enter a valid phone number (e.g. +251 911 234 567)"
+        placeholder="0911234567 or 0711234567"
+        pattern="^(?:\+251|251|0)[97][0-9]{8}$"
+        title="Please enter a valid Ethiopian phone number (e.g., 0912345678, 0712345678, or +251912345678)"
         maxLength={15}
         required
       />

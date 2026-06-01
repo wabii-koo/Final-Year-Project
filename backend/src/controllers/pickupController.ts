@@ -114,6 +114,16 @@ export class PickupController {
         return;
       }
 
+      // Validate Authorized Person's Phone format (Ethiopian format: 09/07 or 2519/2517 with optional '+')
+      const phoneRegex = /^(?:\+251|251|0)[97]\d{8}$/;
+      if (!phoneRegex.test(authorizedPersonPhone)) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid Authorized Person Phone number. Please enter a valid Ethiopian phone number (e.g. 0912345678, 0712345678, or +251912345678).'
+        });
+        return;
+      }
+
       // Get student info
       const student = await StudentModel.findByPk(studentId);
       if (!student) {

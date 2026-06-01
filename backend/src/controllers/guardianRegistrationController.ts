@@ -40,12 +40,12 @@ export const validateRegistration = async (req: Request, res: Response): Promise
       return;
     }
 
-    // Validate phone number format (must be numeric, optional '+', max 15 chars)
-    const phoneRegex = /^\+?[0-9\s\-]{9,15}$/;
+    // Validate phone number format (Ethiopian format: 09/07 or 2519/2517 with optional '+')
+    const phoneRegex = /^(?:\+251|251|0)[97]\d{8}$/;
     if (!phoneRegex.test(phoneNo)) {
       res.status(400).json({
         success: false,
-        error: { code: 'INVALID_PHONE', message: 'Invalid phone number. Please enter a valid number (max 15 characters).' }
+        error: { code: 'INVALID_PHONE', message: 'Invalid phone number. Please enter a valid Ethiopian phone number (e.g. 0912345678, 0712345678, or +251912345678).' }
       });
       return;
     }

@@ -164,6 +164,11 @@ export default function PickupPage() {
       showError("Please enter a contact phone number.")
       return
     }
+    const phoneRegex = /^(?:\+251|251|0)[97]\d{8}$/;
+    if (!phoneRegex.test(newRequest.authorizedPersonPhone)) {
+      showError("Authorized Person's Phone must be a valid Ethiopian phone number (e.g., 0912345678, 0712345678, or +251912345678).")
+      return
+    }
     if (!newRequest.authorizedPersonNationalId.trim()) {
       showError("Please enter the National ID.")
       return
@@ -546,14 +551,16 @@ export default function PickupPage() {
 
                   <div>
                     <label className="text-[10px] font-black text-brand-text uppercase tracking-widest block mb-2 px-2">Contact Phone</label>
-                    <input
-                      type="tel"
-                      value={newRequest.authorizedPersonPhone}
-                      onChange={(e) => setNewRequest({...newRequest, authorizedPersonPhone: e.target.value})}
-                      className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none"
-                      placeholder="+251..."
-                      required
-                    />
+                  <input
+                    type="tel"
+                    value={newRequest.authorizedPersonPhone}
+                    onChange={(e) => setNewRequest({...newRequest, authorizedPersonPhone: e.target.value})}
+                    className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none"
+                    placeholder="e.g. 0912345678"
+                    pattern="^(?:\+251|251|0)[97][0-9]{8}$"
+                    title="Please enter a valid Ethiopian phone number (e.g., 0912345678, 0712345678, or +251912345678)"
+                    required
+                  />
                   </div>
 
                   <div>
