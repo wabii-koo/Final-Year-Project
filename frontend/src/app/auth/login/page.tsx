@@ -184,7 +184,7 @@ function LoginContent() {
               className="flex items-center gap-2 text-brand-primary hover:text-brand-secondary font-bold mb-6 transition-colors cursor-pointer group w-fit"
             >
               <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
-              <span>Back to Home</span>
+              <span>Back</span>
             </Link>
             <div className="bg-brand-white rounded-[3rem] shadow-2xl shadow-brand-primary/5 p-8 md:p-12 relative overflow-hidden border border-brand-100">
 
