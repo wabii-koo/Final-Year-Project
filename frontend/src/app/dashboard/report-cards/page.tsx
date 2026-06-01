@@ -723,13 +723,15 @@ export default function ReportCardsPage() {
                         <tr>
                           <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Student</th>
                           <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Student Code</th>
-                           <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Semester 1</th>
+                          <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Semester 1</th>
+                          <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Semester 2</th>
                           <th className="px-8 py-5 text-right text-[10px] font-black uppercase tracking-widest text-brand-text">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-brand-bg/30">
                         {students.map((student) => {
                           const rc1 = reportCards.find(card => (Number(card.studentId) === Number(student.id) || Number(card.studentId) === Number(student.studentId)) && card.term === 'Semester 1')
+                          const rc2 = reportCards.find(card => (Number(card.studentId) === Number(student.id) || Number(card.studentId) === Number(student.studentId)) && card.term === 'Semester 2')
                           return (
                             <tr key={student.id || student.studentId} className="hover:bg-brand-bg/20 transition-colors group">
                               <td className="px-8 py-6">
@@ -760,7 +762,20 @@ export default function ReportCardsPage() {
                                   </span>
                                 )}
                               </td>
-
+                              <td className="px-8 py-6">
+                                {rc2 && (
+                                  <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border flex items-center gap-1.5 w-fit ${
+                                    rc2.status === 'approved' 
+                                      ? 'bg-brand-success/10 text-brand-success border-brand-success/20'
+                                      : rc2.status === 'unlocked'
+                                      ? 'bg-red-50 text-red-600 border-red-100'
+                                      : 'bg-brand-accent/10 text-brand-primary border-brand-accent/20'
+                                  }`}>
+                                    {rc2.status === 'approved' && <Lock size={12} />}
+                                    {rc2.status === 'unlocked' ? 'Revision' : rc2.status}
+                                  </span>
+                                )}
+                              </td>
                               <td className="px-8 py-6 text-right">
                                 {isHomeroomTeacherOfSelectedClass ? (
                                   <button 
@@ -908,6 +923,7 @@ export default function ReportCardsPage() {
                         <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Student</th>
                         <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Class</th>
                         <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Semester 1</th>
+                        <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-brand-text">Semester 2</th>
                         {(!isTeacher) && <th className="px-8 py-5 text-right text-[10px] font-black uppercase tracking-widest text-brand-text">Actions</th>}
                       </tr>
                     </thead>
@@ -947,6 +963,21 @@ export default function ReportCardsPage() {
                             )}
                           </td>
 
+                          {/* Semester 2 Status */}
+                          <td className="px-8 py-6">
+                            {entry.rc2 && (
+                              <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border flex items-center gap-1.5 w-fit ${
+                                entry.rc2.status === 'approved'
+                                  ? 'bg-brand-success/10 text-brand-success border-brand-success/20'
+                                  : entry.rc2.status === 'unlocked'
+                                  ? 'bg-red-50 text-red-600 border-red-100'
+                                  : 'bg-brand-accent/10 text-brand-primary border-brand-accent/20'
+                              }`}>
+                                {entry.rc2.status === 'approved' && <Lock size={12} />}
+                                {entry.rc2.status === 'unlocked' ? 'Revision' : entry.rc2.status}
+                              </span>
+                            )}
+                          </td>
 
                           {/* Actions — review pending first; otherwise view the most recent card */}
                           {(!isTeacher) && (
@@ -964,7 +995,19 @@ export default function ReportCardsPage() {
                                     {isDirector && entry.rc1.status === 'pending' ? 'Review S1' : 'View S1'}
                                   </button>
                                 )}
-                                {!entry.rc1 && (
+                                {entry.rc2 && (
+                                  <button
+                                    onClick={() => openViewModal(entry.rc2!)}
+                                    className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all active:scale-95 ${
+                                      isDirector && entry.rc2.status === 'pending'
+                                        ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg'
+                                        : 'border border-brand-primary/30 text-brand-primary hover:bg-brand-primary/10'
+                                    }`}
+                                  >
+                                    {isDirector && entry.rc2.status === 'pending' ? 'Review S2' : 'View S2'}
+                                  </button>
+                                )}
+                                {!entry.rc1 && !entry.rc2 && (
                                   <span className="text-xs text-slate-400 italic">No cards yet</span>
                                 )}
                               </div>
