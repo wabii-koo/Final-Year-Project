@@ -74,6 +74,18 @@ export default function EventsPage() {
     }
   }, [user])
 
+  useEffect(() => {
+    const handleEventsUpdated = () => {
+      if (user) {
+        fetchEvents()
+      }
+    }
+    window.addEventListener('school-events-updated', handleEventsUpdated)
+    return () => {
+      window.removeEventListener('school-events-updated', handleEventsUpdated)
+    }
+  }, [user])
+
   const fetchEvents = async () => {
     try {
       const token = localStorage.getItem('token')

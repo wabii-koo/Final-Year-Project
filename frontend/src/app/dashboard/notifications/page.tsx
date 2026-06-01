@@ -55,6 +55,18 @@ export default function NotificationsPage() {
     }
   }, [user])
 
+  useEffect(() => {
+    const handleNotificationsUpdated = () => {
+      if (user) {
+        fetchNotifications()
+      }
+    }
+    window.addEventListener('school-notifications-updated', handleNotificationsUpdated)
+    return () => {
+      window.removeEventListener('school-notifications-updated', handleNotificationsUpdated)
+    }
+  }, [user])
+
   const fetchNotifications = async () => {
     try {
       const token = localStorage.getItem('token')

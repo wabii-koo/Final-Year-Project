@@ -33,6 +33,8 @@ export default function TeacherDashboard() {
   const [user, setUser] = useState<UserData | null>(null)
   const router = useRouter()
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null)
+  const [notifications, setNotifications] = useState<any[]>([])
+  const [events, setEvents] = useState<any[]>([])
  
   const { data: classes, isLoading: isLoadingClasses } = useTeacherClasses()
   const { data: homework } = useTeacherHomework()
@@ -47,6 +49,53 @@ export default function TeacherDashboard() {
     }
   }, [router])
 
+  const fetchDashboardData = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      }
+      
+      const [notifsRes, eventsRes] = await Promise.all([
+        fetch(`${apiUrl}/api/notifications`, { headers }),
+        fetch(`${apiUrl}/api/events`, { headers })
+      ])
+
+      if (notifsRes.ok) {
+        const data = await notifsRes.json()
+        setNotifications(data.data?.notifications || [])
+      }
+      if (eventsRes.ok) {
+        const data = await eventsRes.json()
+        setEvents(data.data?.events || data.data || [])
+      }
+    } catch (err) {
+      console.error('Failed to load teacher dashboard data', err)
+    }
+  }
+
+  useEffect(() => {
+    if (user) {
+      fetchDashboardData()
+    }
+  }, [user])
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      if (user) {
+        fetchDashboardData()
+      }
+    }
+    window.addEventListener('school-notifications-updated', handleUpdate)
+    window.addEventListener('school-events-updated', handleUpdate)
+    return () => {
+      window.removeEventListener('school-notifications-updated', handleUpdate)
+      window.removeEventListener('school-events-updated', handleUpdate)
+    }
+  }, [user])
+
   if (!user) {
     return (
       <div className="min-h-screen bg-brand-bg flex items-center justify-center">
@@ -55,11 +104,17 @@ export default function TeacherDashboard() {
     )
   }
 
+  // Calculate unread notifications count
+  const uid = user.userId || (user as any).user_id || (user as any).id || 'default'
+  const lastIdStr = localStorage.getItem(`lastReadNotifId_${uid}`)
+  const lastId = lastIdStr ? parseInt(lastIdStr) : 0
+  const unreadCount = notifications.filter(n => (n.notificationId || n.id || 0) > lastId).length
+
   const stats = [
     {
       title: 'Homework',
       subtitle: 'Assignments & grading',
-      value: homework?.length ?? 12,
+      value: homework?.length ?? 0,
       icon: BookOpen,
       color: 'text-brand-primary',
       bgColor: 'bg-brand-bg'
@@ -67,7 +122,7 @@ export default function TeacherDashboard() {
     {
       title: 'Events',
       subtitle: 'School calendar',
-      value: 3,
+      value: events.length,
       icon: Calendar,
       color: 'text-brand-secondary',
       bgColor: 'bg-brand-bg'
@@ -75,7 +130,7 @@ export default function TeacherDashboard() {
     {
       title: 'Active Alerts',
       subtitle: 'Recent updates',
-      value: 4,
+      value: unreadCount,
       icon: Bell,
       color: 'text-brand-accent',
       bgColor: 'bg-brand-bg'

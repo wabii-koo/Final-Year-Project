@@ -42,6 +42,8 @@ export default function DashboardLayout({
   const router = useRouter()
   const pathname = usePathname()
   const sidebarRef = useRef<HTMLElement>(null)
+  const prevNotifsRef = useRef<any[] | null>(null)
+  const prevEventsRef = useRef<any[] | null>(null)
 
   useEffect(() => {
     if (!sidebarOpen) return
@@ -89,22 +91,61 @@ export default function DashboardLayout({
 
         if (data.success && data.data?.notifications) {
           const notifs = data.data.notifications
+          const currentNotifs = notifs || []
+          const prevNotifs = prevNotifsRef.current
+
+          if (prevNotifs === null) {
+            prevNotifsRef.current = currentNotifs
+          } else {
+            // 1. Detect new
+            const newNotif = currentNotifs.find((n: any) => {
+              const nid = n.notificationId || n.notification_id || n.id || 0
+              return !prevNotifs.some((pn: any) => (pn.notificationId || pn.notification_id || pn.id || 0) === nid)
+            })
+
+            // 2. Detect updated
+            const updatedNotif = currentNotifs.find((n: any) => {
+              const nid = n.notificationId || n.notification_id || n.id || 0
+              const match = prevNotifs.find((pn: any) => (pn.notificationId || pn.notification_id || pn.id || 0) === nid)
+              return match && (match.title !== n.title || (match.content || match.message) !== (n.content || n.message) || match.priority !== n.priority)
+            })
+
+            // 3. Detect deleted
+            const deletedNotif = prevNotifs.find((pn: any) => {
+              const nid = pn.notificationId || pn.notification_id || pn.id || 0
+              return !currentNotifs.some((n: any) => (n.notificationId || n.notification_id || n.id || 0) === nid)
+            })
+
+            let notifChanged = false
+            if (newNotif) {
+              setLiveAlert({
+                title: 'New Announcement',
+                message: newNotif.title || 'You have a new announcement!'
+              })
+              notifChanged = true
+            } else if (updatedNotif) {
+              setLiveAlert({
+                title: 'Announcement Updated',
+                message: `"${updatedNotif.title}" has been updated.`
+              })
+              notifChanged = true
+            } else if (deletedNotif) {
+              setLiveAlert({
+                title: 'Announcement Deleted',
+                message: `"${deletedNotif.title}" has been removed.`
+              })
+              notifChanged = true
+            }
+
+            if (notifChanged) {
+              window.dispatchEvent(new CustomEvent('school-notifications-updated'))
+            }
+            prevNotifsRef.current = currentNotifs
+          }
+
           if (notifs.length > 0) {
             const maxId = Math.max(...notifs.map((n: any) => n.notificationId || n.notification_id || n.id || 0))
-            const prevKnownStr = localStorage.getItem(`knownNotifId_${uid}`)
-            const prevKnown = prevKnownStr ? parseInt(prevKnownStr) : maxId
-            
-            if (maxId > prevKnown && prevKnownStr) {
-               const latestNotif = notifs.find((n: any) => (n.notificationId || n.notification_id || n.id) === maxId)
-               setLiveAlert({
-                  title: 'New Notification',
-                  message: latestNotif?.title || 'You have a new announcement!'
-               })
-            }
-            localStorage.setItem(`knownNotifId_${uid}`, maxId.toString())
-            
             const isViewingNotifications = pathname.startsWith('/dashboard/notifications')
-            
             if (isViewingNotifications) {
               localStorage.setItem(`lastReadNotifId_${uid}`, maxId.toString())
               setUnreadNotifCount(0)
@@ -129,20 +170,61 @@ export default function DashboardLayout({
         if (!active) return
 
         const eventsList = dataEvents.data?.events || dataEvents.data || dataEvents
-        if (Array.isArray(eventsList) && eventsList.length > 0) {
-            const maxId = Math.max(...eventsList.map((e: any) => e.eventId || e.event_id || e.id || 0))
-            const prevKnownStr = localStorage.getItem(`knownEventId_${uid}`)
-            const prevKnown = prevKnownStr ? parseInt(prevKnownStr) : maxId
+        if (Array.isArray(eventsList)) {
+          const currentEvents = eventsList || []
+          const prevEvents = prevEventsRef.current
 
-            if (maxId > prevKnown && prevKnownStr) {
-               const latestEvent = eventsList.find((e: any) => (e.eventId || e.event_id || e.id) === maxId)
-               setLiveAlert({
-                  title: 'New Event Scheduled',
-                  message: latestEvent?.title || 'A new event was just added to the calendar!'
-               })
+          if (prevEvents === null) {
+            prevEventsRef.current = currentEvents
+          } else {
+            // 1. Detect new
+            const newEvent = currentEvents.find((e: any) => {
+              const eid = e.eventId || e.event_id || e.id || 0
+              return !prevEvents.some((pe: any) => (pe.eventId || pe.event_id || pe.id || 0) === eid)
+            })
+
+            // 2. Detect updated
+            const updatedEvent = currentEvents.find((e: any) => {
+              const eid = e.eventId || e.event_id || e.id || 0
+              const match = prevEvents.find((pe: any) => (pe.eventId || pe.event_id || pe.id || 0) === eid)
+              return match && (match.title !== e.title || match.description !== e.description || match.eventDate !== e.eventDate || match.location !== e.location)
+            })
+
+            // 3. Detect deleted
+            const deletedEvent = prevEvents.find((pe: any) => {
+              const eid = pe.eventId || pe.event_id || pe.id || 0
+              return !currentEvents.some((e: any) => (e.eventId || e.event_id || e.id || 0) === eid)
+            })
+
+            let eventChanged = false
+            if (newEvent) {
+              setLiveAlert({
+                title: 'New Event Scheduled',
+                message: newEvent.title || 'A new event was just added to the calendar!'
+              })
+              eventChanged = true
+            } else if (updatedEvent) {
+              setLiveAlert({
+                title: 'Event Updated',
+                message: `"${updatedEvent.title}" has been rescheduled or updated.`
+              })
+              eventChanged = true
+            } else if (deletedEvent) {
+              setLiveAlert({
+                title: 'Event Cancelled',
+                message: `"${deletedEvent.title}" has been cancelled.`
+              })
+              eventChanged = true
             }
-            localStorage.setItem(`knownEventId_${uid}`, maxId.toString())
 
+            if (eventChanged) {
+              window.dispatchEvent(new CustomEvent('school-events-updated'))
+            }
+            prevEventsRef.current = currentEvents
+          }
+
+          if (eventsList.length > 0) {
+            const maxId = Math.max(...eventsList.map((e: any) => e.eventId || e.event_id || e.id || 0))
             const isViewingEvents = pathname.startsWith('/dashboard/events')
             if (isViewingEvents) {
               localStorage.setItem(`lastReadEventId_${uid}`, maxId.toString())
@@ -153,6 +235,9 @@ export default function DashboardLayout({
               const count = eventsList.filter((e: any) => (e.eventId || e.event_id || e.id || 0) > lastId).length
               setUnreadEventCount(count)
             }
+          } else {
+            setUnreadEventCount(0)
+          }
         } else {
           setUnreadEventCount(0)
         }
@@ -162,7 +247,7 @@ export default function DashboardLayout({
     }
 
     checkUnread()
-    const interval = setInterval(checkUnread, 60000)
+    const interval = setInterval(checkUnread, 5000)
     window.addEventListener('focus', checkUnread)
     
     return () => {

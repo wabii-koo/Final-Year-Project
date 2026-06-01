@@ -100,6 +100,18 @@ export default function GuardianDashboard() {
     loadGuardianData(parsed.userId)
   }, [router])
 
+  useEffect(() => {
+    const handleNotificationsUpdated = () => {
+      if (user) {
+        loadGuardianData(user.userId)
+      }
+    }
+    window.addEventListener('school-notifications-updated', handleNotificationsUpdated)
+    return () => {
+      window.removeEventListener('school-notifications-updated', handleNotificationsUpdated)
+    }
+  }, [user])
+
   const loadGuardianData = async (guardianId: number) => {
     try {
       const token = localStorage.getItem('token')
