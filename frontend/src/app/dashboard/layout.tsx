@@ -80,8 +80,10 @@ export default function DashboardLayout({
     if (typeof window === 'undefined' || !user) return
     const bc = new BroadcastChannel('school-updates')
     bc.onmessage = (e) => {
-      // The Director does not need real-time popup alert banners
-      if (user.role === 'director') {
+      // The creator/sender does not need real-time popup alert banners for their own changes
+      // Suppress for director role, or for registrar who is the explicit sender
+      const isSelf = user.role === 'director' || user.role === 'registrar'
+      if (isSelf) {
         if (e.data?.type === 'notification') {
           skipNextNotifDiff.current = true
           window.dispatchEvent(new CustomEvent('school-notifications-updated'))
@@ -167,9 +169,14 @@ export default function DashboardLayout({
                 })
               : currentNotifs.filter((n: any) => (n.notificationId || n.notification_id || n.id || 0) > lastAckId)
 
-            const unacked = unackedNew
+            // Exclude notifications that the current user sent themselves
+            const unacked = unackedNew.filter((n: any) =>
+              String(n.senderId || n.sender_id || '') !== String(uid)
+            )
 
-            if (unacked.length > 0 && user?.role !== 'director') {
+            const isCreatorRole = user?.role === 'director' || user?.role === 'registrar'
+
+            if (unacked.length > 0 && !isCreatorRole) {
               const newest = unacked[0] // API returns DESC order
               // Check if newest item is an update (ID already existed before this session)
               const isUpdate = lastAckTs > 0 && (newest.notificationId || newest.notification_id || newest.id || 0) <= lastAckId
@@ -212,10 +219,10 @@ export default function DashboardLayout({
             })
 
             let notifChanged = false
-            const isUserDirector = user?.role === 'director'
+            const isCreatorUser = user?.role === 'director' || user?.role === 'registrar'
 
             if (newNotif) {
-              if (!isUserDirector && String(newNotif.senderId) !== String(uid)) {
+              if (!isCreatorUser && String(newNotif.senderId) !== String(uid)) {
                 setLiveAlert({
                   title: 'New Announcement',
                   message: newNotif.title || 'You have a new announcement!'
@@ -223,7 +230,7 @@ export default function DashboardLayout({
               }
               notifChanged = true
             } else if (updatedNotif) {
-              if (!isUserDirector && String(updatedNotif.senderId) !== String(uid)) {
+              if (!isCreatorUser && String(updatedNotif.senderId) !== String(uid)) {
                 setLiveAlert({
                   title: 'Announcement Updated',
                   message: `"${updatedNotif.title}" has been updated.`
@@ -231,7 +238,7 @@ export default function DashboardLayout({
               }
               notifChanged = true
             } else if (deletedNotif) {
-              if (!isUserDirector && String(deletedNotif.senderId) !== String(uid)) {
+              if (!isCreatorUser && String(deletedNotif.senderId) !== String(uid)) {
                 setLiveAlert({
                   title: 'Announcement Deleted',
                   message: `"${deletedNotif.title}" has been removed.`
@@ -311,10 +318,10 @@ export default function DashboardLayout({
             })
 
             let eventChanged = false
-            const isUserDirector = user?.role === 'director'
+            const isCreatorUserEv = user?.role === 'director' || user?.role === 'registrar'
 
             if (newEvent) {
-              if (!isUserDirector && String(newEvent.createdBy || newEvent.created_by) !== String(uid)) {
+              if (!isCreatorUserEv && String(newEvent.createdBy || newEvent.created_by) !== String(uid)) {
                 setLiveAlert({
                   title: 'New Event Scheduled',
                   message: newEvent.title || 'A new event was just added to the calendar!'
@@ -322,7 +329,7 @@ export default function DashboardLayout({
               }
               eventChanged = true
             } else if (updatedEvent) {
-              if (!isUserDirector && String(updatedEvent.createdBy || updatedEvent.created_by) !== String(uid)) {
+              if (!isCreatorUserEv && String(updatedEvent.createdBy || updatedEvent.created_by) !== String(uid)) {
                 setLiveAlert({
                   title: 'Event Updated',
                   message: `"${updatedEvent.title}" has been updated.`
@@ -330,7 +337,7 @@ export default function DashboardLayout({
               }
               eventChanged = true
             } else if (deletedEvent) {
-              if (!isUserDirector && String(deletedEvent.createdBy || deletedEvent.created_by) !== String(uid)) {
+              if (!isCreatorUserEv && String(deletedEvent.createdBy || deletedEvent.created_by) !== String(uid)) {
                 setLiveAlert({
                   title: 'Event Cancelled',
                   message: `"${deletedEvent.title}" has been cancelled.`
