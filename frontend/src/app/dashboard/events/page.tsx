@@ -219,6 +219,27 @@ export default function EventsPage() {
       })
 
       if (response.ok) {
+        // Send a system notification alerting users of the update
+        try {
+          await fetch(`${apiUrl}/api/notifications`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              title: `Updated Event: ${editFormData.title}`,
+              content: `The event "${editFormData.title}" has been updated.\n\nNew Details:\nDate: ${new Date(editFormData.eventDate).toLocaleDateString()}\nLocation: ${editFormData.location || 'TBD'}\nDescription: ${editFormData.description}`,
+              priority: 'normal',
+              recipientGroup: editFormData.targetAudience === 'all' ? 'all' : 
+                            editFormData.targetAudience === 'guardians_only' ? 'all_guardians' : 
+                            editFormData.targetAudience === 'teachers_only' ? 'all_teachers' : 'all'
+            })
+          })
+        } catch (notifErr) {
+          console.error('Failed to send event update notification:', notifErr)
+        }
+
         setEditingEvent(null)
         setSuccessMessage('Event updated successfully!')
         fetchEvents()
@@ -233,6 +254,7 @@ export default function EventsPage() {
   }
 
   const handleDeleteEvent = async (eventId: number) => {
+    const eventToDelete = events.find(ev => ev.eventId === eventId)
     if (!confirm('Are you sure you want to cancel this event?')) return
 
     try {
@@ -246,6 +268,28 @@ export default function EventsPage() {
       })
 
       if (response.ok) {
+        if (eventToDelete) {
+          // Send notification about event cancellation
+          try {
+            await fetch(`${apiUrl}/api/notifications`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                title: `Cancelled Event: ${eventToDelete.title}`,
+                content: `The event "${eventToDelete.title}" scheduled for ${new Date(eventToDelete.eventDate).toLocaleDateString()} has been cancelled.`,
+                priority: 'emergency', // Cancellation is high priority
+                recipientGroup: eventToDelete.targetAudience === 'all' ? 'all' : 
+                              eventToDelete.targetAudience === 'guardians_only' ? 'all_guardians' : 
+                              eventToDelete.targetAudience === 'teachers_only' ? 'all_teachers' : 'all'
+              })
+            })
+          } catch (notifErr) {
+            console.error('Failed to send event cancellation notification:', notifErr)
+          }
+        }
         fetchEvents()
       } else {
         const error = await response.json()
