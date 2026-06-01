@@ -157,6 +157,8 @@ export default function PickupPage() {
         body: JSON.stringify(newRequest)
       })
 
+      const data = await response.json()
+
       if (response.ok) {
         setShowCreateModal(false)
         setNewRequest({
@@ -171,9 +173,12 @@ export default function PickupPage() {
           notes: ''
         })
         fetchPickupRequests()
+      } else {
+        setModalError(data.message || data.error?.message || 'Failed to submit pickup request.')
       }
     } catch (error) {
-      console.error('Submit error')
+      console.error('Submit error', error)
+      setModalError('Failed to connect to the server. Please check your network connection.')
     }
   }
 
