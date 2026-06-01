@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { 
   Bell, 
   Calendar, 
-  BookOpen, 
   Car, 
   FileText, 
   User,
@@ -42,16 +41,6 @@ interface Notification {
   isRead: boolean
 }
 
-interface Homework {
-  homeworkId: number
-  title: string
-  subject: string
-  className: string
-  dueDate: string
-  isActive: boolean
-  teacherName: string
-}
-
 interface PickupRequest {
   id: number
   studentName: string
@@ -67,12 +56,10 @@ export default function GuardianDashboard() {
   const [loading, setLoading] = useState(true)
   const [students, setStudents] = useState<Student[]>([])
   const [notifications, setNotifications] = useState<Notification[]>([])
-  const [homework, setHomework] = useState<Homework[]>([])
   const [pickupRequests, setPickupRequests] = useState<PickupRequest[]>([])
   const [stats, setStats] = useState({
     totalNotifications: 0,
     unreadNotifications: 0,
-    pendingHomework: 0,
     pendingPickups: 0
   })
 
@@ -121,10 +108,9 @@ export default function GuardianDashboard() {
       }
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-      const [studentsRes, notificationsRes, homeworkRes, pickupRes] = await Promise.all([
+      const [studentsRes, notificationsRes, pickupRes] = await Promise.all([
         fetch(`${apiUrl}/api/students/my-children`, { headers }),
         fetch(`${apiUrl}/api/notifications`, { headers }),
-        fetch(`${apiUrl}/api/homework`, { headers }),
         fetch(`${apiUrl}/api/pickup-requests`, { headers })
       ])
 
@@ -135,10 +121,6 @@ export default function GuardianDashboard() {
       if (notificationsRes.ok) {
         const d = await notificationsRes.json()
         setNotifications(d.data?.notifications || [])
-      }
-      if (homeworkRes.ok) {
-        const d = await homeworkRes.json()
-        setHomework(d.data?.homework || [])
       }
       if (pickupRes.ok) {
         const d = await pickupRes.json()
@@ -161,10 +143,9 @@ export default function GuardianDashboard() {
         const lastId = lastIdStr ? parseInt(lastIdStr) : 0
         return notifications.filter(n => ((n as any).notificationId || (n as any).id || 0) > lastId).length
       })(),
-      pendingHomework: homework.filter(h => h.isActive).length,
       pendingPickups: pickupRequests.filter(p => p.status === 'pending').length
     })
-  }, [notifications, homework, pickupRequests, user])
+  }, [notifications, pickupRequests, user])
 
   if (loading) {
     return (
@@ -198,10 +179,9 @@ export default function GuardianDashboard() {
         </header>
 
         {/* Stats Section - Standard Corners */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 py-12">
           {[
             { label: 'Unread Alerts', value: stats.unreadNotifications, icon: Bell, color: 'text-brand-primary' },
-            { label: 'Homework Due', value: stats.pendingHomework, icon: BookOpen, color: 'text-brand-secondary' },
             { label: 'Active Students', value: students.length, icon: TrendingUp, color: 'text-brand-accent' },
             { label: 'Pickup Status', value: stats.pendingPickups, icon: Car, color: 'text-brand-success' }
           ].map((stat, i) => (
@@ -222,95 +202,6 @@ export default function GuardianDashboard() {
           ))}
         </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          {/* Main Feed */}
-          <div className="lg:col-span-2 space-y-8">
-             {/* Student Cards */}
-             <div className="bg-brand-white rounded-3xl shadow-xl shadow-brand-primary/5 border border-brand-100 p-8">
-               <h3 className="text-2xl font-black text-brand-heading mb-6 flex items-center gap-3">
-                 <CheckCircle className="text-brand-success" />
-                 Active Student Monitoring
-               </h3>
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {students.map((student, idx) => (
-                    <div key={idx} className="bg-brand-bg p-6 rounded-2xl border border-brand-100 hover:border-brand-primary/20 transition-colors relative overflow-hidden group">
-                      <div className="flex items-center gap-4 relative z-10">
-                        <div className="w-12 h-12 rounded-2xl overflow-hidden flex items-center justify-center shadow-sm">
-                           <img src="/ethiopian-woman.png" alt="Student Profile" className="w-full h-full object-cover" />
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-brand-heading">{student.fullName}</h4>
-                          <p className="text-xs text-brand-text font-semibold uppercase">{student.className}</p>
-                        </div>
-                      </div>
-                      <div className="mt-6 flex items-center justify-between relative z-10">
-                        <div className="text-xs font-bold text-brand-success bg-brand-success/10 px-3 py-1 rounded-full">PRESENT TODAY</div>
-                        <Link href={`/dashboard/report-cards?student=${student.studentId}`} className="text-brand-primary hover:underline text-xs font-black uppercase flex items-center gap-1">
-                          Reports <ChevronRight size={14} />
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
-               </div>
-             </div>
-
-             {/* Recent Homework */}
-             <div className="bg-brand-white rounded-3xl shadow-xl shadow-brand-primary/5 border border-brand-100 p-8">
-               <div className="flex items-center justify-between mb-6">
-                 <h3 className="text-2xl font-black text-brand-heading flex items-center gap-3">
-                   <BookOpen className="text-brand-primary" />
-                   Homework Tracking
-                 </h3>
-                 <Link href="/dashboard/homework" className="text-brand-primary font-black text-xs uppercase hover:underline">View All</Link>
-               </div>
-               <div className="space-y-4">
-                  {homework.slice(0, 3).map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-5 bg-brand-bg rounded-2xl border border-brand-100 group hover:bg-white transition-all">
-                      <div className="flex items-center gap-4">
-                         <div className="p-3 bg-white rounded-xl shadow-sm text-brand-primary">
-                            <FileText size={20} />
-                         </div>
-                         <div>
-                            <h4 className="font-bold text-brand-heading text-sm">{item.title}</h4>
-                            <p className="text-xs text-brand-text">{item.subject} • Due {item.dueDate}</p>
-                         </div>
-                      </div>
-                      <div className="h-2 w-24 bg-brand-100 rounded-full overflow-hidden hidden md:block">
-                         <div className="h-full bg-linear-to-r from-brand-primary to-brand-accent" style={{ width: '70%' }} />
-                      </div>
-                    </div>
-                  ))}
-               </div>
-             </div>
-          </div>
-
-          {/* Activity/Notification Sidebar */}
-          <div className="bg-brand-white rounded-3xl shadow-xl shadow-brand-primary/5 border border-brand-100 flex flex-col p-8">
-             <h3 className="text-2xl font-black text-brand-heading mb-8 flex items-center gap-3">
-                <Bell className="text-brand-primary" />
-                Live Feed
-             </h3>
-             <div className="flex-1 space-y-8 overflow-y-auto no-scrollbar">
-                {notifications.slice(0, 5).map((notif, idx) => (
-                  <div key={idx} className="relative pl-8 before:absolute before:left-0 before:top-2 before:bottom-0 before:w-px before:bg-brand-bg last:before:hidden">
-                    <div className={`absolute left-[-4px] top-1.5 w-2 h-2 rounded-full ring-4 ring-brand-white ${notif.isRead ? 'bg-brand-accent' : 'bg-brand-primary animate-pulse'}`} />
-                    <div className="space-y-2">
-                       <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-black text-brand-text uppercase tracking-widest">{notif.type}</span>
-                          <span className="text-[9px] text-slate-400 font-bold uppercase">{new Date(notif.createdAt).toLocaleDateString()}</span>
-                       </div>
-                       <p className="text-sm font-medium text-brand-text leading-relaxed">
-                          {notif.message}
-                       </p>
-                    </div>
-                  </div>
-                ))}
-             </div>
-             <button className="mt-8 w-full py-4 border-2 border-brand-secondary text-brand-secondary font-black text-xs uppercase rounded-2xl hover:bg-brand-secondary hover:text-white transition-all">
-                VIEW ALL ANNOUNCEMENTS
-             </button>
-          </div>
-        </div>
       </div>
     </div>
   )
