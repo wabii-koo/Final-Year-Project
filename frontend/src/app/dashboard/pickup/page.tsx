@@ -206,6 +206,7 @@ export default function PickupPage() {
           pickupTimeEnd: '',
           notes: ''
         })
+        alert('Pickup request submitted successfully!')
         fetchPickupRequests()
       } else {
         showError(data.message || data.error?.message || 'Failed to submit pickup request.')
@@ -231,10 +232,15 @@ export default function PickupPage() {
       })
 
       if (response.ok) {
+        alert(`Pickup request has been successfully ${status === 'approved' ? 'approved' : 'rejected'}.`)
         fetchPickupRequests()
+      } else {
+        const data = await response.json()
+        alert(data.message || 'Failed to process pickup request.')
       }
     } catch (error) {
-      console.error('Process error')
+      console.error('Process error', error)
+      alert('Failed to connect to the server. Please try again.')
     }
   }
 
