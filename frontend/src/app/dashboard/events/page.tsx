@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Calendar, Clock, MapPin, Plus, AlertTriangle, X, ChevronLeft, ChevronRight, Users, Bell } from 'lucide-react'
+import { Calendar, Clock, MapPin, Plus, AlertTriangle, X, ChevronLeft, ChevronRight, Users, Bell, Edit, Trash2 } from 'lucide-react'
 
 interface Event {
   eventId: number
@@ -352,20 +352,22 @@ export default function EventsPage() {
                           See Detail
                         </button>
                         {canCreateEvent && (
-                          <>
+                          <div className="flex gap-3 ml-2">
                             <button 
                               onClick={() => handleStartEdit(event)}
-                              className="text-blue-600 font-bold hover:underline text-sm focus:outline-none"
+                              className="text-blue-500 hover:text-blue-700 transition-colors focus:outline-none"
+                              title="Edit Event"
                             >
-                              Edit
+                              <Edit className="h-5 w-5" />
                             </button>
                             <button 
                               onClick={() => handleDeleteEvent(event.eventId)}
-                              className="text-red-500 font-bold hover:underline text-sm focus:outline-none"
+                              className="text-red-500 hover:text-red-700 transition-colors focus:outline-none"
+                              title="Delete Event"
                             >
-                              Delete
+                              <Trash2 className="h-5 w-5" />
                             </button>
-                          </>
+                          </div>
                         )}
                       </div>
                     </div>
