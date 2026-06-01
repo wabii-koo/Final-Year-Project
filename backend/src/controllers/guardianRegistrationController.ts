@@ -50,11 +50,15 @@ export const validateRegistration = async (req: Request, res: Response): Promise
       return;
     }
 
-    // Validate password strength
-    if (password.length < 8) {
+    // Validate password strength (at least 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character @#$%^&*!)
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&*!])[A-Za-z\d@#$%^&*!]/;
+    if (password.length < 8 || !passwordRegex.test(password)) {
       res.status(400).json({
         success: false,
-        error: { code: 'WEAK_PASSWORD', message: 'Password must be at least 8 characters' }
+        error: {
+          code: 'WEAK_PASSWORD',
+          message: 'Password must be at least 8 characters long and contain at least one uppercase letter (A-Z), one lowercase letter (a-z), one number (0-9), and one special character (@#$%^&*!).'
+        }
       });
       return;
     }

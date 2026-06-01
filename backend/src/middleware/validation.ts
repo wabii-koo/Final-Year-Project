@@ -35,11 +35,11 @@ export const schemas = {
     }),
     password: Joi.string()
       .min(8)
-      .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
+      .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&*!])[A-Za-z\d@#$%^&*!]/)
       .required()
       .messages({
         'string.min': 'Password must be at least 8 characters long',
-        'string.pattern.base': 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+        'string.pattern.base': 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@#$%^&*!)',
         'any.required': 'Password is required',
       }),
     fullName: Joi.string().min(2).max(100).required().messages({
@@ -241,5 +241,19 @@ export const schemas = {
     targetAudience: Joi.string()
       .valid('all', 'guardians_only', 'teachers_only', 'specific_class')
       .default('all'),
+  }),
+  resetPassword: Joi.object({
+    token: Joi.string().required().messages({
+      'any.required': 'Reset token is required',
+    }),
+    newPassword: Joi.string()
+      .min(8)
+      .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&*!])[A-Za-z\d@#$%^&*!]/)
+      .required()
+      .messages({
+        'string.min': 'Password must be at least 8 characters long',
+        'string.pattern.base': 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@#$%^&*!)',
+        'any.required': 'Password is required',
+      }),
   }),
 };

@@ -10,7 +10,7 @@ const authController = new AuthController();
 router.post('/register', validate(schemas.registration), authController.register);
 router.post('/login', validate(schemas.login), authController.login);
 router.post('/forgot-password', authController.forgotPassword);
-router.post('/reset-password', authController.resetPassword);
+router.post('/reset-password', validate(schemas.resetPassword), authController.resetPassword);
 
 // Protected routes
 router.post('/logout', authenticateToken, authController.logout);

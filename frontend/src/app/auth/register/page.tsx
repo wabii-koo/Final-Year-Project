@@ -98,6 +98,13 @@ export default function RegisterPage() {
       return;
     }
 
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&*!])[A-Za-z\d@#$%^&*!]{8,}$/;
+    if (!passwordRegex.test(formData.password)) {
+      setError("Password must be at least 8 characters long and contain at least one uppercase letter (A-Z), one lowercase letter (a-z), one number (0-9), and one special character (@#$%^&*!).");
+      setLoading(false);
+      return;
+    }
+
     const finRegex = /^[0-9]{12}$/;
     if (!finRegex.test(formData.nationalId)) {
       setError("National ID must be a valid Ethiopia Fayda Identification Number (exactly 12 digits, numbers only, no spaces or symbols).");
@@ -288,6 +295,41 @@ export default function RegisterPage() {
           required
         />
       </div>
+
+      {formData.password && (
+        <div className="p-4 bg-brand-bg/50 border border-brand-100 rounded-2xl space-y-2 mt-2">
+          <p className="text-[10px] font-black text-brand-heading uppercase tracking-widest mb-1">
+            Password Requirements:
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+            {[
+              { label: "At least 8 characters", met: formData.password.length >= 8 },
+              { label: "At least 1 uppercase letter (A-Z)", met: /[A-Z]/.test(formData.password) },
+              { label: "At least 1 lowercase letter (a-z)", met: /[a-z]/.test(formData.password) },
+              { label: "At least 1 number (0-9)", met: /[0-9]/.test(formData.password) },
+              { label: "At least 1 special character (@#$%^&*!)", met: /[@#$%^&*!]/.test(formData.password) },
+            ].map((req, idx) => (
+              <div
+                key={idx}
+                className={`flex items-center gap-2 font-bold transition-all duration-300 ${
+                  req.met ? "text-brand-success" : "text-brand-text/50"
+                }`}
+              >
+                <span
+                  className={`w-4 h-4 rounded-full flex items-center justify-center border text-[9px] font-black transition-all ${
+                    req.met
+                      ? "bg-brand-success/10 border-brand-success text-brand-success"
+                      : "border-brand-100 bg-white text-transparent"
+                  }`}
+                >
+                  ✓
+                </span>
+                <span>{req.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div>
         <Input
