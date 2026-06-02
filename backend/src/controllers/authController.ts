@@ -114,7 +114,21 @@ export class AuthController {
 
       if (dbUser && dbUser.password_hash) {
         // User exists in DB with a password — use DB authentication exclusively
-        const passwordMatch = await AuthService.comparePassword(password, dbUser.password_hash);
+        let passwordMatch = await AuthService.comparePassword(password, dbUser.password_hash);
+
+        if (!passwordMatch) {
+          const isLegacyPlainPassword = !/^\$2[aby]\$/.test(dbUser.password_hash);
+
+          if (isLegacyPlainPassword && password === dbUser.password_hash) {
+            console.log(' Legacy plain-text password detected. Upgrading hash for:', email);
+            const newHash = await AuthService.hashPassword(password);
+            await sequelize.query(
+              'UPDATE users SET password_hash = ? WHERE user_id = ?',
+              { replacements: [newHash, dbUser.user_id] }
+            );
+            passwordMatch = true;
+          }
+        }
 
         if (!passwordMatch) {
           console.log(' Password mismatch (DB) for:', email);
