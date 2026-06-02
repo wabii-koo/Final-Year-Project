@@ -53,6 +53,7 @@ interface RegistrationRequest {
 interface Student {
   studentId: number;
   fullName: string;
+  guardianId?: number | null;
   classLevel?: string;
   classroom?: {
     classLevel: string;
@@ -147,6 +148,13 @@ export default function RegistrationsPage() {
       if (!selectedStudent || !selectedStudent.studentId) {
         setError(
           "Please search and select a student to link with this guardian",
+        );
+        return;
+      }
+
+      if (selectedStudent.guardian || selectedStudent.guardianId) {
+        setError(
+          "Selected student is already linked to another guardian. Choose a different student or reject this request.",
         );
         return;
       }
@@ -623,9 +631,9 @@ export default function RegistrationsPage() {
                                         {s.classroom.classLevel}
                                       </span>
                                     )}
-                                    {s.guardian && (
+                                    {(s.guardian || s.guardianId) && (
                                       <span className="text-[10px] text-red-500 font-medium">
-                                        Already linked: {s.guardian.fullName}
+                                        Already linked{s.guardian ? `: ${s.guardian.fullName}` : ''}
                                       </span>
                                     )}
                                   </div>
@@ -783,7 +791,9 @@ export default function RegistrationsPage() {
               <button
                 onClick={() => handleApprove(selectedRequest.registrationId)}
                 disabled={
-                  !selectedStudent && selectedRequest.status === "pending"
+                  selectedRequest.status !== "pending" ||
+                  !selectedStudent ||
+                  Boolean(selectedStudent.guardian || selectedStudent.guardianId)
                 }
                 className="px-10 py-4 bg-brand-primary text-white rounded-2xl font-black text-xs uppercase shadow-xl shadow-brand-primary/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
               >

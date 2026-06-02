@@ -151,9 +151,26 @@ export const approveRegistration = async (req: any, res: Response, next: NextFun
         createdAt: new Date()
       }, { transaction: t });
 
-      // Link to the student if possible
-      const student = await StudentModel.findOne({ where: { fullName: registration.studentName }, transaction: t });
+      // Link to the student if possible. Acquire a row lock before updating to prevent
+      // assigning a guardian when one already exists (avoid race conditions).
+      let student = null;
+      if (registration.studentId) {
+        student = await StudentModel.findByPk(registration.studentId, { transaction: t, lock: t.LOCK.UPDATE });
+      } else {
+        // Try to find by name, then lock by PK
+        const found = await StudentModel.findOne({ where: { fullName: registration.studentName }, transaction: t });
+        if (found) {
+          student = await StudentModel.findByPk((found as any).studentId, { transaction: t, lock: t.LOCK.UPDATE });
+        }
+      }
+
       if (student) {
+        if (student.guardianId) {
+          // Student already linked — roll back and respond with conflict
+          await t.rollback();
+          res.status(409).json({ success: false, message: 'Selected student is already linked to another guardian' });
+          return;
+        }
         await student.update({ guardianId: guardianUser.userId }, { transaction: t });
       }
     } else {

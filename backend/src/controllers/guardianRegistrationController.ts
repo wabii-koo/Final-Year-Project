@@ -90,6 +90,36 @@ export const validateRegistration = async (req: Request, res: Response): Promise
       return;
     }
 
+    // Check if the student is already linked to another family/guardian
+    if (student.guardianId) {
+      res.status(400).json({
+        success: false,
+        error: { code: 'STUDENT_ALREADY_LINKED', message: 'This student is already linked to another family/guardian.' }
+      });
+      return;
+    }
+
+    // Check if there is already an active registration for this student
+    const activeRegistration = await GuardianRegistrationModel.findOne({
+      where: {
+        [Op.or]: [
+          { studentId: student.studentId },
+          { studentName: { [Op.iLike]: studentName.trim() } }
+        ],
+        status: {
+          [Op.in]: ['pending', 'approved', 'correction_required']
+        }
+      }
+    });
+
+    if (activeRegistration) {
+      res.status(400).json({
+        success: false,
+        error: { code: 'STUDENT_ALREADY_REGISTERED', message: 'A registration application for this student is already pending or approved.' }
+      });
+      return;
+    }
+
     // Check for duplicates (only block approved registrations)
     const existingByEmail = await GuardianRegistrationModel.findOne({ where: { email } });
     if (existingByEmail && existingByEmail.status === 'approved') {
@@ -495,7 +525,59 @@ export const updateRegistration = async (req: Request, res: Response): Promise<v
 
     if (updateData.fullName) updates.fullName = updateData.fullName;
     if (updateData.phoneNo) updates.phoneNo = updateData.phoneNo;
-    if (updateData.studentName) updates.studentName = updateData.studentName;
+    
+    if (updateData.studentName) {
+      const studentNameTrimmed = updateData.studentName.trim();
+      const student = await StudentModel.findOne({
+        where: {
+          fullName: {
+            [Op.iLike]: studentNameTrimmed
+          }
+        }
+      });
+
+      if (!student) {
+        res.status(400).json({
+          success: false,
+          error: { code: 'STUDENT_NOT_FOUND', message: 'No such child found in school records. Please check the name spelling.' }
+        });
+        return;
+      }
+
+      if (student.guardianId) {
+        res.status(400).json({
+          success: false,
+          error: { code: 'STUDENT_ALREADY_LINKED', message: 'This student is already linked to another family/guardian.' }
+        });
+        return;
+      }
+
+      const activeRegistration = await GuardianRegistrationModel.findOne({
+        where: {
+          [Op.or]: [
+            { studentId: student.studentId },
+            { studentName: { [Op.iLike]: studentNameTrimmed } }
+          ],
+          status: {
+            [Op.in]: ['pending', 'approved', 'correction_required']
+          },
+          registrationId: {
+            [Op.ne]: registration.registrationId
+          }
+        }
+      });
+
+      if (activeRegistration) {
+        res.status(400).json({
+          success: false,
+          error: { code: 'STUDENT_ALREADY_REGISTERED', message: 'A registration application for this student is already pending or approved.' }
+        });
+        return;
+      }
+
+      updates.studentName = studentNameTrimmed;
+    }
+
     if (updateData.relationshipType) updates.relationshipType = updateData.relationshipType;
 
     // Update document paths if new files uploaded

@@ -73,6 +73,23 @@ export default function DashboardLayout({
     }
 
     setUser(JSON.parse(userData))
+
+    // Re-read user from localStorage whenever the profile page updates it
+    const syncUser = () => {
+      const updated = localStorage.getItem('user')
+      if (updated) {
+        try {
+          setUser(JSON.parse(updated))
+        } catch {}
+      }
+    }
+
+    window.addEventListener('storage', syncUser)
+    window.addEventListener('user-profile-updated', syncUser)
+    return () => {
+      window.removeEventListener('storage', syncUser)
+      window.removeEventListener('user-profile-updated', syncUser)
+    }
   }, [])
 
   // BroadcastChannel: receive real-time changes from other tabs in the same browser
@@ -443,6 +460,7 @@ export default function DashboardLayout({
     { icon: FileText, label: 'Report Cards', href: '/dashboard/report-cards', roles: ['director', 'homeroom_teacher', 'guardian'] },
     { icon: ClipboardList, label: 'Audit Logs', href: '/dashboard/audit-logs', roles: ['registrar'] },
     { icon: User, label: 'Registrations', href: '/dashboard/registrations', roles: ['registrar'] },
+    { icon: User, label: 'Profile', href: '/dashboard/profile', roles: ['director', 'registrar', 'teacher', 'homeroom_teacher', 'guardian'] },
   ]
 
   const filteredMenuItems = user 

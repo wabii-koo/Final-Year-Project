@@ -8,6 +8,7 @@ import { SystemLogModel } from '../models/SystemLog';
 import { logger } from '../utils/logger';
 import { UserRole } from '../types';
 import { Op } from 'sequelize';
+import { sequelize } from '../database/connection';
 import { EmailService } from '../services/emailService';
 
 /**
@@ -94,13 +95,15 @@ export const getRegistrationDetails = async (req: Request, res: Response): Promi
  * Approve registration and create user account
  */
 export const approveRegistration = async (req: Request, res: Response): Promise<void> => {
+  const transaction = await sequelize.transaction();
   try {
     const { registrationId } = req.params;
     const registrarId = (req as any).user?.userId;
 
-    const registration = await GuardianRegistrationModel.findByPk(registrationId);
+    const registration = await GuardianRegistrationModel.findByPk(registrationId, { transaction });
 
     if (!registration) {
+      await transaction.rollback();
       res.status(404).json({
         success: false,
         error: { code: 'NOT_FOUND', message: 'Registration not found' }
@@ -109,6 +112,7 @@ export const approveRegistration = async (req: Request, res: Response): Promise<
     }
 
     if (registration.status !== 'pending' && registration.status !== 'correction_required') {
+      await transaction.rollback();
       res.status(400).json({
         success: false,
         error: { code: 'INVALID_STATUS', message: 'Registration is not pending review' }
@@ -119,6 +123,7 @@ export const approveRegistration = async (req: Request, res: Response): Promise<
     const { studentId } = req.body;
 
     if (!studentId) {
+      await transaction.rollback();
       res.status(400).json({
         success: false,
         error: { code: 'MISSING_STUDENT_ID', message: 'You must select a student to link to this guardian' }
@@ -126,10 +131,11 @@ export const approveRegistration = async (req: Request, res: Response): Promise<
       return;
     }
 
-    // Find student
-    const student = await StudentModel.findByPk(studentId);
+    // Lock the student row to prevent race conditions
+    const student = await StudentModel.findByPk(studentId, { transaction, lock: transaction.LOCK.UPDATE });
 
     if (!student) {
+      await transaction.rollback();
       res.status(400).json({
         success: false,
         error: { code: 'STUDENT_NOT_FOUND', message: 'The selected student was not found in the database' }
@@ -137,7 +143,22 @@ export const approveRegistration = async (req: Request, res: Response): Promise<
       return;
     }
 
-    // Create user account
+    if (student.guardianId) {
+      const existingGuardian = await UserModel.findByPk(student.guardianId, { transaction });
+      await transaction.rollback();
+      res.status(409).json({
+        success: false,
+        error: {
+          code: 'STUDENT_ALREADY_LINKED',
+          message: existingGuardian
+            ? `Selected student is already assigned to guardian ${existingGuardian.fullName}. Choose a different student or reject this request.`
+            : 'Selected student is already linked to another guardian. Choose a different student or reject this request.'
+        }
+      });
+      return;
+    }
+
+    // Create user account inside transaction
     const user = await UserModel.create({
       email: registration.email,
       passwordHash: registration.passwordHash,
@@ -148,10 +169,10 @@ export const approveRegistration = async (req: Request, res: Response): Promise<
       nationalId: registration.nationalId,
       isActive: true,
       createdAt: new Date()
-    });
+    }, { transaction });
 
     // Update student with guardianId
-    await student.update({ guardianId: user.userId });
+    await student.update({ guardianId: user.userId }, { transaction });
 
     // Update registration status and studentId
     await registration.update({
@@ -159,7 +180,7 @@ export const approveRegistration = async (req: Request, res: Response): Promise<
       studentId: student.studentId,
       reviewedBy: registrarId,
       reviewedAt: new Date()
-    });
+    }, { transaction });
 
     // Log the action
     await SystemLogModel.create({
@@ -168,9 +189,11 @@ export const approveRegistration = async (req: Request, res: Response): Promise<
       tableName: 'GuardianRegistrations',
       recordId: registration.registrationId,
       newValues: { userId: user.userId, email: registration.email }
-    });
+    }, { transaction });
 
-    // Send email notification to guardian asynchronously
+    await transaction.commit();
+
+    // Send email notification to guardian asynchronously (outside transaction)
     EmailService.sendApprovalEmail(registration.email, registration.fullName, student.fullName).catch(err => {
       logger.error('Failed to send approval email notification:', err);
     });
@@ -186,6 +209,7 @@ export const approveRegistration = async (req: Request, res: Response): Promise<
     });
 
   } catch (error) {
+    try { await transaction.rollback(); } catch (e) {}
     logger.error('Approve registration error:', error);
     res.status(500).json({
       success: false,
