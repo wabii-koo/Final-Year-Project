@@ -213,63 +213,6 @@ export default function TeacherDashboard() {
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          {/* Recent Activity */}
-          <div className="lg:col-span-2 bg-brand-white rounded-3xl shadow-xl shadow-brand-primary/5 border border-brand-100 p-8 flex flex-col h-full">
-            <div className="flex-1 space-y-6">
-              {[
-                {
-                  title: 'Homework assignment "Photosynthesis" created',
-                  time: "2 hours ago",
-                  icon: FileText,
-                  color: "text-brand-primary",
-                },
-                {
-                  title: "Parent-teacher meeting for KG-A scheduled",
-                  time: "1 day ago",
-                  icon: Users,
-                  color: "text-brand-secondary",
-                },
-                {
-                  title: "Attendance record for Grade 1 finalized",
-                  time: "3 hours ago",
-                  icon: CheckCircle,
-                  color: "text-brand-success",
-                },
-              ].map((activity, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between p-5 bg-brand-bg rounded-2xl border border-brand-100 group hover:bg-white transition-all"
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={`p-3 bg-white rounded-xl shadow-sm ${activity.color}`}
-                    >
-                      <activity.icon size={20} />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-brand-heading text-sm">
-                        {activity.title}
-                      </h4>
-                      <p className="text-xs text-brand-text font-semibold uppercase">
-                        {activity.time}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    aria-label="button"
-                    className="p-2 text-brand-text hover:text-brand-primary transition-colors"
-                  >
-                    <ChevronRight size={18} />
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            <button className="mt-8 w-full py-4 border-2 border-brand-secondary text-brand-secondary font-black text-xs uppercase rounded-2xl hover:bg-brand-secondary hover:text-white transition-all">
-              VIEW FULL TEACHING LOG
-            </button>
-          </div>
-
           {/* Classroom Overview */}
           <div className="bg-brand-white rounded-3xl shadow-xl shadow-brand-primary/5 border border-brand-100 p-8 flex flex-col">
             <h3 className="text-2xl font-black text-brand-heading mb-8 flex items-center gap-3">
