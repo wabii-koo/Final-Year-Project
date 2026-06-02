@@ -8,10 +8,10 @@ export class UserService {
     // Check if user already exists
     const existingUserIndex = registeredUsers.findIndex(u => u.email === user.email);
     if (existingUserIndex !== -1) {
-      // Update existing user
+      // update existing user
       registeredUsers[existingUserIndex] = user;
     } else {
-      // Add new user
+      // add new user
       registeredUsers.push(user);
     }
     
