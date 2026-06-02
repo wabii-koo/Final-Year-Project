@@ -158,18 +158,35 @@ export const approveRegistration = async (req: Request, res: Response): Promise<
       return;
     }
 
-    // Create user account inside transaction
-    const user = await UserModel.create({
-      email: registration.email,
-      passwordHash: registration.passwordHash,
-      role: UserRole.GUARDIAN,
-      fullName: registration.fullName,
-      phoneNo: registration.phoneNo,
-      address: '', // Can be updated later
-      nationalId: registration.nationalId,
-      isActive: true,
-      createdAt: new Date()
-    }, { transaction });
+    // Check if user already exists to avoid unique constraint violation on email
+    let user = await UserModel.findOne({
+      where: { email: registration.email },
+      transaction
+    });
+
+    if (!user) {
+      // Create user account inside transaction
+      user = await UserModel.create({
+        email: registration.email,
+        passwordHash: registration.passwordHash,
+        role: UserRole.GUARDIAN,
+        fullName: registration.fullName,
+        phoneNo: registration.phoneNo,
+        address: '', // Can be updated later
+        nationalId: registration.nationalId,
+        isActive: true,
+        createdAt: new Date()
+      }, { transaction });
+    } else {
+      // Ensure the existing user has the correct guardian role and details if needed
+      await user.update({
+        role: UserRole.GUARDIAN,
+        fullName: registration.fullName,
+        phoneNo: registration.phoneNo || user.phoneNo,
+        nationalId: registration.nationalId || user.nationalId,
+        isActive: true
+      }, { transaction });
+    }
 
     // Update student with guardianId
     await student.update({ guardianId: user.userId }, { transaction });
