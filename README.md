@@ -120,36 +120,6 @@ The platform is designed with a strict Role-Based Access Control (RBAC) mechanis
      ```
    * Access the web application at `http://localhost:3001` (configured for port 3001 to avoid conflicts).
 
-## 💎 Core Feature Workflows
-
-### 🛡️ Guardian KYC Self-Registration Flow
-```mermaid
-sequenceDiagram
-    participant G as Guardian (Client)
-    participant B as Backend Server
-    participant E as SMTP Email Service
-    participant R as Registrar (Dashboard)
-    
-    G->>B: 1. Submit Registration Form (Email, Name, Phone, Child Name)
-    B->>B: Generate 6-Digit OTP & Store in DB
-    B->>E: Send OTP to Guardian Email
-    E-->>G: Deliver OTP Email
-    G->>B: 2. Submit OTP Code for Verification
-    B-->>G: OTP Verified successfully
-    G->>B: 3. Complete KYC Upload (Birth Cert, ID Front, ID Back)
-    B->>B: Store files in upload/documents/ & Create PendingRegistration
-    R->>B: 4. Fetch Pending Registrations & Documents
-    Note over R: Registrar inspects ID images & matches student names
-    alt Approvable Data
-        R->>B: Approve Registration
-        B->>B: Create active User (Role: guardian) & Map to Student
-        B->>E: Send Login details to Guardian
-    else Discrepancy Found
-        R->>B: Reject Registration (Specify reason)
-        B->>B: Set Status to "correction_required"
-        B->>E: Notify Guardian with Rejection Reason
-        G->>B: Re-upload corrected documents (Up to 3 attempts)
-    end
 
 ### 💬 Chat Messaging & Soft Deletion
 Guardians can message their child's Homeroom Teacher. To protect message history for audit and compliance, the system utilizes a **soft delete mechanism**:
