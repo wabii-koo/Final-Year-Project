@@ -9,6 +9,7 @@
  */
 
 require('dotenv').config();
+const bcrypt = require('bcryptjs');
 const { Sequelize } = require('sequelize');
 
 const sequelize = new Sequelize(process.env.DB_URL || '', {
@@ -26,9 +27,12 @@ const sequelize = new Sequelize(process.env.DB_URL || '', {
 //  13      | emily.davis@school.com   | Davis3B@2026      | Mrs. Emily Davis    | Grade 3B
 
 const teachers = [
-  { userId: 3,  email: 'sarah.smith@school.com',   password: 'Smith1A@2026',   name: 'Ms. Sarah Smith',   class: 'Grade 1A' },
-  { userId: 4,  email: 'james.johnson@school.com', password: 'Johnson2B@2026', name: 'Mr. James Johnson', class: 'Grade 2B' },
-  { userId: 13, email: 'emily.davis@school.com',   password: 'Davis3B@2026',   name: 'Mrs. Emily Davis',  class: 'Grade 3B' },
+  { userId: 3,  email: 'sarah.smith@school.com',   password: 'Smith1A@2026',   name: 'Ms. Sarah Smith',   role: 'homeroom_teacher', class: 'Grade 1A' },
+  { userId: 4,  email: 'james.johnson@school.com', password: 'Johnson2B@2026', name: 'Mr. James Johnson', role: 'homeroom_teacher', class: 'Grade 2B' },
+  { userId: 13, email: 'emily.davis@school.com',   password: 'Davis3B@2026',   name: 'Mrs. Emily Davis',  role: 'homeroom_teacher', class: 'Grade 3B' },
+  { userId: 15, email: 'robert.miller@school.com', password: 'MillerMath@2026', name: 'Mr. Robert Miller', role: 'teacher', class: 'Grade 1A & 3B' },
+  { userId: 16, email: 'lisa.green@school.com',    password: 'GreenScience@2026', name: 'Dr. Lisa Green',     role: 'teacher', class: 'Grade 1A & 2B' },
+  { userId: 17, email: 'karen.white@school.com',   password: 'WhiteEnglish@2026', role: 'teacher', name: 'Ms. Karen White',   class: 'Grade 2B & 3B' },
 ];
 
 async function run() {
@@ -38,16 +42,18 @@ async function run() {
 
     // 1. Upsert each teacher into users
     for (const t of teachers) {
+      const hashedPassword = await bcrypt.hash(t.password, 12);
+
       await sequelize.query(`
         INSERT INTO users (user_id, email, password_hash, role, full_name, is_active, created_at, phone_no, address)
-        VALUES (:userId, :email, :password, 'homeroom_teacher', :name, true, NOW(), '', '')
+        VALUES (:userId, :email, :passwordHash, :role, :name, true, NOW(), '', '')
         ON CONFLICT (user_id) DO UPDATE
           SET email         = EXCLUDED.email,
               password_hash = EXCLUDED.password_hash,
-              role          = 'homeroom_teacher',
+              role          = EXCLUDED.role,
               full_name     = EXCLUDED.full_name,
               is_active     = true
-      `, { replacements: { userId: t.userId, email: t.email, password: t.password, name: t.name } });
+      `, { replacements: { userId: t.userId, email: t.email, passwordHash: hashedPassword, role: t.role, name: t.name } });
 
       console.log(`  ✔ Upserted user ${t.userId}: ${t.name} <${t.email}>`);
     }
@@ -81,9 +87,9 @@ async function run() {
         console.log(`   [${c.class_id}] ${c.class_level}  homeroom=${c.homeroom_teacher_id}  teacher=${c.teacher_id}`);
       });
 
-      // 3. Assign homeroom and subject teachers to matching classrooms
-      console.log('\n🔧 Assigning teachers to classrooms...');
-      for (const t of teachers) {
+      // 3. Assign homeroom teachers to matching classrooms only
+      console.log('\n🔧 Assigning homeroom teachers to classrooms...');
+      for (const t of teachers.filter(t => t.role === 'homeroom_teacher')) {
         const matching = classrooms.filter(c => {
           if (!c.class_level) return false;
           const normalizedDbClass = c.class_level.toLowerCase().replace(/[^a-z0-9]/g, '');

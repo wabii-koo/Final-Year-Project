@@ -35,21 +35,15 @@ const sequelize = new Sequelize(dbUrl, {
     const subjectMappings = [
       // 1. Ms. Sarah Smith (ID 3) - Grade 1-A & 2-B - English / Soc. Studies
       { classLevel: 'Grade 1-A', teacherId: 3, homeroomTeacherId: 3, academicYear: '2026', subject: 'English' },
-      { classLevel: 'Grade 1-A', teacherId: 3, homeroomTeacherId: 3, academicYear: '2026', subject: 'Social Studies' },
-      { classLevel: 'Grade 2-B', teacherId: 3, homeroomTeacherId: 4, academicYear: '2026', subject: 'English' },
       { classLevel: 'Grade 2-B', teacherId: 3, homeroomTeacherId: 4, academicYear: '2026', subject: 'Social Studies' },
 
       // 2. Mr. James Johnson (ID 4) - Grade 2-B & 3-B - Mathematics / Soc. Studies
       { classLevel: 'Grade 2-B', teacherId: 4, homeroomTeacherId: 4, academicYear: '2026', subject: 'Mathematics' },
-      { classLevel: 'Grade 2-B', teacherId: 4, homeroomTeacherId: 4, academicYear: '2026', subject: 'Social Studies' },
-      { classLevel: 'Grade 3-B', teacherId: 4, homeroomTeacherId: 13, academicYear: '2026', subject: 'Mathematics' },
       { classLevel: 'Grade 3-B', teacherId: 4, homeroomTeacherId: 13, academicYear: '2026', subject: 'Social Studies' },
 
       // 3. Mrs. Emily Davis (ID 13) - Grade 1-A & 3-B - Science / Soc. Studies
-      { classLevel: 'Grade 1-A', teacherId: 13, homeroomTeacherId: 3, academicYear: '2026', subject: 'Science' },
       { classLevel: 'Grade 1-A', teacherId: 13, homeroomTeacherId: 3, academicYear: '2026', subject: 'Social Studies' },
       { classLevel: 'Grade 3-B', teacherId: 13, homeroomTeacherId: 13, academicYear: '2026', subject: 'Science' },
-      { classLevel: 'Grade 3-B', teacherId: 13, homeroomTeacherId: 13, academicYear: '2026', subject: 'Social Studies' },
 
       // 4. Mr. Robert Miller (ID 15) - Grade 1-A & 3-B - Mathematics
       { classLevel: 'Grade 1-A', teacherId: 15, homeroomTeacherId: 3, academicYear: '2026', subject: 'Mathematics' },
