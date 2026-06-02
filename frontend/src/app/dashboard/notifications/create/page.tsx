@@ -155,7 +155,6 @@ export default function CreateNotificationPage() {
           recipientGroup: "all_guardians",
         });
 
-        // Redirect to notifications list after 2 seconds
         setTimeout(() => {
           router.push("/dashboard/notifications");
         }, 1500);
