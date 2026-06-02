@@ -1,135 +1,146 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '../ui/Button'
-import { 
-  BookOpen, 
-  Calendar, 
-  Clock, 
-  User, 
-  Eye, 
-  MessageSquare, 
-  Search, 
-  CheckCircle2, 
-  AlertCircle, 
-  Filter, 
-  Plus 
-} from 'lucide-react'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "../ui/Button";
+import {
+  BookOpen,
+  Calendar,
+  Clock,
+  User,
+  Eye,
+  MessageSquare,
+  Search,
+  CheckCircle2,
+  AlertCircle,
+  Filter,
+  Plus,
+} from "lucide-react";
 
 interface Homework {
-  homeworkId: number
-  title: string
-  description: string
-  subject: string
-  className: string
-  dueDate: string
-  createdAt: string
-  isActive: boolean
-  teacherName: string
-  viewCount?: number
-  feedbackCount?: number
-  isSeen?: boolean
+  homeworkId: number;
+  title: string;
+  description: string;
+  subject: string;
+  className: string;
+  dueDate: string;
+  createdAt: string;
+  isActive: boolean;
+  teacherName: string;
+  viewCount?: number;
+  feedbackCount?: number;
+  isSeen?: boolean;
 }
 
 interface HomeworkListProps {
-  role: 'teacher' | 'homeroom_teacher' | 'guardian'
-  userId?: number
-  classId?: number
+  role: "teacher" | "homeroom_teacher" | "guardian";
+  userId?: number;
+  classId?: number;
 }
 
-export default function HomeworkList({ role, userId, classId }: HomeworkListProps) {
-  const router = useRouter()
-  const [homework, setHomework] = useState<Homework[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+export default function HomeworkList({
+  role,
+  userId,
+  classId,
+}: HomeworkListProps) {
+  const router = useRouter();
+  const [homework, setHomework] = useState<Homework[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   // Search & Filter state
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedSubject, setSelectedSubject] = useState('All')
-  const [selectedStatus, setSelectedStatus] = useState('All') // 'All', 'Active', 'Overdue'
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSubject, setSelectedSubject] = useState("All");
+  const [selectedStatus, setSelectedStatus] = useState("All"); // 'All', 'Active', 'Overdue'
 
   useEffect(() => {
     const fetchHomework = async () => {
       try {
-        const token = localStorage.getItem('token')
+        const token = localStorage.getItem("token");
         if (!token) {
-          setError('Please login to view homework')
-          return
+          setError("Please login to view homework");
+          return;
         }
 
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-        let url = `${apiUrl}/api/homework`
-        if (role === 'teacher' && userId) {
-          url += `?teacherId=${userId}`
-        } else if (role === 'homeroom_teacher' && classId) {
-          url += `?classId=${classId}`
+        const apiUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+        let url = `${apiUrl}/api/homework`;
+        if (role === "teacher" && userId) {
+          url += `?teacherId=${userId}`;
+        } else if (role === "homeroom_teacher" && classId) {
+          url += `?classId=${classId}`;
         }
 
         const response = await fetch(url, {
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        })
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         if (response.ok) {
-          const data = await response.json()
-          setHomework(data.data.homework || [])
+          const data = await response.json();
+          setHomework(data.data.homework || []);
         } else {
-          setError('Failed to fetch homework')
+          setError("Failed to fetch homework");
         }
       } catch (err) {
-        setError('Network error. Please try again.')
+        setError("Network error. Please try again.");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchHomework()
-  }, [role, userId, classId])
+    fetchHomework();
+  }, [role, userId, classId]);
 
   const handleCreateHomework = () => {
-    router.push('/dashboard/homework/create')
-  }
+    router.push("/dashboard/homework/create");
+  };
 
   const handleViewHomework = (homeworkId: number) => {
-    router.push(`/dashboard/homework/${homeworkId}`)
-  }
+    router.push(`/dashboard/homework/${homeworkId}`);
+  };
 
   const handleAnalytics = (homeworkId: number) => {
-    router.push(`/dashboard/homework/${homeworkId}/analytics`)
-  }
+    router.push(`/dashboard/homework/${homeworkId}/analytics`);
+  };
 
   // Derived filter categories
-  const subjects = ['All', ...Array.from(new Set(homework.map(hw => hw.subject)))]
+  const subjects = [
+    "All",
+    ...Array.from(new Set(homework.map((hw) => hw.subject))),
+  ];
 
   // Filter logic
   const filteredHomework = homework.filter((hw) => {
-    const matchesSearch = 
+    const matchesSearch =
       hw.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       hw.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      hw.subject.toLowerCase().includes(searchQuery.toLowerCase())
+      hw.subject.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesSubject = selectedSubject === 'All' || hw.subject === selectedSubject
+    const matchesSubject =
+      selectedSubject === "All" || hw.subject === selectedSubject;
 
-    const isOverdue = new Date(hw.dueDate) < new Date()
-    const matchesStatus = 
-      selectedStatus === 'All' ||
-      (selectedStatus === 'Active' && !isOverdue) ||
-      (selectedStatus === 'Overdue' && isOverdue)
+    const isOverdue = new Date(hw.dueDate) < new Date();
+    const matchesStatus =
+      selectedStatus === "All" ||
+      (selectedStatus === "Active" && !isOverdue) ||
+      (selectedStatus === "Overdue" && isOverdue);
 
-    return matchesSearch && matchesSubject && matchesStatus
-  })
+    return matchesSearch && matchesSubject && matchesStatus;
+  });
 
-  const isCreatorRole = role === 'teacher' || role === 'homeroom_teacher'
+  const isCreatorRole = role === "teacher" || role === "homeroom_teacher";
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
         <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-brand-primary"></div>
-        <p className="text-brand-text font-bold text-sm">Retrieving assignments...</p>
+        <p className="text-brand-text font-bold text-sm">
+          Retrieving assignments...
+        </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -138,18 +149,25 @@ export default function HomeworkList({ role, userId, classId }: HomeworkListProp
       <header className="bg-brand-white rounded-[2.5rem] p-8 md:p-10 shadow-xl shadow-brand-primary/5 border border-brand-100 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
         <div className="relative z-10">
           <span className="inline-block px-3 py-1 bg-brand-accent/15 text-brand-primary rounded-full text-xs font-black uppercase tracking-widest mb-3">
-            {role === 'teacher' ? 'Teacher Portal' : role === 'homeroom_teacher' ? 'Homeroom Portal' : 'Guardian Portal'}
+            {role === "teacher"
+              ? "Teacher Portal"
+              : role === "homeroom_teacher"
+                ? "Homeroom Portal"
+                : "Guardian Portal"}
           </span>
           <h1 className="text-3xl font-black text-brand-heading leading-tight">
-            {role === 'teacher' ? 'My Homework' : role === 'homeroom_teacher' ? 'Class Homework' : 'Homework Assignments'}
+            {role === "teacher"
+              ? "My Homework"
+              : role === "homeroom_teacher"
+                ? "Class Homework"
+                : "Homework Assignments"}
           </h1>
           <p className="mt-2 text-brand-text font-semibold text-sm max-w-xl">
-            {role === 'teacher' 
-              ? 'Manage assignments, set objectives, and check live parental feedback.'
-              : role === 'homeroom_teacher'
-              ? 'View and monitor homework assignments scheduled for your class.'
-              : 'Review homework details and submit home verification for your children.'
-            }
+            {role === "teacher"
+              ? "Manage assignments, set objectives, and check live parental feedback."
+              : role === "homeroom_teacher"
+                ? "View and monitor homework assignments scheduled for your class."
+                : "Review homework details and submit home verification for your children."}
           </p>
         </div>
         {isCreatorRole && (
@@ -188,6 +206,7 @@ export default function HomeworkList({ role, userId, classId }: HomeworkListProp
           {/* Status Select */}
           <div className="w-full lg:w-48 relative">
             <select
+              aria-label="Status Filter"
               className="w-full bg-brand-bg border border-brand-100 rounded-2xl py-4 px-6 text-brand-heading font-black text-xs uppercase tracking-wider outline-none focus:ring-4 focus:ring-brand-primary/5 focus:border-brand-primary appearance-none cursor-pointer"
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
@@ -215,8 +234,8 @@ export default function HomeworkList({ role, userId, classId }: HomeworkListProp
                   onClick={() => setSelectedSubject(subj)}
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                     selectedSubject === subj
-                      ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/10'
-                      : 'bg-brand-bg text-brand-text hover:bg-brand-50 border border-brand-100'
+                      ? "bg-brand-primary text-white shadow-md shadow-brand-primary/10"
+                      : "bg-brand-bg text-brand-text hover:bg-brand-50 border border-brand-100"
                   }`}
                 >
                   {subj}
@@ -234,41 +253,48 @@ export default function HomeworkList({ role, userId, classId }: HomeworkListProp
             <BookOpen className="w-10 h-10" />
           </div>
           <h3 className="text-2xl font-black text-brand-heading mb-3">
-            {searchQuery || selectedSubject !== 'All' || selectedStatus !== 'All' 
-              ? 'No Results Match Filters' 
-              : role === 'guardian' 
-              ? 'No Homework Available' 
-              : 'No Assignments Scheduled'}
+            {searchQuery ||
+            selectedSubject !== "All" ||
+            selectedStatus !== "All"
+              ? "No Results Match Filters"
+              : role === "guardian"
+                ? "No Homework Available"
+                : "No Assignments Scheduled"}
           </h3>
           <p className="text-brand-text font-semibold text-sm max-w-sm leading-relaxed">
-            {searchQuery || selectedSubject !== 'All' || selectedStatus !== 'All'
-              ? 'Try widening your search terms or resetting filters.'
-              : role === 'guardian'
-              ? 'Your child has no pending homework assignments from their teachers.'
-              : role === 'teacher'
-              ? 'Create your first assignment and share it with parent guardians.'
-              : 'No homework has been assigned to your class yet.'}
+            {searchQuery ||
+            selectedSubject !== "All" ||
+            selectedStatus !== "All"
+              ? "Try widening your search terms or resetting filters."
+              : role === "guardian"
+                ? "Your child has no pending homework assignments from their teachers."
+                : role === "teacher"
+                  ? "Create your first assignment and share it with parent guardians."
+                  : "No homework has been assigned to your class yet."}
           </p>
-          {isCreatorRole && !searchQuery && selectedSubject === 'All' && selectedStatus === 'All' && (
-            <Button onClick={handleCreateHomework} className="mt-6">
-              Create Assignment
-            </Button>
-          )}
+          {isCreatorRole &&
+            !searchQuery &&
+            selectedSubject === "All" &&
+            selectedStatus === "All" && (
+              <Button onClick={handleCreateHomework} className="mt-6">
+                Create Assignment
+              </Button>
+            )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {filteredHomework.map((hw) => {
-            const isOverdue = new Date(hw.dueDate) < new Date()
-            
+            const isOverdue = new Date(hw.dueDate) < new Date();
+
             return (
-              <div 
+              <div
                 key={hw.homeworkId}
                 className="bg-brand-white rounded-[2rem] shadow-xl shadow-brand-primary/5 p-6 md:p-8 border border-brand-100 flex flex-col justify-between hover:border-brand-primary/20 hover:scale-[1.02] active:scale-[0.99] transition-all group cursor-pointer"
                 onClick={() => {
-                  if (role === 'guardian') {
-                    handleViewHomework(hw.homeworkId)
+                  if (role === "guardian") {
+                    handleViewHomework(hw.homeworkId);
                   } else {
-                    handleAnalytics(hw.homeworkId)
+                    handleAnalytics(hw.homeworkId);
                   }
                 }}
               >
@@ -278,12 +304,14 @@ export default function HomeworkList({ role, userId, classId }: HomeworkListProp
                     <span className="bg-brand-accent/15 text-brand-primary font-black px-3 py-1 rounded-full text-[10px] uppercase tracking-wider border border-brand-accent/25">
                       {hw.subject}
                     </span>
-                    <span className={`inline-flex items-center gap-1 px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-full ${
-                      isOverdue 
-                        ? 'bg-red-50 text-red-600 border border-red-100'
-                        : 'bg-brand-success/15 text-brand-success border border-brand-success/20'
-                    }`}>
-                      {isOverdue ? 'Overdue' : 'Active'}
+                    <span
+                      className={`inline-flex items-center gap-1 px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-full ${
+                        isOverdue
+                          ? "bg-red-50 text-red-600 border border-red-100"
+                          : "bg-brand-success/15 text-brand-success border border-brand-success/20"
+                      }`}
+                    >
+                      {isOverdue ? "Overdue" : "Active"}
                     </span>
                   </div>
 
@@ -291,7 +319,7 @@ export default function HomeworkList({ role, userId, classId }: HomeworkListProp
                   <h3 className="text-xl font-black text-brand-heading group-hover:text-brand-primary transition-colors leading-snug mb-3">
                     {hw.title}
                   </h3>
-                  
+
                   <p className="text-brand-text font-semibold text-xs leading-relaxed line-clamp-3 mb-6">
                     {hw.description}
                   </p>
@@ -316,7 +344,7 @@ export default function HomeworkList({ role, userId, classId }: HomeworkListProp
 
                   {/* Role Specific Info & Actions */}
                   <div className="pt-4 border-t border-brand-100 flex items-center justify-between gap-4 mt-2">
-                    {role === 'guardian' ? (
+                    {role === "guardian" ? (
                       <div>
                         {hw.isSeen ? (
                           <span className="inline-flex items-center gap-1 bg-brand-success/15 text-brand-success px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider border border-brand-success/20">
@@ -346,23 +374,23 @@ export default function HomeworkList({ role, userId, classId }: HomeworkListProp
                     <button
                       className="bg-brand-primary hover:bg-brand-secondary text-white font-black text-[10px] uppercase tracking-widest px-4 py-2.5 rounded-xl transition-all shadow-md shadow-brand-primary/10 group-hover:translate-x-1"
                       onClick={(e) => {
-                        e.stopPropagation()
-                        if (role === 'guardian') {
-                          handleViewHomework(hw.homeworkId)
+                        e.stopPropagation();
+                        if (role === "guardian") {
+                          handleViewHomework(hw.homeworkId);
                         } else {
-                          handleAnalytics(hw.homeworkId)
+                          handleAnalytics(hw.homeworkId);
                         }
                       }}
                     >
-                      {role === 'guardian' ? 'Open' : 'Analytics'}
+                      {role === "guardian" ? "Open" : "Analytics"}
                     </button>
                   </div>
                 </div>
               </div>
-            )
+            );
           })}
         </div>
       )}
     </div>
-  )
+  );
 }
