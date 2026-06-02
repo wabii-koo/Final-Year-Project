@@ -11,6 +11,7 @@ CREATE TABLE "PendingRegistrations" (
     "phoneNo" VARCHAR(20) NOT NULL,
     "passwordHash" VARCHAR(255) NOT NULL,
     "nationalId" VARCHAR(50) NOT NULL,
+    "studentId" INTEGER NOT NULL,
     "studentName" VARCHAR(100) NOT NULL,
     "relationshipType" VARCHAR(20) NOT NULL,
     "otpVerified" BOOLEAN NOT NULL DEFAULT FALSE,

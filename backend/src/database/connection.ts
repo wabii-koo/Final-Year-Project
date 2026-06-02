@@ -53,7 +53,7 @@ export const connectDatabase = async (): Promise<void> => {
       console.log('Database synchronized successfully.');
     }
 
-    // Alter messages table to add deletion tracking columns if they don't exist
+    // Alter tables to add missing columns if they don't exist
     try {
       await sequelize.query(`
         ALTER TABLE messages ADD COLUMN IF NOT EXISTS deleted_by_sender BOOLEAN DEFAULT FALSE;
@@ -61,9 +61,12 @@ export const connectDatabase = async (): Promise<void> => {
       await sequelize.query(`
         ALTER TABLE messages ADD COLUMN IF NOT EXISTS deleted_by_receiver BOOLEAN DEFAULT FALSE;
       `);
-      console.log('Database columns for message deletion synchronized.');
+      await sequelize.query(`
+        ALTER TABLE "PendingRegistrations" ADD COLUMN IF NOT EXISTS "studentId" INTEGER;
+      `);
+      console.log('Database columns for message deletion and PendingRegistrations synchronized.');
     } catch (alterError) {
-      console.error('Failed to alter messages table:', alterError);
+      console.error('Failed to alter tables:', alterError);
     }
   } catch (error) {
     console.error('Unable to connect to the database:', error);
