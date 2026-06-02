@@ -449,37 +449,6 @@ function LoginContent() {
                         a dedicated, secure channel.
                       </p>
                     </div>
-                    {/* Secure access visual panel */}
-                    <div className="w-full max-w-sm bg-gradient-to-br from-brand-primary/5 via-white to-brand-accent/5 border border-brand-100 rounded-3xl p-6 relative overflow-hidden shadow-sm">
-                      <div className="absolute inset-0 bg-[radial-gradient(#2E5A3315_1px,transparent_1px)] [background-size:16px_16px] opacity-60 pointer-events-none" />
-                      <div className="relative z-10 flex justify-center gap-8">
-                        <div className="flex flex-col items-center gap-2">
-                          <div className="w-12 h-12 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center">
-                            <Shield className="w-6 h-6 text-brand-primary" />
-                          </div>
-                          <span className="text-[10px] font-black text-brand-text/60 uppercase tracking-widest">
-                            Protected
-                          </span>
-                        </div>
-                        <div className="flex flex-col items-center gap-2">
-                          <div className="w-12 h-12 rounded-2xl bg-brand-accent/10 border border-brand-accent/20 flex items-center justify-center">
-                            <Lock className="w-6 h-6 text-brand-primary" />
-                          </div>
-                          <span className="text-[10px] font-black text-brand-text/60 uppercase tracking-widest">
-                            Encrypted
-                          </span>
-                        </div>
-                        <div className="flex flex-col items-center gap-2">
-                          <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center">
-                            <KeyRound className="w-6 h-6 text-emerald-600" />
-                          </div>
-                          <span className="text-[10px] font-black text-brand-text/60 uppercase tracking-widest">
-                            Role-Based
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
                     {/* Premium Redirect Button */}
                     <button
                       type="button"
