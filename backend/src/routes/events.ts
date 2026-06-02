@@ -7,9 +7,9 @@ const eventController = new EventController();
 
 router.use(authenticateToken);
 
-router.get('/', eventController.getEvents);
-router.post('/', eventController.createEvent);
-router.put('/:id', eventController.updateEvent);
-router.delete('/:id', eventController.deleteEvent);
+router.get('/', eventController.getEvents.bind(eventController));
+router.post('/', eventController.createEvent.bind(eventController));
+router.put('/:id', eventController.updateEvent.bind(eventController));
+router.delete('/:id', eventController.deleteEvent.bind(eventController));
 
 export default router;

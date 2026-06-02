@@ -8,6 +8,7 @@ interface PendingRegistrationAttributes {
   phoneNo: string;
   passwordHash: string;
   nationalId: string;
+  studentId: number;
   studentName: string;
   relationshipType: 'parent' | 'legal_guardian';
   otpVerified: boolean;
@@ -25,6 +26,7 @@ export class PendingRegistrationModel extends Model<PendingRegistrationAttribute
   public phoneNo!: string;
   public passwordHash!: string;
   public nationalId!: string;
+  public studentId!: number;
   public studentName!: string;
   public relationshipType!: 'parent' | 'legal_guardian';
   public otpVerified!: boolean;
@@ -62,6 +64,10 @@ PendingRegistrationModel.init(
       type: DataTypes.STRING(50),
       allowNull: false,
       unique: true,
+    },
+    studentId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
     },
     studentName: {
       type: DataTypes.STRING(100),

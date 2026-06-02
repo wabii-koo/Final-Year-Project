@@ -50,6 +50,11 @@ export class EventController {
     }
   }
 
+  private isDateInPast(dateValue: string | Date): boolean {
+    const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+    return date.getTime() < Date.now();
+  }
+
   async createEvent(req: any, res: Response): Promise<void> {
     try {
       const { title, description, eventDate, eventType, location, targetAudience } = req.body;
@@ -60,6 +65,17 @@ export class EventController {
         res.status(403).json({
           success: false,
           message: 'Only Director can schedule school-wide events'
+        });
+        return;
+      }
+
+      if (!eventDate || this.isDateInPast(eventDate)) {
+        res.status(400).json({
+          success: false,
+          error: {
+            code: 'EVENT_DATE_IN_PAST',
+            message: 'Event start must be now or in the future.'
+          }
         });
         return;
       }
@@ -78,7 +94,7 @@ export class EventController {
           success: false,
           error: {
             code: 'EVENT_CONFLICT',
-            message: `A conflict was detected: "${existingEvent.title}" is already scheduled at this time and location.`
+            message: 'conflict date reschedule again'
           }
         });
         return;
@@ -163,6 +179,18 @@ export class EventController {
         return;
       }
 
+      // Validate updated event date if provided
+      if (eventDate && this.isDateInPast(eventDate)) {
+        res.status(400).json({
+          success: false,
+          error: {
+            code: 'EVENT_DATE_IN_PAST',
+            message: 'Event start must be now or in the future.'
+          }
+        });
+        return;
+      }
+
       // Conflict Detection: Same time and location (excluding this event)
       if (eventDate || location) {
         const checkDate = eventDate ? new Date(eventDate) : event.eventDate;
@@ -182,7 +210,7 @@ export class EventController {
             success: false,
             error: {
               code: 'EVENT_CONFLICT',
-              message: `A conflict was detected: "${existingEvent.title}" is already scheduled at this time and location.`
+              message: 'conflict date reschedule again'
             }
           });
           return;

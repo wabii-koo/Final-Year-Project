@@ -183,6 +183,7 @@ export const validateRegistration = async (req: Request, res: Response): Promise
       phoneNo,
       passwordHash,
       nationalId,
+      studentId: student.studentId,
       studentName,
       relationshipType,
       otpVerified: false,
@@ -346,7 +347,7 @@ export const completeRegistration = async (req: Request, res: Response): Promise
         phoneNo: data.phoneNo,
         passwordHash,
         nationalId: data.nationalId,
-        studentId: null,
+        studentId: data.studentId,   // always set — matched in step 1
         studentName: data.studentName,
         relationshipType: data.relationshipType,
         certificateDocumentPath: files.certificate[0].path,

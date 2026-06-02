@@ -33,11 +33,37 @@ export default function CreateEventPage() {
     setEvent(prev => ({ ...prev, [name]: value }))
   }
 
+  const minEventDateTime = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 16)
+
+  const isDateInPast = (dateTime: string) => {
+    if (!dateTime) return false
+    const [datePart, timePart] = dateTime.split('T')
+    if (!datePart || !timePart) return false
+    const [year, month, day] = datePart.split('-').map(Number)
+    const [hour, minute] = timePart.split(':').map(Number)
+    const selectedDate = new Date(year, month - 1, day, hour, minute)
+    return selectedDate.getTime() < Date.now()
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
     setSuccess('')
+
+    if (!event.eventDate) {
+      setError('Please select a date and time for the event.')
+      setLoading(false)
+      return
+    }
+
+    if (isDateInPast(event.eventDate)) {
+      setError('Event start must be now or in the future. Please choose a current or future date/time.')
+      setLoading(false)
+      return
+    }
 
     try {
       const token = localStorage.getItem('token')
@@ -83,12 +109,7 @@ export default function CreateEventPage() {
         setSuccess('Event created successfully!')
         setTimeout(() => router.push('/dashboard/events'), 1500)
       } else {
-        // Handle Conflict specifically
-        if (data.error?.code === 'EVENT_CONFLICT') {
-          setError(data.error.message)
-        } else {
-          setError(data.message || 'Failed to schedule event')
-        }
+        setError(data.error?.message || data.message || 'Failed to schedule event')
       }
     } catch (err) {
       setError('Network error. Please try again.')
@@ -163,6 +184,7 @@ export default function CreateEventPage() {
               type="datetime-local"
               name="eventDate"
               value={event.eventDate}
+              min={minEventDateTime}
               onChange={handleChange}
               className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
               required

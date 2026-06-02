@@ -8,7 +8,7 @@ interface GuardianRegistrationAttributes {
   phoneNo: string;
   passwordHash: string;
   nationalId: string;
-  studentId?: number | null;
+  studentId: number;
   studentName: string;
   relationshipType: 'parent' | 'legal_guardian';
   certificateDocumentPath: string;
@@ -22,7 +22,7 @@ interface GuardianRegistrationAttributes {
   createdAt: Date;
 }
 
-interface GuardianRegistrationCreationAttributes extends Optional<GuardianRegistrationAttributes, 'registrationId' | 'rejectionReason' | 'reviewedBy' | 'reviewedAt' | 'createdAt' | 'studentId'> {}
+interface GuardianRegistrationCreationAttributes extends Optional<GuardianRegistrationAttributes, 'registrationId' | 'rejectionReason' | 'reviewedBy' | 'reviewedAt' | 'createdAt'> {}
 
 export class GuardianRegistrationModel extends Model<GuardianRegistrationAttributes, GuardianRegistrationCreationAttributes> implements GuardianRegistrationAttributes {
   public registrationId!: number;
@@ -31,7 +31,7 @@ export class GuardianRegistrationModel extends Model<GuardianRegistrationAttribu
   public phoneNo!: string;
   public passwordHash!: string;
   public nationalId!: string;
-  public studentId?: number | null;
+  public studentId!: number;
   public studentName!: string;
   public relationshipType!: 'parent' | 'legal_guardian';
   public certificateDocumentPath!: string;
@@ -83,7 +83,7 @@ GuardianRegistrationModel.init(
     },
     studentId: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       field: 'student_id',
     },
     studentName: {
