@@ -302,7 +302,7 @@ export default function PendingReportCardsPage() {
                 <div className="p-6">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-start space-x-4">
-                      <div className="bg-blue-50 p-3 rounded-lg text-blue-600">
+                      <div className="bg-blue-50 p-3 rounded-lg text-green-600">
                         <User className="h-8 w-8" />
                       </div>
                       <div>
@@ -319,7 +319,7 @@ export default function PendingReportCardsPage() {
                             Submitted:{" "}
                             {new Date(rc.filledAt).toLocaleDateString()}
                           </span>
-                          <span className="text-blue-600 font-medium">
+                          <span className="text-green-600 font-medium">
                             By: {rc.teacher?.fullName}
                           </span>
                         </div>
