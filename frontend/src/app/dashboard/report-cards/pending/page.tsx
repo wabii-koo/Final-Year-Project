@@ -243,11 +243,11 @@ export default function PendingReportCardsPage() {
         <div className="mb-8 flex items-center justify-between">
           <div>
             <Link
-              href="/dashboard"
-              className="flex items-center text-blue-600 hover:text-blue-800 mb-2"
+              href="/"
+              className="flex items-center gap-2 text-brand-primary hover:text-brand-secondary font-bold mb-6 transition-colors cursor-pointer group w-fit"
             >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back to Dashboard
+              <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
+              <span>Back</span>
             </Link>
             <h1 className="text-3xl font-bold text-gray-900">
               Endorse Report Cards
@@ -257,7 +257,7 @@ export default function PendingReportCardsPage() {
               teachers.
             </p>
           </div>
-          <div className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full font-bold">
+          <div className="bg-blue-100 -800 px-4 py-2 rounded-full font-bold">
             {reportCards.length} Pending
           </div>
         </div>
@@ -328,7 +328,7 @@ export default function PendingReportCardsPage() {
                     <div className="flex items-center space-x-3">
                       <button
                         onClick={() => openReviewModal(rc)}
-                        className="flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all font-bold text-xs uppercase tracking-wider shadow-md hover:scale-105 active:scale-95 duration-150"
+                        className="flex items-center px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all font-bold text-xs uppercase tracking-wider shadow-md hover:scale-105 active:scale-95 duration-150"
                       >
                         Review details
                       </button>
