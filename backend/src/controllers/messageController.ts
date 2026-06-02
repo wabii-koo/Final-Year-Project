@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { ApiResponse, Message } from '../types';
 import { UserRole } from '../types';
 import { sequelize } from '../database/connection';
+import { filterContent } from '../middleware/contentFilter';
 
 export class MessageController {
   async getMessages(req: any, res: Response): Promise<void> {
@@ -202,6 +203,25 @@ export class MessageController {
           return;
         }
       }
+
+      // ── Content moderation ────────────────────────────────────────────────
+      // Block offensive or inappropriate messages before they reach the DB.
+      const filterResult = filterContent(content);
+      if (!filterResult.isClean) {
+        console.warn(
+          `🚫 Message BLOCKED — user ${senderId} (${senderRole}) used offensive word: "${filterResult.blockedWord}"`
+        );
+        res.status(400).json({
+          success: false,
+          error: {
+            code: 'OFFENSIVE_CONTENT',
+            message: filterResult.reason,
+          },
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+      // ─────────────────────────────────────────────────────────────────────
 
       // Create message
       const [result] = await sequelize.query(`
