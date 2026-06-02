@@ -202,7 +202,7 @@ export default function CreateNotificationPage() {
         <div className="bg-white shadow-lg rounded-lg p-6">
           <div className="mb-6">
             <div className="flex items-center mb-4">
-              <Bell className="h-6 w-6 text-blue-600 mr-2" />
+              <Bell className="h-6 w-6 text-green-600 mr-2" />
               <h2 className="text-2xl font-bold text-gray-900">
                 Send New Notification
               </h2>
@@ -327,7 +327,7 @@ export default function CreateNotificationPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center"
+                className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center"
               >
                 {loading ? (
                   <>
