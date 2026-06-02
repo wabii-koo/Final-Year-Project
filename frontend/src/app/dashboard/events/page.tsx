@@ -1,376 +1,434 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Calendar, Clock, MapPin, Plus, AlertTriangle, X, ChevronLeft, ChevronRight, Users, Bell, Edit, Trash2, CheckCircle } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Plus,
+  AlertTriangle,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Users,
+  Bell,
+  Edit,
+  Trash2,
+  CheckCircle,
+} from "lucide-react";
 
 interface Event {
-  eventId: number
-  title: string
-  description: string
-  eventDate: string
-  endDate?: string
-  eventType: 'exam' | 'meeting' | 'holiday' | 'activity' | 'other'
-  location?: string
-  createdBy: number
-  createdAt: string
-  updatedAt: string
-  isActive: boolean
-  targetAudience: 'all' | 'guardians_only' | 'teachers_only' | 'specific_class'
+  eventId: number;
+  title: string;
+  description: string;
+  eventDate: string;
+  endDate?: string;
+  eventType: "exam" | "meeting" | "holiday" | "activity" | "other";
+  location?: string;
+  createdBy: number;
+  createdAt: string;
+  updatedAt: string;
+  isActive: boolean;
+  targetAudience: "all" | "guardians_only" | "teachers_only" | "specific_class";
 }
 
 export default function EventsPage() {
-  const [user, setUser] = useState<any>(null)
-  const [events, setEvents] = useState<Event[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [currentMonth, setCurrentMonth] = useState(new Date())
-  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
-  const [conflictWarning, setConflictWarning] = useState<string | null>(null)
-  const [viewingEvent, setViewingEvent] = useState<Event | null>(null)
-  const [editingEvent, setEditingEvent] = useState<Event | null>(null)
+  const [user, setUser] = useState<any>(null);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+  const [conflictWarning, setConflictWarning] = useState<string | null>(null);
+  const [viewingEvent, setViewingEvent] = useState<Event | null>(null);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [editFormData, setEditFormData] = useState({
-    title: '',
-    description: '',
-    eventDate: '',
-    eventType: 'activity' as Event['eventType'],
-    location: '',
-    targetAudience: 'all' as Event['targetAudience']
-  })
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const router = useRouter()
+    title: "",
+    description: "",
+    eventDate: "",
+    eventType: "activity" as Event["eventType"],
+    location: "",
+    targetAudience: "all" as Event["targetAudience"],
+  });
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (successMessage) {
-      const timer = setTimeout(() => setSuccessMessage(null), 3000)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => setSuccessMessage(null), 3000);
+      return () => clearTimeout(timer);
     }
-  }, [successMessage])
+  }, [successMessage]);
 
   const [newEvent, setNewEvent] = useState({
-    title: '',
-    description: '',
-    eventDate: '',
-    endDate: '',
-    eventType: 'activity' as Event['eventType'],
-    location: '',
-    targetAudience: 'all' as Event['targetAudience'],
-    sendNotification: true
-  })
+    title: "",
+    description: "",
+    eventDate: "",
+    endDate: "",
+    eventType: "activity" as Event["eventType"],
+    location: "",
+    targetAudience: "all" as Event["targetAudience"],
+    sendNotification: true,
+  });
 
   useEffect(() => {
-    const userData = localStorage.getItem('user')
+    const userData = localStorage.getItem("user");
     if (userData) {
-      setUser(JSON.parse(userData))
+      setUser(JSON.parse(userData));
     } else {
-      router.push('/auth/login')
-      return
+      router.push("/auth/login");
+      return;
     }
-  }, [router])
+  }, [router]);
 
   useEffect(() => {
     if (user) {
-      fetchEvents()
+      fetchEvents();
     }
-  }, [user])
+  }, [user]);
 
   useEffect(() => {
     const handleEventsUpdated = () => {
       if (user) {
-        fetchEvents()
+        fetchEvents();
       }
-    }
-    window.addEventListener('school-events-updated', handleEventsUpdated)
+    };
+    window.addEventListener("school-events-updated", handleEventsUpdated);
     return () => {
-      window.removeEventListener('school-events-updated', handleEventsUpdated)
-    }
-  }, [user])
+      window.removeEventListener("school-events-updated", handleEventsUpdated);
+    };
+  }, [user]);
 
   const fetchEvents = async () => {
     try {
-      const token = localStorage.getItem('token')
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const token = localStorage.getItem("token");
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
       const response = await fetch(`${apiUrl}/api/events`, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
-        const response_data = await response.json()
-        const data = response_data.data?.events || response_data
-        setEvents(Array.isArray(data) ? data : [])
+        const response_data = await response.json();
+        const data = response_data.data?.events || response_data;
+        setEvents(Array.isArray(data) ? data : []);
       } else {
-        console.error('Failed to fetch events')
+        console.error("Failed to fetch events");
       }
     } catch (error) {
-      console.error('Error fetching events:', error)
-      setEvents([])
+      console.error("Error fetching events:", error);
+      setEvents([]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const checkConflict = (startDate: string, endDate: string, excludeId?: number): Event | null => {
-    const newStart = new Date(startDate)
-    const newEnd = endDate ? new Date(endDate) : newStart
+  const checkConflict = (
+    startDate: string,
+    endDate: string,
+    excludeId?: number,
+  ): Event | null => {
+    const newStart = new Date(startDate);
+    const newEnd = endDate ? new Date(endDate) : newStart;
 
-    return events.find(event => {
-      if (excludeId && event.eventId === excludeId) return false
-      
-      const eventStart = new Date(event.eventDate)
-      const eventEnd = event.endDate ? new Date(event.endDate) : eventStart
-      
-      // Check for overlap
-      return (newStart <= eventEnd && newEnd >= eventStart)
-    }) || null
-  }
+    return (
+      events.find((event) => {
+        if (excludeId && event.eventId === excludeId) return false;
+
+        const eventStart = new Date(event.eventDate);
+        const eventEnd = event.endDate ? new Date(event.endDate) : eventStart;
+
+        // Check for overlap
+        return newStart <= eventEnd && newEnd >= eventStart;
+      }) || null
+    );
+  };
 
   const handleCreateEvent = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setConflictWarning(null)
+    e.preventDefault();
+    setConflictWarning(null);
 
     // Check for conflicts
-    const conflict = checkConflict(newEvent.eventDate, newEvent.endDate || newEvent.eventDate)
+    const conflict = checkConflict(
+      newEvent.eventDate,
+      newEvent.endDate || newEvent.eventDate,
+    );
     if (conflict) {
-      setConflictWarning(`Warning: This event overlaps with "${conflict.title}" on ${new Date(conflict.eventDate).toLocaleDateString()}`)
-      return
+      setConflictWarning(
+        `Warning: This event overlaps with "${conflict.title}" on ${new Date(conflict.eventDate).toLocaleDateString()}`,
+      );
+      return;
     }
 
     try {
-      const token = localStorage.getItem('token')
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-      
+      const token = localStorage.getItem("token");
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
       const response = await fetch(`${apiUrl}/api/events`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(newEvent)
-      })
+        body: JSON.stringify(newEvent),
+      });
 
       if (response.ok) {
-        const data = await response.json()
-        
+        const data = await response.json();
+
         // If notification requested, send it
         if (newEvent.sendNotification) {
           await fetch(`${apiUrl}/api/notifications`, {
-            method: 'POST',
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
               title: `New Event: ${newEvent.title}`,
-              content: `${newEvent.description}\n\nDate: ${new Date(newEvent.eventDate).toLocaleDateString()}\nLocation: ${newEvent.location || 'TBD'}`,
-              priority: 'normal',
-              recipientGroup: newEvent.targetAudience === 'all' ? 'all' : 
-                            newEvent.targetAudience === 'guardians_only' ? 'all_guardians' : 
-                            newEvent.targetAudience === 'teachers_only' ? 'all_teachers' : 'all'
-            })
-          })
+              content: `${newEvent.description}\n\nDate: ${new Date(newEvent.eventDate).toLocaleDateString()}\nLocation: ${newEvent.location || "TBD"}`,
+              priority: "normal",
+              recipientGroup:
+                newEvent.targetAudience === "all"
+                  ? "all"
+                  : newEvent.targetAudience === "guardians_only"
+                    ? "all_guardians"
+                    : newEvent.targetAudience === "teachers_only"
+                      ? "all_teachers"
+                      : "all",
+            }),
+          });
         }
 
         // Broadcast to all other open tabs immediately
         try {
-          const bc = new BroadcastChannel('school-updates')
-          bc.postMessage({ type: 'event', action: 'created', title: newEvent.title })
-          bc.close()
+          const bc = new BroadcastChannel("school-updates");
+          bc.postMessage({
+            type: "event",
+            action: "created",
+            title: newEvent.title,
+          });
+          bc.close();
         } catch (_) {}
 
-        setShowCreateModal(false)
+        setShowCreateModal(false);
         setNewEvent({
-          title: '',
-          description: '',
-          eventDate: '',
-          endDate: '',
-          eventType: 'activity',
-          location: '',
-          targetAudience: 'all',
-          sendNotification: true
-        })
-        fetchEvents()
+          title: "",
+          description: "",
+          eventDate: "",
+          endDate: "",
+          eventType: "activity",
+          location: "",
+          targetAudience: "all",
+          sendNotification: true,
+        });
+        fetchEvents();
       } else {
-        const error = await response.json()
-        alert(error.error?.message || 'Failed to create event')
+        const error = await response.json();
+        alert(error.error?.message || "Failed to create event");
       }
     } catch (error) {
-      console.error('Error creating event:', error)
-      alert('Network error. Please make sure the backend is running.')
+      console.error("Error creating event:", error);
+      alert("Network error. Please make sure the backend is running.");
     }
-  }
+  };
 
   const formatDateTime = (dateStr: string) => {
-    if (!dateStr) return ''
-    const date = new Date(dateStr)
-    const tzoffset = date.getTimezoneOffset() * 60000
-    const localISOTime = (new Date(date.getTime() - tzoffset)).toISOString().slice(0, 16)
-    return localISOTime
-  }
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    const tzoffset = date.getTimezoneOffset() * 60000;
+    const localISOTime = new Date(date.getTime() - tzoffset)
+      .toISOString()
+      .slice(0, 16);
+    return localISOTime;
+  };
 
   const handleStartEdit = (event: Event) => {
-    setEditingEvent(event)
+    setEditingEvent(event);
     setEditFormData({
       title: event.title,
       description: event.description,
       eventDate: formatDateTime(event.eventDate),
       eventType: event.eventType,
-      location: event.location || '',
-      targetAudience: event.targetAudience
-    })
-  }
+      location: event.location || "",
+      targetAudience: event.targetAudience,
+    });
+  };
 
   const handleUpdateEvent = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!editingEvent) return
+    e.preventDefault();
+    if (!editingEvent) return;
 
     try {
-      const token = localStorage.getItem('token')
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-      const response = await fetch(`${apiUrl}/api/events/${editingEvent.eventId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+      const token = localStorage.getItem("token");
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+      const response = await fetch(
+        `${apiUrl}/api/events/${editingEvent.eventId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(editFormData),
         },
-        body: JSON.stringify(editFormData)
-      })
+      );
 
       if (response.ok) {
         // Send a system notification alerting users of the update
         try {
           await fetch(`${apiUrl}/api/notifications`, {
-            method: 'POST',
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
               title: `Updated Event: ${editFormData.title}`,
-              content: `The event "${editFormData.title}" has been updated.\n\nNew Details:\nDate: ${new Date(editFormData.eventDate).toLocaleDateString()}\nLocation: ${editFormData.location || 'TBD'}\nDescription: ${editFormData.description}`,
-              priority: 'normal',
-              recipientGroup: 'all'
-            })
-          })
+              content: `The event "${editFormData.title}" has been updated.\n\nNew Details:\nDate: ${new Date(editFormData.eventDate).toLocaleDateString()}\nLocation: ${editFormData.location || "TBD"}\nDescription: ${editFormData.description}`,
+              priority: "normal",
+              recipientGroup: "all",
+            }),
+          });
         } catch (notifErr) {
-          console.error('Failed to send event update notification:', notifErr)
+          console.error("Failed to send event update notification:", notifErr);
         }
 
         // Broadcast to all other open tabs immediately
         try {
-          const bc = new BroadcastChannel('school-updates')
-          bc.postMessage({ type: 'event', action: 'updated', title: editFormData.title })
-          bc.close()
+          const bc = new BroadcastChannel("school-updates");
+          bc.postMessage({
+            type: "event",
+            action: "updated",
+            title: editFormData.title,
+          });
+          bc.close();
         } catch (_) {}
 
-        setEditingEvent(null)
-        setSuccessMessage('Event updated successfully!')
-        fetchEvents()
+        setEditingEvent(null);
+        setSuccessMessage("Event updated successfully!");
+        fetchEvents();
       } else {
-        const error = await response.json()
-        alert(error.error?.message || error.message || 'Failed to update event')
+        const error = await response.json();
+        alert(
+          error.error?.message || error.message || "Failed to update event",
+        );
       }
     } catch (error) {
-      console.error('Error updating event:', error)
-      alert('Network error')
+      console.error("Error updating event:", error);
+      alert("Network error");
     }
-  }
+  };
 
   const handleDeleteEvent = async (eventId: number) => {
-    const eventToDelete = events.find(ev => ev.eventId === eventId)
-    if (!confirm('Are you sure you want to cancel this event?')) return
+    const eventToDelete = events.find((ev) => ev.eventId === eventId);
+    if (!confirm("Are you sure you want to cancel this event?")) return;
 
     try {
-      const token = localStorage.getItem('token')
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const token = localStorage.getItem("token");
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
       const response = await fetch(`${apiUrl}/api/events/${eventId}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
         if (eventToDelete) {
           // Send notification about event cancellation
           try {
             await fetch(`${apiUrl}/api/notifications`, {
-              method: 'POST',
+              method: "POST",
               headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
               },
               body: JSON.stringify({
                 title: `Cancelled Event: ${eventToDelete.title}`,
                 content: `The event "${eventToDelete.title}" scheduled for ${new Date(eventToDelete.eventDate).toLocaleDateString()} has been cancelled.`,
-                priority: 'emergency', // Cancellation is high priority
-                recipientGroup: 'all'
-              })
-            })
+                priority: "emergency", // Cancellation is high priority
+                recipientGroup: "all",
+              }),
+            });
           } catch (notifErr) {
-            console.error('Failed to send event cancellation notification:', notifErr)
+            console.error(
+              "Failed to send event cancellation notification:",
+              notifErr,
+            );
           }
 
           // Broadcast to all other open tabs immediately
           try {
-            const bc = new BroadcastChannel('school-updates')
-            bc.postMessage({ type: 'event', action: 'deleted', title: eventToDelete.title })
-            bc.close()
+            const bc = new BroadcastChannel("school-updates");
+            bc.postMessage({
+              type: "event",
+              action: "deleted",
+              title: eventToDelete.title,
+            });
+            bc.close();
           } catch (_) {}
         }
-        setSuccessMessage('Event deleted successfully!')
-        fetchEvents()
+        setSuccessMessage("Event deleted successfully!");
+        fetchEvents();
       } else {
-        const error = await response.json()
-        alert(error.message || 'Failed to delete event')
+        const error = await response.json();
+        alert(error.message || "Failed to delete event");
       }
     } catch (error) {
-      console.error('Error deleting event:', error)
-      alert('Network error')
+      console.error("Error deleting event:", error);
+      alert("Network error");
     }
-  }
+  };
 
   const getDaysInMonth = (date: Date) => {
-    const year = date.getFullYear()
-    const month = date.getMonth()
-    const firstDay = new Date(year, month, 1)
-    const lastDay = new Date(year, month + 1, 0)
-    const daysInMonth = lastDay.getDate()
-    const startingDayOfWeek = firstDay.getDay()
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
 
-    const days = []
-    
+    const days = [];
+
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < startingDayOfWeek; i++) {
-      days.push(null)
+      days.push(null);
     }
-    
+
     // Add days of the month
     for (let i = 1; i <= daysInMonth; i++) {
-      days.push(i)
+      days.push(i);
     }
-    
-    return days
-  }
+
+    return days;
+  };
 
   const getEventsForDate = (day: number) => {
-    const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    return events.filter(event => event.eventDate.startsWith(dateStr))
-  }
+    const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    return events.filter((event) => event.eventDate.startsWith(dateStr));
+  };
 
   const navigateMonth = (direction: number) => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + direction, 1))
-  }
+    setCurrentMonth(
+      new Date(
+        currentMonth.getFullYear(),
+        currentMonth.getMonth() + direction,
+        1,
+      ),
+    );
+  };
 
-  const canCreateEvent = user?.role === 'director'
+  const canCreateEvent = user?.role === "director";
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -386,12 +444,21 @@ export default function EventsPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-black text-black">Events</h1>
-            <p className="text-gray-700 mt-1 font-medium">School calendar and upcoming activities</p>
+            <p className="text-gray-700 mt-1 font-medium">
+              School calendar and upcoming activities
+            </p>
           </div>
           {canCreateEvent && (
             <button
-              onClick={() => router.push('/dashboard/events/create')}
-              className="flex items-center gap-2 px-6 py-3 text-white rounded-lg font-semibold active:scale-95 transition-all" style={{ backgroundColor: '#7ab32e' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor='#6a9e28')} onMouseLeave={e => (e.currentTarget.style.backgroundColor='#7ab32e')}
+              onClick={() => router.push("/dashboard/events/create")}
+              className="flex items-center gap-2 px-6 py-3 text-white rounded-lg font-semibold active:scale-95 transition-all"
+              style={{ backgroundColor: "#7ab32e" }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.backgroundColor = "#6a9e28")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.backgroundColor = "#7ab32e")
+              }
             >
               <Plus className="h-5 w-5" />
               Create Event
@@ -402,39 +469,64 @@ export default function EventsPage() {
         {events.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
             <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Scheduled Events</h3>
-            <p className="text-gray-500">You're all caught up! No upcoming events.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No Scheduled Events
+            </h3>
+            <p className="text-gray-500">
+              You're all caught up! No upcoming events.
+            </p>
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200" style={{ backgroundColor: '#f2f9e8' }}>
-               <h2 className="text-lg font-bold text-gray-800">Upcoming Events</h2>
+            <div
+              className="px-6 py-4 border-b border-gray-200"
+              style={{ backgroundColor: "#f2f9e8" }}
+            >
+              <h2 className="text-lg font-bold text-gray-800">
+                Upcoming Events
+              </h2>
             </div>
             <div className="divide-y divide-gray-200">
               {events.map((event, index) => (
-                <div key={event.eventId} className="p-6 hover:bg-gray-50 transition-colors relative group">
+                <div
+                  key={event.eventId}
+                  className="p-6 hover:bg-gray-50 transition-colors relative group"
+                >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <h3 className="text-[18px] font-black text-black mb-2 flex items-center gap-2">
                         {event.title}
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                          event.eventType === 'meeting' ? 'bg-green-100 text-green-800' :
-                          event.eventType === 'activity' ? 'bg-green-100 text-green-800' :
-                          event.eventType === 'exam' ? 'bg-red-100 text-red-800' :
-                          event.eventType === 'holiday' ? 'bg-purple-100 text-purple-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {event.eventType ? (event.eventType.charAt(0).toUpperCase() + event.eventType.slice(1)) : 'Event'}
+                        <span
+                          className={`px-2 py-0.5 rounded text-xs font-medium ${
+                            event.eventType === "meeting"
+                              ? "bg-green-100 text-green-800"
+                              : event.eventType === "activity"
+                                ? "bg-green-100 text-green-800"
+                                : event.eventType === "exam"
+                                  ? "bg-red-100 text-red-800"
+                                  : event.eventType === "holiday"
+                                    ? "bg-purple-100 text-purple-800"
+                                    : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {event.eventType
+                            ? event.eventType.charAt(0).toUpperCase() +
+                              event.eventType.slice(1)
+                            : "Event"}
                         </span>
                       </h3>
                       <p className="text-sm font-bold text-black mb-2">
-                        Date: {event.eventDate ? new Date(event.eventDate).toLocaleDateString() : 'TBD'} • Location: {event.location || 'TBD'}
+                        Date:{" "}
+                        {event.eventDate
+                          ? new Date(event.eventDate).toLocaleDateString()
+                          : "TBD"}{" "}
+                        • Location: {event.location || "TBD"}
                       </p>
                       <p className="text-black text-sm mb-4 line-clamp-2 leading-relaxed">
                         {event.description}
                       </p>
                       <div className="flex gap-4 items-center">
-                        <button 
+                        <button
                           onClick={() => setViewingEvent(event)}
                           className="text-red-600 font-bold hover:underline text-sm focus:outline-none"
                         >
@@ -442,14 +534,14 @@ export default function EventsPage() {
                         </button>
                         {canCreateEvent && (
                           <div className="flex gap-3 ml-2">
-                            <button 
+                            <button
                               onClick={() => handleStartEdit(event)}
                               className="text-blue-500 hover:text-blue-700 transition-colors focus:outline-none"
                               title="Edit Event"
                             >
                               <Edit className="h-5 w-5" />
                             </button>
-                            <button 
+                            <button
                               onClick={() => handleDeleteEvent(event.eventId)}
                               className="text-red-500 hover:text-red-700 transition-colors focus:outline-none"
                               title="Delete Event"
@@ -472,12 +564,19 @@ export default function EventsPage() {
       {viewingEvent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b flex items-center justify-between" style={{ backgroundColor: '#f2f9e8', borderColor: '#c8e6a0' }}>
-              <h2 className="text-xl font-bold flex items-center gap-2" style={{ color: '#3d6b0f' }}>
-                <Calendar className="w-5 h-5" style={{ color: '#7ab32e' }} />
+            <div
+              className="px-6 py-4 border-b flex items-center justify-between"
+              style={{ backgroundColor: "#f2f9e8", borderColor: "#c8e6a0" }}
+            >
+              <h2
+                className="text-xl font-bold flex items-center gap-2"
+                style={{ color: "#3d6b0f" }}
+              >
+                <Calendar className="w-5 h-5" style={{ color: "#7ab32e" }} />
                 Event Details
               </h2>
-              <button 
+              <button
+                aria-label="view Event"
                 onClick={() => setViewingEvent(null)}
                 className="text-gray-500 hover:text-gray-800 transition-colors p-1"
               >
@@ -486,38 +585,51 @@ export default function EventsPage() {
             </div>
             <div className="p-6">
               <div className="flex items-center gap-3 mb-3">
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  viewingEvent.eventType === 'meeting' ? 'bg-green-100 text-green-800' :
-                  viewingEvent.eventType === 'activity' ? 'bg-green-100 text-green-800' :
-                  viewingEvent.eventType === 'exam' ? 'bg-red-100 text-red-800' :
-                  viewingEvent.eventType === 'holiday' ? 'bg-purple-100 text-purple-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {viewingEvent.eventType ? (viewingEvent.eventType.charAt(0).toUpperCase() + viewingEvent.eventType.slice(1)) : 'Event'}
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    viewingEvent.eventType === "meeting"
+                      ? "bg-green-100 text-green-800"
+                      : viewingEvent.eventType === "activity"
+                        ? "bg-green-100 text-green-800"
+                        : viewingEvent.eventType === "exam"
+                          ? "bg-red-100 text-red-800"
+                          : viewingEvent.eventType === "holiday"
+                            ? "bg-purple-100 text-purple-800"
+                            : "bg-gray-100 text-gray-800"
+                  }`}
+                >
+                  {viewingEvent.eventType
+                    ? viewingEvent.eventType.charAt(0).toUpperCase() +
+                      viewingEvent.eventType.slice(1)
+                    : "Event"}
                 </span>
-                <h3 className="text-xl font-bold text-gray-900">{viewingEvent.title}</h3>
+                <h3 className="text-xl font-bold text-gray-900">
+                  {viewingEvent.title}
+                </h3>
               </div>
               <div className="flex items-center gap-6 text-sm font-semibold text-gray-500 mb-6 border-b pb-4">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
-                  {viewingEvent.eventDate ? new Date(viewingEvent.eventDate).toLocaleDateString() : 'TBD'}
+                  {viewingEvent.eventDate
+                    ? new Date(viewingEvent.eventDate).toLocaleDateString()
+                    : "TBD"}
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
-                  {viewingEvent.location || 'TBD'}
+                  {viewingEvent.location || "TBD"}
                 </div>
               </div>
               <div className="prose max-w-none text-gray-800 whitespace-pre-wrap leading-relaxed">
                 {viewingEvent.description}
               </div>
-              
+
               <div className="mt-8 pt-4 border-t border-gray-100 flex justify-between items-center">
                 {canCreateEvent && (
                   <div className="flex gap-3">
                     <button
                       onClick={() => {
-                        setViewingEvent(null)
-                        handleStartEdit(viewingEvent)
+                        setViewingEvent(null);
+                        handleStartEdit(viewingEvent);
                       }}
                       className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors text-sm"
                     >
@@ -525,9 +637,11 @@ export default function EventsPage() {
                     </button>
                     <button
                       onClick={() => {
-                        if (confirm('Are you sure you want to cancel this event?')) {
-                          handleDeleteEvent(viewingEvent.eventId)
-                          setViewingEvent(null)
+                        if (
+                          confirm("Are you sure you want to cancel this event?")
+                        ) {
+                          handleDeleteEvent(viewingEvent.eventId);
+                          setViewingEvent(null);
                         }
                       }}
                       className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors text-sm"
@@ -552,12 +666,19 @@ export default function EventsPage() {
       {editingEvent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b flex items-center justify-between" style={{ backgroundColor: '#f2f9e8', borderColor: '#c8e6a0' }}>
-              <h2 className="text-xl font-bold flex items-center gap-2" style={{ color: '#3d6b0f' }}>
-                <Calendar className="w-5 h-5" style={{ color: '#7ab32e' }} />
+            <div
+              className="px-6 py-4 border-b flex items-center justify-between"
+              style={{ backgroundColor: "#f2f9e8", borderColor: "#c8e6a0" }}
+            >
+              <h2
+                className="text-xl font-bold flex items-center gap-2"
+                style={{ color: "#3d6b0f" }}
+              >
+                <Calendar className="w-5 h-5" style={{ color: "#7ab32e" }} />
                 Edit Event
               </h2>
-              <button 
+              <button
+                aria-label="Edit Event"
                 onClick={() => setEditingEvent(null)}
                 className="text-gray-500 hover:text-gray-800 transition-colors p-1"
               >
@@ -567,50 +688,90 @@ export default function EventsPage() {
             <form onSubmit={handleUpdateEvent} className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Event Title *</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">
+                    Event Title *
+                  </label>
                   <input
+                    aria-label="Event Title"
                     type="text"
                     value={editFormData.title}
-                    onChange={e => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
+                    onChange={(e) =>
+                      setEditFormData((prev) => ({
+                        ...prev,
+                        title: e.target.value,
+                      }))
+                    }
                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black"
                     required
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Description</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">
+                    Description
+                  </label>
                   <textarea
+                    aria-label="Event Description"
                     value={editFormData.description}
-                    onChange={e => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) =>
+                      setEditFormData((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
                     rows={3}
                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Date & Start Time *</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">
+                    Date & Start Time *
+                  </label>
                   <input
+                    aria-label="Event Date and Time"
                     type="datetime-local"
                     value={editFormData.eventDate}
-                    onChange={e => setEditFormData(prev => ({ ...prev, eventDate: e.target.value }))}
+                    onChange={(e) =>
+                      setEditFormData((prev) => ({
+                        ...prev,
+                        eventDate: e.target.value,
+                      }))
+                    }
                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Location *</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">
+                    Location *
+                  </label>
                   <input
+                    aria-label="Event Location"
                     type="text"
                     value={editFormData.location}
-                    onChange={e => setEditFormData(prev => ({ ...prev, location: e.target.value }))}
+                    onChange={(e) =>
+                      setEditFormData((prev) => ({
+                        ...prev,
+                        location: e.target.value,
+                      }))
+                    }
                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Event Type</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">
+                    Event Type
+                  </label>
                   <select
+                    aria-label="Event Type"
                     value={editFormData.eventType}
-                    onChange={e => setEditFormData(prev => ({ ...prev, eventType: e.target.value as Event['eventType'] }))}
+                    onChange={(e) =>
+                      setEditFormData((prev) => ({
+                        ...prev,
+                        eventType: e.target.value as Event["eventType"],
+                      }))
+                    }
                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black"
                   >
                     <option value="activity">Activity</option>
@@ -621,10 +782,19 @@ export default function EventsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Target Audience</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">
+                    Target Audience
+                  </label>
                   <select
+                    aria-label="Status Filter"
                     value={editFormData.targetAudience}
-                    onChange={e => setEditFormData(prev => ({ ...prev, targetAudience: e.target.value as Event['targetAudience'] }))}
+                    onChange={(e) =>
+                      setEditFormData((prev) => ({
+                        ...prev,
+                        targetAudience: e.target
+                          .value as Event["targetAudience"],
+                      }))
+                    }
                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black"
                   >
                     <option value="all">Everyone (School-Wide)</option>
@@ -644,7 +814,7 @@ export default function EventsPage() {
                 <button
                   type="submit"
                   className="px-6 py-2 text-white font-medium rounded-lg transition-colors"
-                  style={{ backgroundColor: '#7ab32e' }}
+                  style={{ backgroundColor: "#7ab32e" }}
                 >
                   Save Changes
                 </button>
@@ -654,5 +824,5 @@ export default function EventsPage() {
         </div>
       )}
     </div>
-  )
+  );
 }
